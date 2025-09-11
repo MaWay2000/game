@@ -1,0 +1,93 @@
+[
+  {
+    "id": "wall",
+    "name": "Wall",
+    "color": "#7c7625",
+    "size": [
+      1,
+      3,
+      1
+    ],
+    "collidable": true,
+    "texture": "images/wallTexture.jpg"
+  },
+  {
+    "id": "terrain",
+    "name": "Terrain",
+    "color": "#886633",
+    "size": [
+      1,
+      0.01,
+      1
+    ],
+    "collidable": false,
+    "texture": "images/floorTexture.jpg"
+  },
+  {
+    "id": "3d car",
+    "name": "car",
+    "color": "#cccccc",
+    "size": [
+      1,
+      1,
+      1
+    ],
+    "collidable": true,
+    "model": "models/car.glb"
+  },
+  {
+    "id": "hill",
+    "name": "Hill",
+    "color": "#4b1f31",
+    "size": [
+      1,
+      1,
+      1
+    ],
+    "collidable": false
+  },
+  {
+    "id": "floor",
+    "name": "Floor",
+    "color": "#555555",
+    "size": [
+      1,
+      0.1,
+      1
+    ],
+    "collidable": false
+  },
+  {
+    "id": "door",
+    "name": "Door",
+    "color": "#33231a",
+    "size": [
+      1,
+      2,
+      0.05
+    ],
+    "collidable": false
+  },
+  {
+    "id": "water",
+    "name": "Water",
+    "color": "#1848ed",
+    "size": [
+      1,
+      0.1,
+      1
+    ],
+    "collidable": true
+  },
+  {
+    "id": "test111",
+    "name": "test111",
+    "color": "#ee3539",
+    "size": [
+      1,
+      1,
+      1
+    ],
+    "collidable": true
+  }
+]

@@ -1,0 +1,59 @@
+[
+  {
+    "id": "aaaa",
+    "name": "Test",
+    "color": "#cccccc",
+    "size": [
+      0.7,
+      1.8,
+      0.7
+    ],
+    "collidable": true,
+    "hp": 15,
+    "speed": 0.03,
+    "damage": 5,
+    "attack_range": 1.2,
+    "aggro_range": 6,
+    "spotDistance": 8,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "bbbb",
+    "name": "Test2",
+    "color": "#cccccc",
+    "size": [
+      0.7,
+      1.8,
+      0.7
+    ],
+    "collidable": true,
+    "hp": 15,
+    "speed": 0.03,
+    "damage": 5,
+    "attack_range": 1.2,
+    "aggro_range": 6,
+    "spotDistance": 8,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "",
+    "name": "",
+    "color": "#cccccc",
+    "size": [
+      0.7,
+      1.8,
+      0.7
+    ],
+    "collidable": true,
+    "hp": 15,
+    "speed": 0.03,
+    "damage": 5,
+    "attack_range": 1.2,
+    "aggro_range": 6,
+    "spotDistance": 8,
+    "loot": "",
+    "ai": true
+  }
+]
