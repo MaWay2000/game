@@ -18,6 +18,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const canvas = renderer.domElement;
 
+// Audio for player getting hit
+const hitSound = new Audio('sounds/gethit.mp3');
+
 function spawnSplash() {
   const splash = document.createElement('div');
   splash.className = 'splash';
@@ -45,6 +48,8 @@ function applyShake(delta) {
 }
 
 function handlePlayerHit() {
+  hitSound.currentTime = 0;
+  hitSound.play();
   movement.setEnabled(false);
   setTimeout(() => movement.setEnabled(true), 500);
   spawnSplash();
