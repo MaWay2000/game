@@ -119,7 +119,10 @@ fetch('objects.json')
         const loader = new THREE.GLTFLoader();
         await new Promise(resolve => {
           loader.load(obj.model, gltf => {
-            models[obj.id] = gltf.scene;
+            models[obj.id] = {
+              scene: gltf.scene,
+              animations: gltf.animations || []
+            };
             resolve();
           }, undefined, () => resolve());
         });

@@ -91,19 +91,42 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieIds = [];
     }
 
-    mapObjects.forEach(obj => {
+    for (let i = 0; i < mapObjects.length; i++) {
+        const obj = mapObjects[i];
         const objType = obj.userData ? obj.userData.type : undefined;
         const isZombie = (obj.userData && obj.userData.ai) ||
             (objType && zombieIds.includes(objType));
-        if (isZombie) {
-            // Use the map Mesh as zombie (don't create duplicate)
-            obj.userData.hp = obj.userData.hp ?? 10;
-            obj.userData.spotDistance = obj.userData.spotDistance ?? obj.userData.aggro_range ?? 8;
-            obj.userData.speed = obj.userData.speed ?? 0.01;
-            obj.userData.ai = true;
-            zombies.push(obj);
+        if (!isZombie) continue;
+
+        let zombieMesh = obj;
+
+        // If a GLTF model with animations is available, clone it so that the
+        // skeleton/bones can animate independently.
+        if (models && objType && models[objType] && models[objType].scene) {
+            zombieMesh = models[objType].scene.clone(true);
+            zombieMesh.position.copy(obj.position);
+            zombieMesh.rotation.copy(obj.rotation);
+            zombieMesh.userData = { ...obj.userData };
+
+            if (models[objType].animations && models[objType].animations.length > 0) {
+                const mixer = new THREE.AnimationMixer(zombieMesh);
+                models[objType].animations.forEach(clip => {
+                    mixer.clipAction(clip).play();
+                });
+                zombieMesh.userData.mixer = mixer;
+            }
+
+            scene.add(zombieMesh);
+            if (obj.parent) obj.parent.remove(obj);
+            mapObjects[i] = zombieMesh;
         }
-    });
+
+        zombieMesh.userData.hp = zombieMesh.userData.hp ?? 10;
+        zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
+        zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
+        zombieMesh.userData.ai = true;
+        zombies.push(zombieMesh);
+    }
 }
 
 // Returns all zombie meshes
