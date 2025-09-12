@@ -91,14 +91,17 @@ const models = {};
 // --- Only call spawnZombiesFromMap ONCE after map loads ---
 let zombiesSpawned = false;
 
-fetch('objects.json')
-  .then(res => {
+Promise.all([
+  fetch('objects.json').then(res => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
-  })
-  .then(async objects => {
+  }).catch(() => []),
+  fetch('zombies.json').then(res => res.ok ? res.json() : []).catch(() => [])
+]).then(async ([objects, zombies]) => {
+    const allDefs = [...objects, ...zombies];
+
     // Load geometries/materials/models
-    for (const obj of objects) {
+    for (const obj of allDefs) {
       const size = obj.size || [1, 1, 1];
       geometries[obj.id] = new THREE.BoxGeometry(...size);
 
@@ -114,17 +117,32 @@ fetch('objects.json')
           color: obj.color || '#999999'
         });
       }
+
       // Optional: load GLTF models if needed for zombies/objects
       if (obj.model && window.THREE.GLTFLoader) {
         const loader = new THREE.GLTFLoader();
         await new Promise(resolve => {
-          loader.load(obj.model, gltf => {
-            models[obj.id] = {
-              scene: gltf.scene,
-              animations: gltf.animations || []
-            };
-            resolve();
-          }, undefined, () => resolve());
+          loader.load(
+            obj.model,
+            gltf => {
+              models[obj.id] = {
+                scene: gltf.scene,
+                animations: gltf.animations || []
+              };
+              const clipNames = (gltf.animations || []).map(c => c.name);
+              if (clipNames.length) {
+                console.log(`Loaded model ${obj.model} for ${obj.id} with clips: ${clipNames.join(', ')}`);
+              } else {
+                console.log(`Loaded model ${obj.model} for ${obj.id} with no animation clips`);
+              }
+              resolve();
+            },
+            undefined,
+            err => {
+              console.warn(`Failed to load model ${obj.model} for ${obj.id}`, err);
+              resolve();
+            }
+          );
         });
       }
     }
@@ -138,8 +156,8 @@ fetch('objects.json')
     });
   })
   .catch(err => {
-    console.error('Error loading objects.json:', err);
-    alert('Failed to load object definitions.');
+    console.error('Error loading object/zombie definitions:', err);
+    alert('Failed to load object or zombie definitions.');
   });
 
 // --- Controls, HUD, Movement, etc ---
