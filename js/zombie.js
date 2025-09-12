@@ -2,6 +2,7 @@
 
 let zombies = [];
 let zombieTypeIds = null;
+const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 
 // Helper for horizontal distance (ignore Y axis)
 function distanceXZ(a, b) {
@@ -149,17 +150,16 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
 
             // Scale model to match defined geometry size (so zombies aren't gigantic)
             const rule = zombieMesh.userData && zombieMesh.userData.rules;
-            if (rule && rule.geometry) {
-                const box = new THREE.Box3().setFromObject(zombieMesh);
-                const size = new THREE.Vector3();
-                box.getSize(size);
-                if (size.x > 0 && size.y > 0 && size.z > 0) {
-                    zombieMesh.scale.set(
-                        rule.geometry[0] / size.x,
-                        rule.geometry[1] / size.y,
-                        rule.geometry[2] / size.z
-                    );
-                }
+            const targetSize = (rule && rule.geometry) ? rule.geometry : DEFAULT_ZOMBIE_SIZE;
+            const box = new THREE.Box3().setFromObject(zombieMesh);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            if (size.x > 0 && size.y > 0 && size.z > 0) {
+                zombieMesh.scale.set(
+                    targetSize[0] / size.x,
+                    targetSize[1] / size.y,
+                    targetSize[2] / size.z
+                );
             }
 
             if (models[objType].animations && models[objType].animations.length > 0) {
