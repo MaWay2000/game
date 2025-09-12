@@ -110,10 +110,13 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
 
             if (models[objType].animations && models[objType].animations.length > 0) {
                 const mixer = new THREE.AnimationMixer(zombieMesh);
+                const actions = {};
                 models[objType].animations.forEach(clip => {
-                    mixer.clipAction(clip).play();
+                    actions[clip.name] = mixer.clipAction(clip);
                 });
                 zombieMesh.userData.mixer = mixer;
+                zombieMesh.userData.actions = actions;
+                zombieMesh.userData._actionPlaying = false;
             }
 
             scene.add(zombieMesh);
@@ -134,6 +137,21 @@ export function getZombies() {
     return zombies;
 }
 
+function setZombieAnimation(zombie, moving) {
+    if (!zombie.userData || !zombie.userData.actions) return;
+    const action = zombie.userData.actions.action;
+    if (!action) return;
+    if (moving) {
+        if (!zombie.userData._actionPlaying) {
+            action.reset().play();
+            zombie.userData._actionPlaying = true;
+        }
+    } else if (zombie.userData._actionPlaying) {
+        action.stop();
+        zombie.userData._actionPlaying = false;
+    }
+}
+
 // Basic AI: Only "active" if within spotDistance of player!
 // Make sure to pass [...getLoadedObjects(), ...getZombies()] as collidableObjects!
 export function updateZombies(playerPosition, delta, collidableObjects = [], onPlayerCollide = () => {}) {
@@ -146,6 +164,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
         }
 
         const stepBase = zombie.userData.speed * delta * 60;
+        let moved = false;
         const attemptMove = move => {
             const nextPos = zombie.position.clone().add(move);
             const zombieBox = new THREE.Box3().setFromObject(zombie);
@@ -162,6 +181,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
             }
             if (!collision) {
                 zombie.position.copy(nextPos);
+                moved = true;
                 return true;
             }
 
@@ -185,6 +205,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
                 }
                 if (!axisCollision) {
                     zombie.position.add(axisMove);
+                    moved = true;
                     return true;
                 }
             }
@@ -211,6 +232,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
                 zombie.userData.wanderTimeout = 0; // pick new dir next frame
             }
             zombie.lookAt(zombie.position.x + zombie.userData.wanderDir.x, zombie.position.y, zombie.position.z + zombie.userData.wanderDir.z);
+            setZombieAnimation(zombie, moved);
             return; // done with idle behaviour
         }
 
@@ -224,6 +246,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
                 dir.setLength(stepBase);
                 if (attemptMove(dir)) {
                     zombie.lookAt(zombie.position.x + dir.x, zombie.position.y, zombie.position.z + dir.z);
+                    setZombieAnimation(zombie, moved);
                     return;
                 } else {
                     zombie.userData.path = [];
@@ -291,6 +314,8 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
                 zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
             }
         }
+
+        setZombieAnimation(zombie, moved);
     });
 }
 
