@@ -112,16 +112,47 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
             const nextPos = zombie.position.clone().add(move);
             const zombieBox = new THREE.Box3().setFromObject(zombie);
             zombieBox.translate(move);
+            let collision = false;
             for (const obj of collidableObjects) {
                 if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
                 if (obj === zombie) continue; // Don't collide with self
                 const objBox = new THREE.Box3().setFromObject(obj);
                 if (zombieBox.intersectsBox(objBox)) {
-                    return false;
+                    collision = true;
+                    break;
                 }
             }
-            zombie.position.copy(nextPos);
-            return true;
+            if (!collision) {
+                zombie.position.copy(nextPos);
+                return true;
+            }
+
+            const axisMoves = [
+                new THREE.Vector3(move.x, 0, 0),
+                new THREE.Vector3(0, 0, move.z)
+            ];
+            for (const axisMove of axisMoves) {
+                if (axisMove.lengthSq() === 0) continue;
+                const axisBox = new THREE.Box3().setFromObject(zombie);
+                axisBox.translate(axisMove);
+                let axisCollision = false;
+                for (const obj of collidableObjects) {
+                    if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
+                    if (obj === zombie) continue;
+                    const objBox = new THREE.Box3().setFromObject(obj);
+                    if (axisBox.intersectsBox(objBox)) {
+                        axisCollision = true;
+                        break;
+                    }
+                }
+                if (!axisCollision) {
+                    zombie.position.add(axisMove);
+                    return true;
+                }
+            }
+
+            zombie.position.add(move.clone().multiplyScalar(-0.5));
+            return false;
         };
 
         const spotDistance = zombie.userData.spotDistance || 8;
