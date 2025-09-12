@@ -124,6 +124,8 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
                 zombieMesh.userData.mixer = mixer;
                 zombieMesh.userData.actions = actions;
                 zombieMesh.userData._actionPlaying = false;
+            } else {
+                console.log('Zombie model has no animations; static model will not output animation logs.');
             }
 
             scene.add(zombieMesh);
