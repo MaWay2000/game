@@ -9,6 +9,7 @@ let textures = {};
 let gltfModels = {};
 let gltfAnimations = {};
 let gltfLoadedFlags = {};
+const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 
 const textureLoader = new THREE.TextureLoader();
 const gltfLoader = new THREE.GLTFLoader();
@@ -71,7 +72,7 @@ export async function loadMap(scene) {
             collidable: obj.collidable === true,
             model: obj.model || null,
             ai: obj.ai === true || obj.isZombie === true, // extra fallback
-            geometry: obj.size ? obj.size.slice() : [1,1,1],
+            geometry: obj.size ? obj.size.slice() : ((obj.ai === true || obj.isZombie === true) ? DEFAULT_ZOMBIE_SIZE.slice() : [1,1,1]),
             color: obj.color || '#999999',
             texture: obj.texture || null
         };
