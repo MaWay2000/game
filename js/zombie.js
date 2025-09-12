@@ -400,6 +400,9 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
 // Damage zombie
 export function damageZombie(zombie, dmg) {
     zombie.userData.hp -= dmg;
+    if (zombie.userData.hp > 0 && zombie.userData._movingAction) {
+        zombie.userData._movingAction.reset().play();
+    }
     if (zombie.userData.hp <= 0) {
         zombie.visible = false; // or play anim/remove
     }
