@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GLB Viewer — jsDelivr Import Map</title>
+  <style>
+    html,body{height:100%;margin:0;background:#0b1220;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+    #ui{position:fixed;left:0;top:0;bottom:0;width:280px;box-sizing:border-box;padding:10px;background:#0e1629;border-right:1px solid #1f2a44;z-index:2}
+    #view{position:fixed;left:280px;top:0;right:0;bottom:0}
+    canvas{display:block;width:100%;height:100%}
+    *{box-sizing:border-box}
+    .row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.35rem 0}
+    .label{font-size:.8rem;color:#94a3b8;min-width:86px}
+    select,input[type="range"]{background:#0b1220;color:#e5e7eb;border:1px solid #1f2a44;border-radius:8px;padding:.35rem .5rem}
+    button{background:#60a5fa;color:#0b1220;border:0;border-radius:999px;padding:.45rem .8rem;font-weight:700;cursor:pointer}
+    button.secondary{background:#0b1220;color:#e5e7eb;border:1px solid #1f2a44}
+    .small{font-size:.8rem;color:#94a3b8}
+    .divider{height:1px;background:#1f2a44;margin:.75rem 0}
+    .kbd{font-size:.75rem;padding:.05rem .35rem;border:1px solid #1f2a44;border-radius:6px;background:#0b1220;color:#94a3b8}
+    .file{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .6rem;border:1px dashed #1f2a44;border-radius:10px;background:#0b1220;cursor:pointer}
+  </style>
+
+  <!-- Import map for THREE and addons (examples/jsm/) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="ui">
+    <div class="row">
+      <div class="label">Load model</div>
+      <label class="file">
+        <input id="fileInput" type="file" accept=".glb,model/gltf-binary" style="display:none" />
+        <span>Choose .glb…</span>
+      </label>
+      <button id="loadDefault" class="secondary" title="Looks for ./zombie.glb">Load zombie.glb</button>
+    </div>
+    <div class="divider"></div>
+    <div class="row">
+      <div class="label">Animations</div>
+      <select id="clipSelect" disabled></select>
+    </div>
+    <div class="row">
+      <button id="playBtn" disabled>Play</button>
+      <button id="pauseBtn" class="secondary" disabled>Pause</button>
+      <button id="stopBtn" class="secondary" disabled>Stop</button>
+    </div>
+    <div class="row">
+      <div class="label">Speed</div>
+      <input id="speed" type="range" min="0.1" max="2" value="1" step="0.1" />
+      <span id="speedVal" class="small">1.0×</span>
+    </div>
+    <div class="row">
+      <label><input id="loop" type="checkbox" checked /> Loop</label>
+      <label><input id="crossfade" type="checkbox" checked /> Crossfade</label>
+    </div>
+    <div class="divider"></div>
+    <div class="small">
+      Shortcuts: <span class="kbd">1..9</span> select clips, click viewport to toggle pause/play.
+    </div>
+  </div>
+  <div id="view"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    // --- Setup ---
+    const container = document.getElementById('view');
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#0b1220');
+    const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(2.5, 1.5, 3.2);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x223355, 1.0); scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(3,6,5); scene.add(dir);
+    const grid = new THREE.GridHelper(10,10,0x334455,0x223344); grid.material.transparent = true; grid.material.opacity = .25; scene.add(grid);
+
+    window.addEventListener('resize', () => {
+      const {clientWidth, clientHeight} = container;
+      camera.aspect = clientWidth / clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(clientWidth, clientHeight);
+    });
+
+    // --- Animation state & UI ---
+    let mixer = null, actions = [], activeAction = null, modelRoot = null;
+    const clock = new THREE.Clock();
+    const fileInput = document.getElementById('fileInput');
+    const loadDefaultBtn = document.getElementById('loadDefault');
+    const clipSelect = document.getElementById('clipSelect');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const speed = document.getElementById('speed');
+    const speedVal = document.getElementById('speedVal');
+    const loop = document.getElementById('loop');
+    const crossfade = document.getElementById('crossfade');
+
+    function setButtonsEnabled(hasAnim){
+      clipSelect.disabled = !hasAnim; playBtn.disabled = !hasAnim; pauseBtn.disabled = !hasAnim; stopBtn.disabled = !hasAnim;
+    }
+    function clearModel(){
+      if(modelRoot){
+        scene.remove(modelRoot);
+        modelRoot.traverse(o=>{
+          if(o.geometry) o.geometry.dispose?.();
+          if(o.material){
+            if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose?.());
+            else o.material.dispose?.();
+          }
+        });
+      }
+      if(mixer) mixer.uncacheRoot(modelRoot), mixer = null;
+      actions = []; activeAction = null; modelRoot = null;
+      clipSelect.innerHTML = ''; setButtonsEnabled(false);
+    }
+    function populateClips(gltf){
+      clipSelect.innerHTML = ''; actions = []; activeAction = null;
+      if(!gltf.animations?.length){ setButtonsEnabled(false); return; }
+      mixer = new THREE.AnimationMixer(gltf.scene);
+      const v = parseFloat(speed.value);
+      gltf.animations.forEach((clip,i)=>{
+        const opt = document.createElement('option'); opt.value = i; opt.textContent = clip.name || `Clip ${i+1}`; clipSelect.appendChild(opt);
+        const a = mixer.clipAction(clip); a.clampWhenFinished = true;
+        a.setLoop(loop.checked ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
+        a.timeScale = v; actions.push(a);
+      });
+      clipSelect.value = "0"; activeAction = actions[0]; setButtonsEnabled(true);
+    }
+    function playSelectedClip(){
+      if(!actions.length) return;
+      const idx = parseInt(clipSelect.value || "0",10);
+      const next = actions[idx]; if(!next) return;
+      if(crossfade.checked && activeAction && activeAction !== next){
+        next.reset().play(); activeAction.crossFadeTo(next, .25, false); activeAction = next;
+      } else {
+        actions.forEach(a => { if(a!==next) a.stop(); });
+        next.reset().play(); activeAction = next;
+      }
+    }
+    clipSelect.addEventListener('change', playSelectedClip);
+    playBtn.addEventListener('click', playSelectedClip);
+    pauseBtn.addEventListener('click', ()=>{ if(activeAction) activeAction.paused = !activeAction.paused; });
+    stopBtn.addEventListener('click', ()=>{ if(activeAction) activeAction.stop(); });
+
+    renderer.domElement.addEventListener('click', ()=>{
+      if(!activeAction) return;
+      if(activeAction.isRunning()){ activeAction.paused = !activeAction.paused; if(!activeAction.paused && activeAction.time === 0) activeAction.play(); }
+      else { activeAction.reset().play(); }
+    });
+    window.addEventListener('keydown', (e)=>{
+      const n = parseInt(e.key,10);
+      if(!Number.isNaN(n) && n>=1 && n<=9 && n-1 < actions.length){
+        clipSelect.value = String(n-1); playSelectedClip();
+      }
+    });
+
+    const gltfLoader = new GLTFLoader();
+    async function loadFromArrayBuffer(buffer){
+      return new Promise((res,rej)=>gltfLoader.parse(buffer, '', res, rej));
+    }
+    async function loadFromURL(url){
+      return new Promise((res,rej)=>gltfLoader.load(url, res, undefined, rej));
+    }
+    function fitCameraToObject(object, offset = 1.2){
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3()).length();
+      const center = box.getCenter(new THREE.Vector3());
+      controls.target.copy(center);
+      const distance = (size/(2*Math.tan((Math.PI*camera.fov)/360)));
+      const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+      camera.position.copy(center).add(dir.multiplyScalar(distance*offset));
+      camera.near = size/100; camera.far = size*10; camera.updateProjectionMatrix(); controls.update();
+    }
+
+    fileInput.addEventListener('change', async (e)=>{
+      const f = e.target.files?.[0]; if(!f) return;
+      clearModel();
+      const buf = await f.arrayBuffer();
+      const gltf = await loadFromArrayBuffer(buf);
+      modelRoot = gltf.scene; scene.add(modelRoot); fitCameraToObject(modelRoot); populateClips(gltf);
+    });
+    loadDefaultBtn.addEventListener('click', async ()=>{
+      try{
+        clearModel();
+        const gltf = await loadFromURL('./zombie.glb');
+        modelRoot = gltf.scene; scene.add(modelRoot); fitCameraToObject(modelRoot); populateClips(gltf);
+      }catch(err){ alert('Failed to load ./zombie.glb: ' + err.message); console.error(err); }
+    });
+
+    window.addEventListener('dragover', e=>e.preventDefault());
+    window.addEventListener('drop', async e=>{
+      e.preventDefault();
+      const f = e.dataTransfer?.files?.[0]; if(!f) return;
+      clearModel();
+      const buf = await f.arrayBuffer();
+      const gltf = await loadFromArrayBuffer(buf);
+      modelRoot = gltf.scene; scene.add(modelRoot); fitCameraToObject(modelRoot); populateClips(gltf);
+    });
+
+    // Render loop
+    function tick(){
+      requestAnimationFrame(tick);
+      const dt = clock.getDelta(); if(mixer) mixer.update(dt);
+      controls.update(); renderer.render(scene, camera);
+    }
+    tick();
+  </script>
+</body>
+</html>
