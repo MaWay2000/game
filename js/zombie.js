@@ -119,12 +119,6 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
                 const actionNames = Object.keys(actions);
                 if (actionNames.length > 0) {
                     console.log('Zombie animation clips:', actionNames);
-                    // Create a generic "action" alias using the first clip that
-                    // doesn't look like an idle/static animation.
-                    if (!actions.action) {
-                        const movingName = actionNames.find(name => !/idle|static/i.test(name)) || actionNames[0];
-                        actions.action = actions[movingName];
-                    }
                 }
 
                 zombieMesh.userData.mixer = mixer;
@@ -157,8 +151,7 @@ function setZombieAnimation(zombie, moving) {
     if (!zombie.userData._movingAction) {
         const names = Object.keys(zombie.userData.actions);
         if (names.length === 0) return;
-        const movingName = names.find(name => !/idle|static/i.test(name)) || names[0];
-        zombie.userData._movingAction = zombie.userData.actions[movingName];
+        zombie.userData._movingAction = zombie.userData.actions[names[0]];
     }
 
     const action = zombie.userData._movingAction;
