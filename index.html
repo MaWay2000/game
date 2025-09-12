@@ -33,9 +33,13 @@
 </head>
 <body>
     <div id="crosshair"></div>
-    <script src="js/three.min.js"></script>
-    <script src="js/GLTFLoader.js"></script>
-    <script type="module" src="js/main.js"></script>
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+        window.THREE = THREE;
+        THREE.GLTFLoader = GLTFLoader;
+        import './js/main.js';
+    </script>
 
     <script>
         const audio = new Audio('sounds/background.mp3');
