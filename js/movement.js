@@ -3,6 +3,7 @@ import { reloadAmmo } from './pistol.js';
 
 export function setupMovement(cameraContainer, camera) {
     const keys = {};
+    let enabled = true;
     document.addEventListener('keydown', (e) => {
         keys[e.code] = true;
 
@@ -32,6 +33,7 @@ export function setupMovement(cameraContainer, camera) {
     }
 
     function update() {
+        if (!enabled) return;
         const dir = new THREE.Vector3();
         camera.getWorldDirection(dir);
         dir.y = 0;
@@ -54,5 +56,9 @@ export function setupMovement(cameraContainer, camera) {
         }
     }
 
-    return { update };
+    function setEnabled(val) {
+        enabled = val;
+    }
+
+    return { update, setEnabled };
 }

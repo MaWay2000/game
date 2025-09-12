@@ -16,6 +16,40 @@ scene.add(cameraContainer);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+const canvas = renderer.domElement;
+
+function spawnSplash() {
+  const splash = document.createElement('div');
+  splash.className = 'splash';
+  splash.style.left = `${Math.random() * 80 + 10}%`;
+  splash.style.top = `${Math.random() * 80 + 10}%`;
+  document.body.appendChild(splash);
+  setTimeout(() => splash.remove(), 500);
+}
+
+let shakeTime = 0;
+function triggerShake() {
+  shakeTime = 0.3;
+}
+
+function applyShake(delta) {
+  if (shakeTime > 0) {
+    const intensity = 5;
+    const dx = (Math.random() * 2 - 1) * intensity;
+    const dy = (Math.random() * 2 - 1) * intensity;
+    canvas.style.transform = `translate(${dx}px, ${dy}px)`;
+    shakeTime -= delta;
+  } else {
+    canvas.style.transform = '';
+  }
+}
+
+function handlePlayerHit() {
+  movement.setEnabled(false);
+  setTimeout(() => movement.setEnabled(true), 500);
+  spawnSplash();
+  triggerShake();
+}
 
 // ---- Torch (SpotLight) setup ----
 const TORCH_COLOR = 0xffe5a0;
@@ -140,6 +174,7 @@ function animate() {
   const delta = clock.getDelta();
 
   movement.update();
+  applyShake(delta);
 
   // Chunk logic (this does not affect zombies)
   const playerX = Math.round(cameraContainer.position.x / UPDATE_CHUNK_SIZE) * UPDATE_CHUNK_SIZE;
@@ -154,7 +189,7 @@ function animate() {
 
   // ---- ZOMBIE AI update ----
   const playerPos = cameraContainer.position;
-  updateZombies(playerPos, delta, getLoadedObjects());
+  updateZombies(playerPos, delta, getLoadedObjects(), handlePlayerHit);
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
