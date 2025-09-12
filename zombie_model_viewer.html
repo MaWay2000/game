@@ -5,7 +5,7 @@
   <title>Zombie Model Viewer</title>
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
-    #ui { position: fixed; top: 10px; left: 10px; z-index: 1; }
+    #ui { position: fixed; top: 10px; left: 10px; z-index: 1; display: flex; gap: 6px; flex-wrap: wrap; }
     select { padding: 4px; }
     canvas { display: block; }
   </style>
@@ -19,9 +19,12 @@
   </script>
 </head>
 <body>
-  <div id="ui">
-    <select id="zombieSelect"></select>
-  </div>
+    <div id="ui">
+      <select id="zombieSelect"></select>
+      <button id="playBtn" disabled>Play</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="stopBtn" disabled>Stop</button>
+    </div>
   <canvas id="view"></canvas>
 
   <script type="module">
@@ -63,6 +66,20 @@
 
     const loader = new GLTFLoader();
     let model = null;
+    let mixer = null;
+    let action = null;
+    const clock = new THREE.Clock();
+
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+
+    function setButtonsEnabled(hasAnim) {
+      playBtn.disabled = !hasAnim;
+      pauseBtn.disabled = !hasAnim;
+      stopBtn.disabled = !hasAnim;
+    }
+
     function loadModel(path) {
       if (model) {
         scene.remove(model);
@@ -75,10 +92,23 @@
         });
         model = null;
       }
+      if (mixer) {
+        mixer.stopAllAction();
+        mixer.uncacheRoot(mixer.getRoot());
+        mixer = null;
+        action = null;
+      }
+      setButtonsEnabled(false);
       if (!path) return;
       loader.load(path, gltf => {
         model = gltf.scene;
         scene.add(model);
+        if (gltf.animations && gltf.animations.length) {
+          mixer = new THREE.AnimationMixer(model);
+          action = mixer.clipAction(gltf.animations[0]);
+          action.play();
+          setButtonsEnabled(true);
+        }
       });
     }
 
@@ -96,8 +126,25 @@
     });
     select.addEventListener('change', () => loadModel(select.value));
 
+    playBtn.addEventListener('click', () => {
+      if (!action) return;
+      if (action.isRunning()) {
+        action.paused = false;
+      } else {
+        action.reset().play();
+      }
+    });
+    pauseBtn.addEventListener('click', () => {
+      if (action) action.paused = !action.paused;
+    });
+    stopBtn.addEventListener('click', () => {
+      if (action) action.stop();
+    });
+
     function animate() {
       requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixer) mixer.update(delta);
       controls.update();
       renderer.render(scene, camera);
     }
