@@ -151,9 +151,28 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
             // Scale model to match defined geometry size (so zombies aren't gigantic)
             const rule = zombieMesh.userData && zombieMesh.userData.rules;
             const targetSize = (rule && rule.geometry) ? rule.geometry : DEFAULT_ZOMBIE_SIZE;
+
+            // Initial bounding box
+            zombieMesh.updateMatrixWorld(true);
             const box = new THREE.Box3().setFromObject(zombieMesh);
             const size = new THREE.Vector3();
             box.getSize(size);
+
+            // If any dimension is zero, recompute using mesh geometries to avoid
+            // oversized models when bounding boxes are missing (e.g. skinned meshes)
+            if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
+                box.makeEmpty();
+                zombieMesh.traverse(node => {
+                    if (node.isMesh && node.geometry) {
+                        node.geometry.computeBoundingBox();
+                        const nodeBox = node.geometry.boundingBox.clone();
+                        nodeBox.applyMatrix4(node.matrixWorld);
+                        box.union(nodeBox);
+                    }
+                });
+                box.getSize(size);
+            }
+
             if (size.x > 0 && size.y > 0 && size.z > 0) {
                 zombieMesh.scale.set(
                     targetSize[0] / size.x,
