@@ -45,9 +45,15 @@
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // Expose THREE globally so non-module scripts can use it.
         window.THREE = THREE;
         THREE.GLTFLoader = GLTFLoader;
-        import './js/main.js';
+
+        // Dynamically import the main game script after THREE is defined
+        // to ensure modules like mapLoader.js can access the global THREE
+        // object without encountering "THREE is not defined" errors.
+        import('./js/main.js');
     </script>
 
     <script>
