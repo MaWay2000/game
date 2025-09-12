@@ -33,18 +33,11 @@ function loadGLTFModel(id, modelPath) {
 }
 
 export async function loadMap(scene) {
-    const rulesResponse = await fetch('mapmaker.php?list_json_files=1');
-    if (!rulesResponse.ok) {
-        console.error('Failed to fetch object rule list.');
-        return [];
-    }
-    let jsonFiles;
-    try {
-        jsonFiles = await rulesResponse.json();
-    } catch (e) {
-        console.error('Invalid JSON from mapmaker.php', e);
-        return [];
-    }
+    // GitHub Pages and other static hosts cannot execute PHP files.
+    // Instead of requesting "mapmaker.php" to list available JSON files,
+    // we directly reference the JSON sources used by the game.
+    const jsonFiles = ['objects', 'zombies'];
+
     objectRules = {};
     geometries = {};
     materials = {};
@@ -104,7 +97,8 @@ export async function loadMap(scene) {
 
     await Promise.all(gltfPromises);
 
-    const resMap = await fetch('load_map.php');
+    // The map data is stored in a static JSON file when served from GitHub Pages.
+    const resMap = await fetch('saved_map.json');
     if (!resMap.ok) {
         console.error('Failed to fetch map data.');
         return [];
@@ -113,7 +107,7 @@ export async function loadMap(scene) {
     try {
         mapData = await resMap.json();
     } catch (e) {
-        console.error('Invalid JSON from load_map.php', e);
+        console.error('Invalid JSON from saved_map.json', e);
         return [];
     }
 
