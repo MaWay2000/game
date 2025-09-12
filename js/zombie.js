@@ -151,7 +151,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
                 }
             }
 
-            zombie.position.add(move.clone().multiplyScalar(-0.5));
+            zombie.position.add(move.clone().multiplyScalar(-1));
             return false;
         };
 
