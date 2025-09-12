@@ -80,11 +80,22 @@ async function getZombieTypeIds() {
 // Loads zombies from map objects (Mesh-based!)
 export async function spawnZombiesFromMap(scene, mapObjects, models, materials) {
     zombies = [];
-    const zombieIds = await getZombieTypeIds();
+
+    // Try to load zombie type IDs, but don't rely solely on them. If the
+    // fetch fails (e.g. offline or missing file) fall back to objects that
+    // already have the `ai` flag set in their userData.
+    let zombieIds = [];
+    try {
+        zombieIds = await getZombieTypeIds();
+    } catch (e) {
+        zombieIds = [];
+    }
 
     mapObjects.forEach(obj => {
         const objType = obj.userData ? obj.userData.type : undefined;
-        if (zombieIds.includes(objType)) {
+        const isZombie = (obj.userData && obj.userData.ai) ||
+            (objType && zombieIds.includes(objType));
+        if (isZombie) {
             // Use the map Mesh as zombie (don't create duplicate)
             obj.userData.hp = obj.userData.hp ?? 10;
             obj.userData.spotDistance = obj.userData.spotDistance ?? obj.userData.aggro_range ?? 8;
