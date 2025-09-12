@@ -124,12 +124,7 @@ export async function loadMap(scene) {
 
         // ---- NEW: Always allow zombies and model objects! ----
         if (rule && rule.model && gltfModels[type]) {
-            const sourceModel = gltfModels[type];
-            if (THREE.SkeletonUtils && THREE.SkeletonUtils.clone) {
-                mesh = THREE.SkeletonUtils.clone(sourceModel);
-            } else {
-                mesh = sourceModel.clone(true);
-            }
+            mesh = gltfModels[type].clone(true);
             mesh.traverse(node => {
                 if (node.isMesh) {
                     node.material = node.material.clone();
