@@ -249,9 +249,16 @@ function setZombieAnimation(zombie, moving) {
     }
 }
 
-// Update zombies: keep them stationary but let their animations run
-// Parameters are retained for API compatibility but are unused.
+// Update zombies: move them toward the player using a simple grid-based path
+// finding routine that avoids collidable objects. If a zombie collides with the
+// player, the provided callback is invoked.
 export function updateZombies(playerPosition, delta, collidableObjects = [], onPlayerCollide = () => {}) {
+    const obstacles = buildObstacleMap(collidableObjects);
+    const playerBox = new THREE.Box3().setFromCenterAndSize(
+        new THREE.Vector3(playerPosition.x, 1.6, playerPosition.z),
+        new THREE.Vector3(0.5, 1.6, 0.5)
+    );
+
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return; // dead
 
@@ -259,8 +266,40 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
             zombie.userData.mixer.update(delta);
         }
 
-        // Always treat zombies as "moving" so their walk animation plays
-        setZombieAnimation(zombie, true);
+        let moving = false;
+        const dist = distanceXZ(zombie.position, playerPosition);
+        if (dist < (zombie.userData.spotDistance || 0)) {
+            const start = { x: Math.floor(zombie.position.x), z: Math.floor(zombie.position.z) };
+            const goal = { x: Math.floor(playerPosition.x), z: Math.floor(playerPosition.z) };
+            const lastGoal = zombie.userData._lastGoal;
+            if (!zombie.userData.path || zombie.userData.path.length === 0 ||
+                !lastGoal || lastGoal.x !== goal.x || lastGoal.z !== goal.z) {
+                zombie.userData.path = findPath(start, goal, obstacles);
+                zombie.userData._lastGoal = goal;
+            }
+
+            if (zombie.userData.path && zombie.userData.path.length > 0) {
+                const next = zombie.userData.path[0];
+                const dir = new THREE.Vector3(next.x - zombie.position.x, 0, next.z - zombie.position.z);
+                const step = zombie.userData.speed || 0.02;
+                if (dir.lengthSq() > step * step) {
+                    dir.normalize().multiplyScalar(step);
+                    zombie.position.add(dir);
+                } else {
+                    zombie.position.set(next.x, zombie.position.y, next.z);
+                    zombie.userData.path.shift();
+                }
+                zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
+                moving = true;
+            }
+        }
+
+        setZombieAnimation(zombie, moving);
+
+        const zombieBox = new THREE.Box3().setFromObject(zombie);
+        if (zombieBox.intersectsBox(playerBox)) {
+            onPlayerCollide(zombie);
+        }
     });
 }
 
