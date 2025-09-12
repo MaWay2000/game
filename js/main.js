@@ -53,7 +53,10 @@ const models = {};
 let zombiesSpawned = false;
 
 fetch('objects.json')
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  })
   .then(async objects => {
     // Load geometries/materials/models
     for (const obj of objects) {
@@ -90,7 +93,6 @@ fetch('objects.json')
         spawnZombiesFromMap(scene, mapObjects, models, materials);
         zombiesSpawned = true;
       }
-      addPistolToCamera(camera);
     });
   })
   .catch(err => {
@@ -105,6 +107,7 @@ updateHUD(10, 100);
 initCrosshair();
 enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera);
+addPistolToCamera(camera);
 
 document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);

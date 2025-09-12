@@ -34,7 +34,17 @@ function loadGLTFModel(id, modelPath) {
 
 export async function loadMap(scene) {
     const rulesResponse = await fetch('mapmaker.php?list_json_files=1');
-    const jsonFiles = await rulesResponse.json();
+    if (!rulesResponse.ok) {
+        console.error('Failed to fetch object rule list.');
+        return [];
+    }
+    let jsonFiles;
+    try {
+        jsonFiles = await rulesResponse.json();
+    } catch (e) {
+        console.error('Invalid JSON from mapmaker.php', e);
+        return [];
+    }
     objectRules = {};
     geometries = {};
     materials = {};
@@ -48,8 +58,12 @@ export async function loadMap(scene) {
         if (file === 'saved_map') continue;
         const res = await fetch(`${file}.json`);
         if (!res.ok) continue;
-        const arr = await res.json();
-        allDefinitions = allDefinitions.concat(arr);
+        try {
+            const arr = await res.json();
+            allDefinitions = allDefinitions.concat(arr);
+        } catch (e) {
+            console.warn(`Invalid JSON in ${file}.json`, e);
+        }
     }
 
     for (const obj of allDefinitions) {
@@ -91,7 +105,17 @@ export async function loadMap(scene) {
     await Promise.all(gltfPromises);
 
     const resMap = await fetch('load_map.php');
-    const mapData = await resMap.json();
+    if (!resMap.ok) {
+        console.error('Failed to fetch map data.');
+        return [];
+    }
+    let mapData;
+    try {
+        mapData = await resMap.json();
+    } catch (e) {
+        console.error('Invalid JSON from load_map.php', e);
+        return [];
+    }
 
     loadedObjects = [];
 

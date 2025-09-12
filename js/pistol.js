@@ -24,6 +24,11 @@ export function addPistolToCamera(camera) {
 }
 
 export function shootPistol(scene, camera) {
+    if (!pistol) {
+        console.warn('Pistol not ready.');
+        return;
+    }
+
     if (isReloading) {
         console.log("? Reload canceled + firing...");
         isReloading = false;
@@ -99,6 +104,12 @@ export function shootPistol(scene, camera) {
 }
 
 export function reloadAmmo(onReloaded) {
+    if (!pistol) {
+        console.warn('Pistol not ready.');
+        onReloaded?.();
+        return;
+    }
+
     if (isReloading || clipAmmo === maxClip) {
         console.log("? Already full or reloading.");
         onReloaded?.();
