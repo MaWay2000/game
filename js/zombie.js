@@ -3,10 +3,10 @@
 let zombies = [];
 let zombieTypeIds = null;
 
-// Helper for 3D distance
-function distance3D(a, b) {
-    const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+// Helper for horizontal distance (ignore Y axis)
+function distanceXZ(a, b) {
+    const dx = a.x - b.x, dz = a.z - b.z;
+    return Math.sqrt(dx * dx + dz * dz);
 }
 
 // Build a simple grid of blocked cells from collidable objects
@@ -156,7 +156,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
         };
 
         const spotDistance = zombie.userData.spotDistance || 8;
-        const dist = distance3D(zombie.position, playerPosition);
+        const dist = distanceXZ(zombie.position, playerPosition);
 
         // --- Wander when player is far away ---
         if (dist > spotDistance) {
@@ -233,6 +233,7 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
 
         // --- Move toward player using simple pathfinding ---
         const toPlayer = new THREE.Vector3().copy(playerPosition).sub(zombie.position);
+        toPlayer.y = 0; // ignore vertical difference
         if (toPlayer.length() > 0.1) {
             const moveDir = toPlayer.clone().setLength(stepBase);
             if (!attemptMove(moveDir)) {
