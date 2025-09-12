@@ -114,6 +114,19 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
                 models[objType].animations.forEach(clip => {
                     actions[clip.name] = mixer.clipAction(clip);
                 });
+
+                // Log available animation clip names for debugging
+                const actionNames = Object.keys(actions);
+                if (actionNames.length > 0) {
+                    console.log('Zombie animation clips:', actionNames);
+                    // Create a generic "action" alias using the first clip that
+                    // doesn't look like an idle/static animation.
+                    if (!actions.action) {
+                        const movingName = actionNames.find(name => !/idle|static/i.test(name)) || actionNames[0];
+                        actions.action = actions[movingName];
+                    }
+                }
+
                 zombieMesh.userData.mixer = mixer;
                 zombieMesh.userData.actions = actions;
                 zombieMesh.userData._actionPlaying = false;
@@ -139,8 +152,18 @@ export function getZombies() {
 
 function setZombieAnimation(zombie, moving) {
     if (!zombie.userData || !zombie.userData.actions) return;
-    const action = zombie.userData.actions.action;
+
+    // Determine and cache a suitable "moving" action if not already set.
+    if (!zombie.userData._movingAction) {
+        const names = Object.keys(zombie.userData.actions);
+        if (names.length === 0) return;
+        const movingName = names.find(name => !/idle|static/i.test(name)) || names[0];
+        zombie.userData._movingAction = zombie.userData.actions[movingName];
+    }
+
+    const action = zombie.userData._movingAction;
     if (!action) return;
+
     if (moving) {
         if (!zombie.userData._actionPlaying) {
             action.reset().play();
