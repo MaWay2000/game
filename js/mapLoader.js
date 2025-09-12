@@ -20,7 +20,11 @@ function loadGLTFModel(id, modelPath) {
             modelPath,
             gltf => {
                 gltfModels[id] = gltf.scene;
-                gltfAnimations[id] = gltf.animations || [];
+                // Skip any default "Static" clip to prevent it from
+                // overriding the real animated clip (e.g. Mixamo export).
+                gltfAnimations[id] = (gltf.animations || []).filter(
+                    clip => clip.name.toLowerCase() !== 'static'
+                );
                 gltfLoadedFlags[id] = true;
                 resolve();
             },
