@@ -162,6 +162,7 @@ export function updateBullets(deltaTime) {
 
         for (const obj of objects) {
             const rules = obj.userData.rules || {};
+            if (obj.userData.ai) continue;
             if (rules.collidable) {
                 const objBox = new THREE.Box3().setFromObject(obj);
                 if (bulletBox.intersectsBox(objBox)) {
