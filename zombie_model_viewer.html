@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zombie Model Viewer</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    #ui { position: fixed; top: 10px; left: 10px; z-index: 1; }
+    select { padding: 4px; }
+    canvas { display: block; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="ui">
+    <select id="zombieSelect"></select>
+  </div>
+  <canvas id="view"></canvas>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const canvas = document.getElementById('view');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#222');
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(2.5, 1.5, 3);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(5, 10, 7);
+    scene.add(dir);
+
+    const grid = new THREE.GridHelper(10, 10, 0x334455, 0x223344);
+    grid.material.transparent = true;
+    grid.material.opacity = 0.25;
+    scene.add(grid);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    const loader = new GLTFLoader();
+    let model = null;
+    function loadModel(path) {
+      if (model) {
+        scene.remove(model);
+        model.traverse(o => {
+          if (o.geometry) o.geometry.dispose?.();
+          if (o.material) {
+            if (Array.isArray(o.material)) o.material.forEach(m => m.dispose?.());
+            else o.material.dispose?.();
+          }
+        });
+        model = null;
+      }
+      if (!path) return;
+      loader.load(path, gltf => {
+        model = gltf.scene;
+        scene.add(model);
+      });
+    }
+
+    const select = document.getElementById('zombieSelect');
+    fetch('zombies.json').then(r => r.json()).then(zombies => {
+      zombies.filter(z => z.model).forEach(z => {
+        const opt = document.createElement('option');
+        opt.value = z.model;
+        opt.textContent = z.name || z.id || z.model;
+        select.appendChild(opt);
+      });
+      if (select.options.length) {
+        loadModel(select.value);
+      }
+    });
+    select.addEventListener('change', () => loadModel(select.value));
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
