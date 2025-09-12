@@ -77,6 +77,43 @@ async function getZombieTypeIds() {
     }
 }
 
+// Clone a GLTF scene including skinned mesh skeletons so that
+// animations work on independent instances. Based on THREE's
+// SkeletonUtils.clone helper.
+function cloneSkinned(source) {
+    const sourceLookup = new Map();
+    const cloneLookup = new Map();
+
+    const clone = source.clone(true);
+
+    parallelTraverse(source, clone, (srcNode, clonedNode) => {
+        sourceLookup.set(clonedNode, srcNode);
+        cloneLookup.set(srcNode, clonedNode);
+    });
+
+    clone.traverse(node => {
+        if (!node.isSkinnedMesh) return;
+
+        const srcMesh = sourceLookup.get(node);
+        const srcBones = srcMesh.skeleton.bones;
+
+        node.skeleton = srcMesh.skeleton.clone();
+        node.bindMatrix.copy(srcMesh.bindMatrix);
+
+        node.skeleton.bones = srcBones.map(bone => cloneLookup.get(bone));
+        node.bind(node.skeleton, node.bindMatrix);
+    });
+
+    return clone;
+}
+
+function parallelTraverse(a, b, callback) {
+    callback(a, b);
+    for (let i = 0; i < a.children.length; i++) {
+        parallelTraverse(a.children[i], b.children[i], callback);
+    }
+}
+
 // Loads zombies from map objects (Mesh-based!)
 export async function spawnZombiesFromMap(scene, mapObjects, models, materials) {
     zombies = [];
@@ -105,7 +142,7 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         // skeleton/bones can animate independently.
         if (models && objType && models[objType] && models[objType].scene) {
             console.log(`Spawning zombie ${objType} using model ${modelPath || 'unknown'}`);
-            zombieMesh = models[objType].scene.clone(true);
+            zombieMesh = cloneSkinned(models[objType].scene);
             zombieMesh.position.copy(obj.position);
             zombieMesh.rotation.copy(obj.rotation);
             zombieMesh.userData = { ...obj.userData };
