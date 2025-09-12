@@ -110,6 +110,21 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
             zombieMesh.rotation.copy(obj.rotation);
             zombieMesh.userData = { ...obj.userData };
 
+            // Scale model to match defined geometry size (so zombies aren't gigantic)
+            const rule = zombieMesh.userData && zombieMesh.userData.rules;
+            if (rule && rule.geometry) {
+                const box = new THREE.Box3().setFromObject(zombieMesh);
+                const size = new THREE.Vector3();
+                box.getSize(size);
+                if (size.x > 0 && size.y > 0 && size.z > 0) {
+                    zombieMesh.scale.set(
+                        rule.geometry[0] / size.x,
+                        rule.geometry[1] / size.y,
+                        rule.geometry[2] / size.z
+                    );
+                }
+            }
+
             if (models[objType].animations && models[objType].animations.length > 0) {
                 const mixer = new THREE.AnimationMixer(zombieMesh);
                 const actions = {};
