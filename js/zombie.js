@@ -151,7 +151,11 @@ function setZombieAnimation(zombie, moving) {
     if (!zombie.userData._movingAction) {
         const names = Object.keys(zombie.userData.actions);
         if (names.length === 0) return;
-        zombie.userData._movingAction = zombie.userData.actions[names[0]];
+        const clipName = names[0];
+        zombie.userData._movingAction = zombie.userData.actions[clipName];
+
+        const zombieName = zombie.name || zombie.userData.type || zombie.uuid;
+        console.log(`Zombie ${zombieName} loaded clip ${clipName}`);
     }
 
     const action = zombie.userData._movingAction;
