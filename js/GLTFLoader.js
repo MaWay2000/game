@@ -784,30 +784,39 @@
 
 			}
 
-			const pending = [];
-			const extension = materialDef.extensions[ this.name ];
-			materialParams.specularIntensity = extension.specularFactor !== undefined ? extension.specularFactor : 1.0;
+                       const pending = [];
+                       const extension = materialDef.extensions[ this.name ];
 
-			if ( extension.specularTexture !== undefined ) {
+                       if ( 'specularIntensity' in THREE.MeshPhysicalMaterial.prototype ) {
 
-				pending.push( parser.assignTexture( materialParams, 'specularIntensityMap', extension.specularTexture ) );
+                               materialParams.specularIntensity = extension.specularFactor !== undefined ? extension.specularFactor : 1.0;
 
-			}
+                               if ( extension.specularTexture !== undefined && 'specularIntensityMap' in THREE.MeshPhysicalMaterial.prototype ) {
 
-			const colorArray = extension.specularColorFactor || [ 1, 1, 1 ];
-			materialParams.specularTint = new THREE.Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
+                                       pending.push( parser.assignTexture( materialParams, 'specularIntensityMap', extension.specularTexture ) );
 
-			if ( extension.specularColorTexture !== undefined ) {
+                               }
 
-				pending.push( parser.assignTexture( materialParams, 'specularTintMap', extension.specularColorTexture ).then( function ( texture ) {
+                       }
 
-					texture.encoding = THREE.sRGBEncoding;
+                       if ( 'specularColor' in THREE.MeshPhysicalMaterial.prototype ) {
 
-				} ) );
+                               const colorArray = extension.specularColorFactor || [ 1, 1, 1 ];
+                               materialParams.specularColor = new THREE.Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
 
-			}
+                               if ( extension.specularColorTexture !== undefined && 'specularColorMap' in THREE.MeshPhysicalMaterial.prototype ) {
 
-			return Promise.all( pending );
+                                       pending.push( parser.assignTexture( materialParams, 'specularColorMap', extension.specularColorTexture ).then( function ( texture ) {
+
+                                               texture.encoding = THREE.sRGBEncoding;
+
+                                       } ) );
+
+                               }
+
+                       }
+
+                       return Promise.all( pending );
 
 		}
 
