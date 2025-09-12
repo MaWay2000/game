@@ -70,11 +70,17 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
 
                 for (const attempt of pushAttempts) {
                     const nextPlayerPos = playerPosition.clone().add(attempt);
+                    // Use bounding boxes to check for collisions like the player movement code
+                    const playerBox = new THREE.Box3().setFromCenterAndSize(
+                        new THREE.Vector3(nextPlayerPos.x, 1.6, nextPlayerPos.z),
+                        new THREE.Vector3(0.5, 1.6, 0.5)
+                    );
                     let collision = false;
                     for (const obj of collidableObjects) {
                         if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
                         if (obj === zombie) continue;
-                        if (nextPlayerPos.distanceTo(obj.position) < 0.5) {
+                        const objBox = new THREE.Box3().setFromObject(obj);
+                        if (playerBox.intersectsBox(objBox)) {
                             collision = true;
                             break;
                         }
@@ -95,12 +101,14 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
 
             // Try to move and avoid walls and other zombies!
             const nextPos = zombie.position.clone().add(toPlayer);
+            const zombieBox = new THREE.Box3().setFromObject(zombie);
+            zombieBox.translate(toPlayer);
             let collision = false;
             for (const obj of collidableObjects) {
                 if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
                 if (obj === zombie) continue; // Don't collide with self
-                // You may want to use a larger threshold for big zombies/objects
-                if (nextPos.distanceTo(obj.position) < 0.5) {
+                const objBox = new THREE.Box3().setFromObject(obj);
+                if (zombieBox.intersectsBox(objBox)) {
                     collision = true;
                     break;
                 }
