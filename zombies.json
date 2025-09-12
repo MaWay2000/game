@@ -19,6 +19,26 @@
     "loot": "",
     "ai": true
   },
+    {
+    "id": "ccc",
+    "name": "Test3",
+    "color": "#cccccc",
+    "size": [
+      1,
+      1,
+      1
+    ],
+    "collidable": true,
+    "model": "models/zombie3.glb",
+    "hp": 15,
+    "speed": 0.03,
+    "damage": 5,
+    "attack_range": 1.2,
+    "aggro_range": 6,
+    "spotDistance": 8,
+    "loot": "",
+    "ai": true
+  },
   {
     "id": "bbbb",
     "name": "Test2",
