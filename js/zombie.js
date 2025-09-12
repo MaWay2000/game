@@ -54,7 +54,37 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
         const spotDistance = zombie.userData.spotDistance || 8;
         const dist = distance3D(zombie.position, playerPosition);
 
-        if (dist > spotDistance) return; // out of aggro range
+        // --- Wander when player is far away ---
+        if (dist > spotDistance) {
+            if (!zombie.userData.wanderDir || zombie.userData.wanderTimeout < performance.now()) {
+                const angle = Math.random() * Math.PI * 2;
+                zombie.userData.wanderDir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+                zombie.userData.wanderTimeout = performance.now() + 2000 + Math.random() * 3000;
+            }
+
+            const step = zombie.userData.speed * delta * 60 * 0.5;
+            const move = zombie.userData.wanderDir.clone().setLength(step);
+            const nextPos = zombie.position.clone().add(move);
+            const zombieBox = new THREE.Box3().setFromObject(zombie);
+            zombieBox.translate(move);
+            let collision = false;
+            for (const obj of collidableObjects) {
+                if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
+                if (obj === zombie) continue;
+                const objBox = new THREE.Box3().setFromObject(obj);
+                if (zombieBox.intersectsBox(objBox)) {
+                    collision = true;
+                    break;
+                }
+            }
+            if (!collision) {
+                zombie.position.copy(nextPos);
+            } else {
+                zombie.userData.wanderTimeout = 0; // pick new dir next frame
+            }
+            zombie.lookAt(zombie.position.x + zombie.userData.wanderDir.x, zombie.position.y, zombie.position.z + zombie.userData.wanderDir.z);
+            return; // done with idle behaviour
+        }
 
         if (dist < 0.5) {
             const pushDir = new THREE.Vector3().copy(playerPosition).sub(zombie.position);
@@ -94,28 +124,36 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
             onPlayerCollide();
         }
 
-        // --- Simple AI: move toward player with collision ---
+        // --- Simple AI: move toward player with simple avoidance ---
         const toPlayer = new THREE.Vector3().copy(playerPosition).sub(zombie.position);
         if (toPlayer.length() > 0.1) {
-            toPlayer.setLength(zombie.userData.speed * delta * 60);
+            const step = zombie.userData.speed * delta * 60;
+            toPlayer.setLength(step);
 
-            // Try to move and avoid walls and other zombies!
-            const nextPos = zombie.position.clone().add(toPlayer);
-            const zombieBox = new THREE.Box3().setFromObject(zombie);
-            zombieBox.translate(toPlayer);
-            let collision = false;
-            for (const obj of collidableObjects) {
-                if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
-                if (obj === zombie) continue; // Don't collide with self
-                const objBox = new THREE.Box3().setFromObject(obj);
-                if (zombieBox.intersectsBox(objBox)) {
-                    collision = true;
-                    break;
+            const attemptMove = move => {
+                const nextPos = zombie.position.clone().add(move);
+                const zombieBox = new THREE.Box3().setFromObject(zombie);
+                zombieBox.translate(move);
+                for (const obj of collidableObjects) {
+                    if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
+                    if (obj === zombie) continue; // Don't collide with self
+                    const objBox = new THREE.Box3().setFromObject(obj);
+                    if (zombieBox.intersectsBox(objBox)) {
+                        return false;
+                    }
+                }
+                zombie.position.copy(nextPos);
+                return true;
+            };
+
+            if (!attemptMove(toPlayer)) {
+                const left = new THREE.Vector3(-toPlayer.z, 0, toPlayer.x).setLength(step);
+                if (!attemptMove(left)) {
+                    const right = left.clone().negate();
+                    attemptMove(right);
                 }
             }
-            if (!collision) {
-                zombie.position.copy(nextPos);
-            }
+
             zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
         }
     });
