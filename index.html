@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>3D First-Person Game</title>
+    <link rel="icon" href="favicon.ico">
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
@@ -30,12 +31,20 @@
             to { opacity: 0; transform: scale(2); }
         }
     </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
 </head>
 <body>
     <div id="crosshair"></div>
     <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         window.THREE = THREE;
         THREE.GLTFLoader = GLTFLoader;
         import './js/main.js';
