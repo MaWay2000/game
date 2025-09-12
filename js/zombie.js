@@ -107,6 +107,10 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return; // dead
 
+        if (zombie.userData.mixer) {
+            zombie.userData.mixer.update(delta);
+        }
+
         const stepBase = zombie.userData.speed * delta * 60;
         const attemptMove = move => {
             const nextPos = zombie.position.clone().add(move);

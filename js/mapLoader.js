@@ -7,6 +7,7 @@ let geometries = {};
 let materials = {};
 let textures = {};
 let gltfModels = {};
+let gltfAnimations = {};
 let gltfLoadedFlags = {};
 
 const textureLoader = new THREE.TextureLoader();
@@ -19,6 +20,7 @@ function loadGLTFModel(id, modelPath) {
             modelPath,
             gltf => {
                 gltfModels[id] = gltf.scene;
+                gltfAnimations[id] = gltf.animations || [];
                 gltfLoadedFlags[id] = true;
                 resolve();
             },
@@ -43,6 +45,7 @@ export async function loadMap(scene) {
     materials = {};
     textures = {};
     gltfModels = {};
+    gltfAnimations = {};
     gltfLoadedFlags = {};
 
     let allDefinitions = [];
@@ -140,6 +143,14 @@ export async function loadMap(scene) {
                         rule.geometry[2] / size.z
                     );
                 }
+            }
+            if (gltfAnimations[type] && gltfAnimations[type].length > 0) {
+                const mixer = new THREE.AnimationMixer(mesh);
+                gltfAnimations[type].forEach(clip => {
+                    const action = mixer.clipAction(clip);
+                    action.play();
+                });
+                mesh.userData.mixer = mixer;
             }
             mesh.position.fromArray(position);
             mesh.rotation.y = rotation;
