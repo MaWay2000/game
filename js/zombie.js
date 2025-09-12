@@ -47,7 +47,7 @@ export function getZombies() {
 
 // Basic AI: Only "active" if within spotDistance of player!
 // Make sure to pass [...getLoadedObjects(), ...getZombies()] as collidableObjects!
-export function updateZombies(playerPosition, delta, collidableObjects = []) {
+export function updateZombies(playerPosition, delta, collidableObjects = [], onPlayerCollide = () => {}) {
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return; // dead
 
@@ -55,6 +55,10 @@ export function updateZombies(playerPosition, delta, collidableObjects = []) {
         const dist = distance3D(zombie.position, playerPosition);
 
         if (dist > spotDistance) return; // out of aggro range
+
+        if (dist < 0.5) {
+            onPlayerCollide();
+        }
 
         // --- Simple AI: move toward player with collision ---
         const toPlayer = new THREE.Vector3().copy(playerPosition).sub(zombie.position);
