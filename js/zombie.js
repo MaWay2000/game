@@ -99,10 +99,12 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         if (!isZombie) continue;
 
         let zombieMesh = obj;
+        const modelPath = obj.userData && obj.userData.rules ? obj.userData.rules.model : undefined;
 
         // If a GLTF model with animations is available, clone it so that the
         // skeleton/bones can animate independently.
         if (models && objType && models[objType] && models[objType].scene) {
+            console.log(`Spawning zombie ${objType} using model ${modelPath || 'unknown'}`);
             zombieMesh = models[objType].scene.clone(true);
             zombieMesh.position.copy(obj.position);
             zombieMesh.rotation.copy(obj.rotation);
@@ -118,19 +120,21 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
                 // Log available animation clip names for debugging
                 const actionNames = Object.keys(actions);
                 if (actionNames.length > 0) {
-                    console.log('Zombie animation clips:', actionNames);
+                    console.log(`Zombie ${objType} animation clips:`, actionNames);
                 }
 
                 zombieMesh.userData.mixer = mixer;
                 zombieMesh.userData.actions = actions;
                 zombieMesh.userData._actionPlaying = false;
             } else {
-                console.log('Zombie model has no animations; static model will not output animation logs.');
+                console.log(`Zombie ${objType} model has no animations; static model will not output animation logs.`);
             }
 
             scene.add(zombieMesh);
             if (obj.parent) obj.parent.remove(obj);
             mapObjects[i] = zombieMesh;
+        } else {
+            console.log(`Spawning zombie ${objType || 'unknown'} without external model`);
         }
 
         zombieMesh.userData.hp = zombieMesh.userData.hp ?? 10;
