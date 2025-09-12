@@ -129,6 +129,18 @@ export async function loadMap(scene) {
                     node.material.transparent = false;
                 }
             });
+            if (rule.geometry) {
+                const box = new THREE.Box3().setFromObject(mesh);
+                const size = new THREE.Vector3();
+                box.getSize(size);
+                if (size.x > 0 && size.y > 0 && size.z > 0) {
+                    mesh.scale.set(
+                        rule.geometry[0] / size.x,
+                        rule.geometry[1] / size.y,
+                        rule.geometry[2] / size.z
+                    );
+                }
+            }
             mesh.position.fromArray(position);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
