@@ -270,6 +270,30 @@ function setZombieAnimation(zombie, moving) {
     }
 }
 
+// Simple wandering behavior when the zombie does not see the player
+function wanderZombie(zombie, obstacles, delta) {
+    zombie.userData._wanderTimer = (zombie.userData._wanderTimer || 0) - delta;
+    if (zombie.userData._wanderTimer <= 0 || !zombie.userData._wanderDir) {
+        const angle = Math.random() * Math.PI * 2;
+        zombie.userData._wanderDir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+        zombie.userData._wanderTimer = 1 + Math.random() * 3;
+    }
+
+    const step = zombie.userData.speed || 0.02;
+    const move = zombie.userData._wanderDir.clone().multiplyScalar(step);
+    const newPos = zombie.position.clone().add(move);
+    const cellKey = `${Math.floor(newPos.x)},${Math.floor(newPos.z)}`;
+    if (!obstacles.has(cellKey)) {
+        zombie.position.copy(newPos);
+        zombie.lookAt(newPos.x + zombie.userData._wanderDir.x, zombie.position.y, newPos.z + zombie.userData._wanderDir.z);
+        return true;
+    }
+
+    // hit obstacle -> choose a new direction next frame
+    zombie.userData._wanderTimer = 0;
+    return false;
+}
+
 // Update zombies: move them toward the player using a simple grid-based path
 // finding routine that avoids collidable objects. If a zombie collides with the
 // player, the provided callback is invoked.
@@ -288,47 +312,28 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
         }
 
         let moving = false;
+        const start = { x: Math.floor(zombie.position.x), z: Math.floor(zombie.position.z) };
+        const goal = { x: Math.floor(playerPosition.x), z: Math.floor(playerPosition.z) };
         const dist = distanceXZ(zombie.position, playerPosition);
-        if (dist < (zombie.userData.spotDistance || 0)) {
-            const start = { x: Math.floor(zombie.position.x), z: Math.floor(zombie.position.z) };
-            const goal = { x: Math.floor(playerPosition.x), z: Math.floor(playerPosition.z) };
+        const canSee = dist < (zombie.userData.spotDistance || 0) && hasLineOfSight(start, goal, obstacles);
 
-            if (hasLineOfSight(start, goal, obstacles)) {
-                const dir = new THREE.Vector3(playerPosition.x - zombie.position.x, 0, playerPosition.z - zombie.position.z);
-                const step = zombie.userData.speed || 0.02;
-                if (dir.lengthSq() > step * step) {
-                    dir.normalize().multiplyScalar(step);
-                    zombie.position.add(dir);
-                } else {
-                    zombie.position.set(playerPosition.x, zombie.position.y, playerPosition.z);
-                }
-                zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
-                moving = true;
-                zombie.userData.path = [];
-                zombie.userData._lastGoal = goal;
+        if (canSee) {
+            const dir = new THREE.Vector3(playerPosition.x - zombie.position.x, 0, playerPosition.z - zombie.position.z);
+            const step = zombie.userData.speed || 0.02;
+            if (dir.lengthSq() > step * step) {
+                dir.normalize().multiplyScalar(step);
+                zombie.position.add(dir);
             } else {
-                const lastGoal = zombie.userData._lastGoal;
-                if (!zombie.userData.path || zombie.userData.path.length === 0 ||
-                    !lastGoal || lastGoal.x !== goal.x || lastGoal.z !== goal.z) {
-                    zombie.userData.path = findPath(start, goal, obstacles);
-                    zombie.userData._lastGoal = goal;
-                }
-
-                if (zombie.userData.path && zombie.userData.path.length > 0) {
-                    const next = zombie.userData.path[0];
-                    const dir = new THREE.Vector3(next.x - zombie.position.x, 0, next.z - zombie.position.z);
-                    const step = zombie.userData.speed || 0.02;
-                    if (dir.lengthSq() > step * step) {
-                        dir.normalize().multiplyScalar(step);
-                        zombie.position.add(dir);
-                    } else {
-                        zombie.position.set(next.x, zombie.position.y, next.z);
-                        zombie.userData.path.shift();
-                    }
-                    zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
-                    moving = true;
-                }
+                zombie.position.set(playerPosition.x, zombie.position.y, playerPosition.z);
             }
+            zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
+            moving = true;
+            zombie.userData.path = [];
+            zombie.userData._lastGoal = goal;
+        } else {
+            moving = wanderZombie(zombie, obstacles, delta);
+            zombie.userData.path = [];
+            zombie.userData._lastGoal = null;
         }
 
         setZombieAnimation(zombie, moving);
