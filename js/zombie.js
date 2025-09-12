@@ -30,6 +30,27 @@ function buildObstacleMap(objects) {
     return map;
 }
 
+// Check if a straight line between start and goal hits any obstacles
+function hasLineOfSight(start, goal, obstacles) {
+    let x0 = Math.floor(start.x), z0 = Math.floor(start.z);
+    const x1 = Math.floor(goal.x), z1 = Math.floor(goal.z);
+    const dx = Math.abs(x1 - x0), dz = Math.abs(z1 - z0);
+    const sx = x0 < x1 ? 1 : -1, sz = z0 < z1 ? 1 : -1;
+    let err = dx - dz;
+    const endKey = `${x1},${z1}`;
+    while (true) {
+        const key = `${x0},${z0}`;
+        if (key !== `${Math.floor(start.x)},${Math.floor(start.z)}` && key !== endKey && obstacles.has(key)) {
+            return false;
+        }
+        if (x0 === x1 && z0 === z1) break;
+        const e2 = 2 * err;
+        if (e2 > -dz) { err -= dz; x0 += sx; }
+        if (e2 < dx) { err += dx; z0 += sz; }
+    }
+    return true;
+}
+
 // Breadth-first search on grid to reach goal
 function findPath(start, goal, obstacles, maxNodes = 4000) {
     const startKey = `${start.x},${start.z}`;
@@ -271,26 +292,42 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
         if (dist < (zombie.userData.spotDistance || 0)) {
             const start = { x: Math.floor(zombie.position.x), z: Math.floor(zombie.position.z) };
             const goal = { x: Math.floor(playerPosition.x), z: Math.floor(playerPosition.z) };
-            const lastGoal = zombie.userData._lastGoal;
-            if (!zombie.userData.path || zombie.userData.path.length === 0 ||
-                !lastGoal || lastGoal.x !== goal.x || lastGoal.z !== goal.z) {
-                zombie.userData.path = findPath(start, goal, obstacles);
-                zombie.userData._lastGoal = goal;
-            }
 
-            if (zombie.userData.path && zombie.userData.path.length > 0) {
-                const next = zombie.userData.path[0];
-                const dir = new THREE.Vector3(next.x - zombie.position.x, 0, next.z - zombie.position.z);
+            if (hasLineOfSight(start, goal, obstacles)) {
+                const dir = new THREE.Vector3(playerPosition.x - zombie.position.x, 0, playerPosition.z - zombie.position.z);
                 const step = zombie.userData.speed || 0.02;
                 if (dir.lengthSq() > step * step) {
                     dir.normalize().multiplyScalar(step);
                     zombie.position.add(dir);
                 } else {
-                    zombie.position.set(next.x, zombie.position.y, next.z);
-                    zombie.userData.path.shift();
+                    zombie.position.set(playerPosition.x, zombie.position.y, playerPosition.z);
                 }
                 zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
                 moving = true;
+                zombie.userData.path = [];
+                zombie.userData._lastGoal = goal;
+            } else {
+                const lastGoal = zombie.userData._lastGoal;
+                if (!zombie.userData.path || zombie.userData.path.length === 0 ||
+                    !lastGoal || lastGoal.x !== goal.x || lastGoal.z !== goal.z) {
+                    zombie.userData.path = findPath(start, goal, obstacles);
+                    zombie.userData._lastGoal = goal;
+                }
+
+                if (zombie.userData.path && zombie.userData.path.length > 0) {
+                    const next = zombie.userData.path[0];
+                    const dir = new THREE.Vector3(next.x - zombie.position.x, 0, next.z - zombie.position.z);
+                    const step = zombie.userData.speed || 0.02;
+                    if (dir.lengthSq() > step * step) {
+                        dir.normalize().multiplyScalar(step);
+                        zombie.position.add(dir);
+                    } else {
+                        zombie.position.set(next.x, zombie.position.y, next.z);
+                        zombie.userData.path.shift();
+                    }
+                    zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
+                    moving = true;
+                }
             }
         }
 
