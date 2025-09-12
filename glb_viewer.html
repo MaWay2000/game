@@ -21,15 +21,6 @@
     .file{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .6rem;border:1px dashed #1f2a44;border-radius:10px;background:#0b1220;cursor:pointer}
   </style>
 
-  <!-- Import map for THREE and addons (examples/jsm/) -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
 </head>
 <body>
   <div id="ui">
@@ -68,9 +59,9 @@
   <div id="view"></div>
 
   <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
     // --- Setup ---
     const container = document.getElementById('view');
