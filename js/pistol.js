@@ -1,5 +1,6 @@
 import { updateHUD } from './hud.js';
 import { getLoadedObjects } from './mapLoader.js';
+import { getZombies, damageZombie } from './zombie.js';
 
 let pistol;
 let clipAmmo = 10;
@@ -165,6 +166,19 @@ export function updateBullets(deltaTime) {
                 const objBox = new THREE.Box3().setFromObject(obj);
                 if (bulletBox.intersectsBox(objBox)) {
                     hit = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hit) {
+            const zombies = getZombies();
+            for (const zombie of zombies) {
+                if (zombie.userData.hp <= 0) continue;
+                const zombieBox = new THREE.Box3().setFromObject(zombie);
+                if (bulletBox.intersectsBox(zombieBox)) {
+                    hit = true;
+                    damageZombie(zombie, 1);
                     break;
                 }
             }
