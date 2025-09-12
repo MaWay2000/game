@@ -9,7 +9,7 @@
       1
     ],
     "collidable": true,
-    "model": "models/zombie3.gltf",
+    "model": "models/zombie1/",
     "hp": 15,
     "speed": 0.03,
     "damage": 5,
