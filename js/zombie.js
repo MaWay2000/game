@@ -60,19 +60,29 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
             const pushDir = new THREE.Vector3().copy(playerPosition).sub(zombie.position);
             pushDir.y = 0;
             if (pushDir.lengthSq() > 0) {
-                pushDir.setLength(0.5);
-                const nextPlayerPos = playerPosition.clone().add(pushDir);
-                let collision = false;
-                for (const obj of collidableObjects) {
-                    if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
-                    if (obj === zombie) continue;
-                    if (nextPlayerPos.distanceTo(obj.position) < 0.5) {
-                        collision = true;
+                pushDir.normalize();
+                const pushDistance = 1;
+                const pushAttempts = [
+                    pushDir.clone().multiplyScalar(pushDistance),
+                    new THREE.Vector3(-pushDir.z, 0, pushDir.x).multiplyScalar(pushDistance),
+                    new THREE.Vector3(pushDir.z, 0, -pushDir.x).multiplyScalar(pushDistance)
+                ];
+
+                for (const attempt of pushAttempts) {
+                    const nextPlayerPos = playerPosition.clone().add(attempt);
+                    let collision = false;
+                    for (const obj of collidableObjects) {
+                        if (!obj.userData || !obj.userData.rules || !obj.userData.rules.collidable) continue;
+                        if (obj === zombie) continue;
+                        if (nextPlayerPos.distanceTo(obj.position) < 0.5) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                    if (!collision) {
+                        playerPosition.copy(nextPlayerPos);
                         break;
                     }
-                }
-                if (!collision) {
-                    playerPosition.copy(nextPlayerPos);
                 }
             }
             onPlayerCollide();
