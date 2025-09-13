@@ -248,11 +248,11 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         if (zombie.userData.knockback) {
             const kb = zombie.userData.knockback;
             if (kb.lengthSq() > 0.0001) {
-                const proposed = zombie.position.clone().add(kb);
+                const proposed = zombie.position.clone().addScaledVector(kb, delta);
                 if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
                     zombie.position.copy(proposed);
                 }
-                kb.multiplyScalar(0.6);
+                kb.multiplyScalar(Math.max(0, 1 - 5 * delta));
                 moving = true;
             }
         }
@@ -371,12 +371,12 @@ export function damageZombie(zombie, dmg, hitDir) {
     // Reduce health
     zombie.userData.hp -= dmg;
 
-    // Apply a knockback impulse with some directional randomness (~0.5 feet)
+    // Apply a knockback impulse with some directional randomness
     if (hitDir) {
         const dir = hitDir.clone().setY(0).normalize();
         const offset = THREE.MathUtils.degToRad(Math.random() * 150 - 75);
         dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), offset);
-        const kb = dir.multiplyScalar(0.5);
+        const kb = dir.multiplyScalar(6);
         if (!zombie.userData.knockback) {
             zombie.userData.knockback = new THREE.Vector3();
         }
