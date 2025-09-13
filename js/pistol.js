@@ -236,7 +236,7 @@ export function reloadAmmo(onReloaded) {
 
     if (clipAmmo === 0 && reloadCompleteAction) {
         console.log("? Reloading from empty...");
-        reloadCompleteAction.timeScale = isMoving ? 1 / 3 : 1;
+        reloadCompleteAction.timeScale = 1;
         reloadCompleteAction.reset().play();
         const duration = (reloadCompleteAction.getClip().duration / reloadCompleteAction.timeScale) * 1000;
         reloadTimeout = setTimeout(() => {
@@ -253,9 +253,9 @@ export function reloadAmmo(onReloaded) {
 
     console.log("? Reloading one by one...");
 
-    const intervalDuration = isMoving ? 1200 : 400;
+    const intervalDuration = 400;
     if (reloadFastAction) {
-        reloadFastAction.timeScale = isMoving ? 1 / 3 : 1;
+        reloadFastAction.timeScale = 1;
         reloadFastAction.reset().play();
     }
 
