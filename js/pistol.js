@@ -13,6 +13,7 @@ let reloadAction;
 let idleAction;
 let jogAction;
 let currentAction;
+let fireAction;
 let isMoving = false;
 
 const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
@@ -49,6 +50,13 @@ export function addPistolToCamera(camera) {
                 const jogClip = THREE.AnimationClip.findByName(gltf.animations, 'Jog');
                 if (jogClip) {
                     jogAction = pistolMixer.clipAction(jogClip);
+                }
+
+                const fireClip = THREE.AnimationClip.findByName(gltf.animations, 'Fire');
+                if (fireClip) {
+                    fireAction = pistolMixer.clipAction(fireClip);
+                    fireAction.setLoop(THREE.LoopOnce, 1);
+                    fireAction.clampWhenFinished = true;
                 }
             } else {
                 console.log('Pistol has no animations');
@@ -104,6 +112,7 @@ export function shootPistol(scene, camera) {
 
     clipAmmo--;
     canShoot = false;
+    fireAction?.reset().play();
 
     // Create bullet
     const bulletGeometry = new THREE.SphereGeometry(0.05, 8, 8);
