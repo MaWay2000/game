@@ -292,6 +292,30 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
             zombie.userData._wanderTime -= delta;
         }
 
+        // Prevent zombies from stacking by nudging them away from
+        // each other when they get too close. This keeps a small
+        // separation between zombies while still allowing them to
+        // chase the player.
+        const mySize = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
+            ? zombie.userData.rules.geometry
+            : DEFAULT_ZOMBIE_SIZE;
+        zombies.forEach(other => {
+            if (other === zombie || other.userData.hp <= 0) return;
+            const otherSize = (other.userData && other.userData.rules && other.userData.rules.geometry)
+                ? other.userData.rules.geometry
+                : DEFAULT_ZOMBIE_SIZE;
+            const minDist = (mySize[0] + otherSize[0]) / 2;
+            const offset = new THREE.Vector3().subVectors(zombie.position, other.position);
+            const dist = Math.hypot(offset.x, offset.z);
+            if (dist > 0 && dist < minDist) {
+                const push = offset.setY(0).normalize().multiplyScalar((minDist - dist) * 0.5);
+                const proposed = zombie.position.clone().add(push);
+                if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                    zombie.position.copy(proposed);
+                }
+            }
+        });
+
         // Reduce attack cooldown timer
         zombie.userData._hitTimer = Math.max((zombie.userData._hitTimer || 0) - delta, 0);
 
