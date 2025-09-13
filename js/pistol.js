@@ -111,6 +111,7 @@ export function addPistolToCamera(camera) {
             // Attach the pistol to the camera and ensure it's always rendered
             pistol.traverse(obj => {
                 obj.frustumCulled = false;
+                obj.layers.set(1);
 
                 // Hide loose bullet/shell meshes that appear in first person view
                 const mats = Array.isArray(obj.material) ? obj.material : [obj.material];

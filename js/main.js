@@ -13,10 +13,21 @@ const scene = new THREE.Scene();
 const { camera, cameraContainer } = setupCamera();
 scene.add(cameraContainer);
 
+// Secondary camera dedicated to first-person weapon rendering
+const weaponCamera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.01,
+  1000
+);
+weaponCamera.layers.set(1);
+camera.add(weaponCamera);
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 const canvas = renderer.domElement;
 
@@ -121,6 +132,7 @@ const torch = new THREE.SpotLight(
 );
 torch.position.set(0, 0.5, 0); // Above player's eyes
 camera.add(torch);
+torch.layers.enable(1);
 scene.add(torch.target);
 
 // Secondary bright spotlight that can flood the area with light
@@ -136,6 +148,7 @@ const godsSun = new THREE.SpotLight(
 );
 godsSun.visible = false;
 camera.add(godsSun);
+godsSun.layers.enable(1);
 scene.add(godsSun.target);
 
 scene.add(new THREE.AmbientLight(0x000000)); // Only what torch sees is visible
@@ -228,8 +241,8 @@ initHUD();
 updateHUD(10, 100);
 initCrosshair();
 enablePointerLock(renderer, cameraContainer, camera);
-setupZoom(camera);
-addPistolToCamera(camera);
+setupZoom(camera, weaponCamera);
+addPistolToCamera(weaponCamera);
 
 document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);
@@ -252,6 +265,8 @@ window.addEventListener('zombieKilled', () => {
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  weaponCamera.aspect = window.innerWidth / window.innerHeight;
+  weaponCamera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   positionCrosshair();
 });
@@ -298,7 +313,10 @@ function animate() {
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
 
+  renderer.clear();
   renderer.render(scene, camera);
+  renderer.clearDepth();
+  renderer.render(scene, weaponCamera);
   drawCrosshair();
 }
 
