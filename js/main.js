@@ -6,7 +6,7 @@ import { initHUD, updateHUD } from './hud.js';
 import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, updateZombies, playerMeleeAttack } from './zombie.js';
+import { spawnZombiesFromMap, updateZombies } from './zombie.js';
 
 // --- Scene and Camera setup ---
 const scene = new THREE.Scene();
@@ -205,10 +205,6 @@ addPistolToCamera(camera);
 
 document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyF') playerMeleeAttack(cameraContainer);
 });
 
 window.addEventListener('resize', () => {
