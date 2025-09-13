@@ -8,6 +8,8 @@ let maxClip = 10;
 let isReloading = false;
 let canShoot = true;
 let reloadInterval = null;
+let pistolMixer;
+let reloadAction;
 
 const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
 insertSoundTemplate.volume = 0.5;
@@ -24,6 +26,13 @@ export function addPistolToCamera(camera) {
             // Log available animation clips for future reference
             if (gltf.animations && gltf.animations.length) {
                 console.log('Pistol actions:', gltf.animations.map(clip => clip.name));
+                pistolMixer = new THREE.AnimationMixer(pistol);
+                const clip = THREE.AnimationClip.findByName(gltf.animations, 'Reload_Fast');
+                if (clip) {
+                    reloadAction = pistolMixer.clipAction(clip);
+                    reloadAction.setLoop(THREE.LoopOnce, 1);
+                    reloadAction.clampWhenFinished = true;
+                }
             } else {
                 console.log('Pistol has no animations');
             }
@@ -53,7 +62,7 @@ export function shootPistol(scene, camera) {
         console.log("? Reload canceled + firing...");
         isReloading = false;
         if (reloadInterval) clearInterval(reloadInterval);
-        pistol.position.y += 0.2;
+        reloadAction?.stop();
         canShoot = true;
 
         setTimeout(() => shootPistol(scene, camera), 0);
@@ -143,12 +152,12 @@ export function reloadAmmo(onReloaded) {
     reloadStart.volume = 0.6;
     reloadStart.play();
 
-    const originalY = pistol.position.y;
-    pistol.position.y -= 0.2;
+    reloadAction?.reset().play();
 
     reloadInterval = setInterval(() => {
         if (!isReloading) {
             clearInterval(reloadInterval);
+            reloadAction?.stop();
             return;
         }
 
@@ -159,17 +168,21 @@ export function reloadAmmo(onReloaded) {
 
             const insertSound = insertSoundTemplate.cloneNode();
             insertSound.play();
+            reloadAction?.reset().play();
         } else {
             clearInterval(reloadInterval);
-            pistol.position.y = originalY;
             isReloading = false;
             console.log("? Reload complete.");
             onReloaded?.();
+            reloadAction?.stop();
         }
     }, 400);
 }
 
 export function updateBullets(deltaTime) {
+    if (pistolMixer) {
+        pistolMixer.update(deltaTime);
+    }
     for (let i = flyingBullets.length - 1; i >= 0; i--) {
         const bullet = flyingBullets[i];
         bullet.position.addScaledVector(bullet.userData.velocity, deltaTime * 60);
