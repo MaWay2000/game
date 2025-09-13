@@ -32,6 +32,19 @@ function spawnSplash() {
   setTimeout(() => splash.remove(), 500);
 }
 
+// Flash effect when a zombie is killed
+function spawnKillFlash() {
+  const flash = document.createElement('div');
+  flash.className = 'splash';
+  flash.style.left = '50%';
+  flash.style.top = '50%';
+  flash.style.marginLeft = '-25px';
+  flash.style.marginTop = '-25px';
+  flash.style.background = 'rgba(255,255,255,0.5)';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 300);
+}
+
 let shakeTime = 0;
 function triggerShake() {
   shakeTime = 0.3;
@@ -205,6 +218,12 @@ addPistolToCamera(camera);
 
 document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);
+});
+
+// React to zombie deaths with a flash and screen shake
+window.addEventListener('zombieKilled', () => {
+  spawnKillFlash();
+  triggerShake();
 });
 
 window.addEventListener('resize', () => {
