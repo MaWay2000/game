@@ -215,8 +215,8 @@ function animate() {
 
   updateTorchTarget(camera, torch);
 
-  // ---- Zombie animation update ----
-  updateZombies(delta);
+  // ---- Zombie animation & AI update ----
+  updateZombies(delta, cameraContainer, handlePlayerHit);
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);

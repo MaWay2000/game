@@ -1,5 +1,7 @@
 // zombie.js
 
+import { getLoadedObjects } from './mapLoader.js';
+
 let zombies = [];
 let zombieTypeIds = null;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
@@ -190,15 +192,91 @@ function setZombieAnimation(zombie, moving) {
     }
 }
 
-// Update zombies: animations only, no movement or AI behaviour
-export function updateZombies(delta) {
+// Simple collision check for zombies using loaded map objects
+function checkZombieCollision(zombie, proposed) {
+    const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
+        ? zombie.userData.rules.geometry
+        : DEFAULT_ZOMBIE_SIZE;
+    const center = new THREE.Vector3(proposed.x, proposed.y + size[1] / 2, proposed.z);
+    const box = new THREE.Box3().setFromCenterAndSize(center, new THREE.Vector3(...size));
+    const objects = getLoadedObjects();
+    for (const obj of objects) {
+        if (obj === zombie) continue;
+        const rules = (obj.userData && obj.userData.rules) ? obj.userData.rules : {};
+        if (rules.collidable) {
+            const objBox = new THREE.Box3().setFromObject(obj);
+            if (box.intersectsBox(objBox)) return true;
+        }
+    }
+    return false;
+}
+
+// Determine whether the zombie has line-of-sight to the player
+function zombieSeesPlayer(zombie, playerPos) {
+    const dir = playerPos.clone().sub(zombie.position);
+    const dist = dir.length();
+    if (dist > (zombie.userData.spotDistance || 0)) return false;
+    dir.normalize();
+    const ray = new THREE.Raycaster(zombie.position.clone(), dir, 0, dist);
+    const obstacles = getLoadedObjects().filter(o => {
+        if (o === zombie) return false;
+        const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
+        return rules.collidable;
+    });
+    const hits = ray.intersectObjects(obstacles, true);
+    return hits.length === 0;
+}
+
+// Update zombies: handle animation and simple AI movement
+export function updateZombies(delta, playerObj, onPlayerHit) {
+    const playerPos = playerObj.position ? playerObj.position : playerObj;
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return;
         if (zombie.userData.mixer) {
             zombie.userData.mixer.update(delta);
         }
-        // Play the default animation so zombies aren't static
-        setZombieAnimation(zombie, true);
+
+        let moving = false;
+        const seesPlayer = zombieSeesPlayer(zombie, playerPos);
+        if (seesPlayer) {
+            const dir = playerPos.clone().sub(zombie.position);
+            const dist = dir.length();
+            dir.y = 0;
+            dir.normalize();
+            const proposed = zombie.position.clone().addScaledVector(dir, zombie.userData.speed);
+            if (!checkZombieCollision(zombie, proposed)) {
+                zombie.position.copy(proposed);
+                zombie.lookAt(playerPos.x, zombie.position.y, playerPos.z);
+                moving = true;
+            }
+
+            // Handle melee attack
+            zombie.userData._nextAttack = zombie.userData._nextAttack ?? 0;
+            zombie.userData._nextAttack -= delta;
+            if (dist < 1.2 && zombie.userData._nextAttack <= 0) {
+                if (typeof onPlayerHit === 'function') onPlayerHit();
+                zombie.userData._nextAttack = zombie.userData.attackCooldown;
+            }
+        } else {
+            // Wander randomly when player not visible
+            zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
+            zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
+            if (zombie.userData._wanderTime <= 0) {
+                const angle = Math.random() * Math.PI * 2;
+                zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
+                zombie.userData._wanderTime = 2 + Math.random() * 3;
+            }
+            const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
+            if (!checkZombieCollision(zombie, proposed)) {
+                zombie.position.copy(proposed);
+                moving = true;
+            } else {
+                zombie.userData._wanderTime = 0; // pick new direction next frame
+            }
+            zombie.userData._wanderTime -= delta;
+        }
+
+        setZombieAnimation(zombie, moving);
     });
 }
 
