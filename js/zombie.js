@@ -353,12 +353,25 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
     });
 }
 
-// Damage zombie
-export function damageZombie(zombie, dmg) {
+// Damage zombie and apply knockback/animation reset
+export function damageZombie(zombie, dmg, hitDir) {
+    // Reduce health
     zombie.userData.hp -= dmg;
-    if (zombie.userData.hp > 0 && zombie.userData._movingAction) {
-        zombie.userData._movingAction.reset().play();
+
+    // Apply a small knockback in the direction of the hit
+    if (hitDir) {
+        const kb = hitDir.clone().setY(0).normalize().multiplyScalar(0.5);
+        zombie.position.add(kb);
     }
+
+    // Reset animation so the zombie visibly reacts
+    if (zombie.userData._movingAction) {
+        zombie.userData._movingAction.stop();
+        zombie.userData._movingAction.reset().play();
+        zombie.userData._actionPlaying = true;
+    }
+
+    // Hide zombie if out of health
     if (zombie.userData.hp <= 0) {
         zombie.visible = false; // or play anim/remove
     }
