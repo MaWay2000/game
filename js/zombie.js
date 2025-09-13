@@ -428,6 +428,10 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
     // Handle death: keep corpse, lay it down, and notify listeners
     if (zombie.userData.hp <= 0 && !zombie.userData._dead) {
         zombie.userData._dead = true;
+        // Spawn an extra burst of blood effects when the zombie dies
+        for (let i = 0; i < 20; i++) {
+            spawnBloodEffect(zombie);
+        }
 
         // Rotate the zombie so the body lies flat on the ground
         zombie.rotation.x = -Math.PI / 2;
