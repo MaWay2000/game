@@ -123,6 +123,21 @@ torch.position.set(0, 0.5, 0); // Above player's eyes
 camera.add(torch);
 scene.add(torch.target);
 
+// Secondary bright spotlight that can flood the area with light
+const GODS_SUN_COLOR = 0xffffff;
+const GODS_SUN_INTENSITY = 100;
+const GODS_SUN_DISTANCE = 100;
+const GODS_SUN_ANGLE = Math.PI / 2; // Wide cone
+const godsSun = new THREE.SpotLight(
+    GODS_SUN_COLOR,
+    GODS_SUN_INTENSITY,
+    GODS_SUN_DISTANCE,
+    GODS_SUN_ANGLE
+);
+godsSun.visible = false;
+camera.add(godsSun);
+scene.add(godsSun.target);
+
 scene.add(new THREE.AmbientLight(0x000000)); // Only what torch sees is visible
 scene.fog = null;
 
@@ -220,6 +235,14 @@ document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);
 });
 
+// Toggle "Gods sun" spotlight with the L key
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyL') {
+    godsSun.visible = !godsSun.visible;
+    torch.visible = !godsSun.visible;
+  }
+});
+
 // React to zombie deaths with a flash and screen shake
 window.addEventListener('zombieKilled', () => {
   spawnKillFlash();
@@ -266,6 +289,7 @@ function animate() {
   }
 
   updateTorchTarget(camera, torch);
+  updateTorchTarget(camera, godsSun);
 
   // ---- Zombie animation & AI update ----
   updateZombies(delta, cameraContainer, handlePlayerHit);
