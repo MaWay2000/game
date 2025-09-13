@@ -199,43 +199,40 @@ function setZombieAnimation(zombie, moving) {
 }
 
 // Simple collision check for zombies using loaded map objects
-function checkZombieCollision(zombie, proposed) {
+function checkZombieCollision(zombie, proposed, collidables) {
     const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
         ? zombie.userData.rules.geometry
         : DEFAULT_ZOMBIE_SIZE;
     const center = new THREE.Vector3(proposed.x, proposed.y + size[1] / 2, proposed.z);
     const box = new THREE.Box3().setFromCenterAndSize(center, new THREE.Vector3(...size));
-    const objects = getLoadedObjects();
-    for (const obj of objects) {
+    for (const obj of collidables) {
         if (obj === zombie) continue;
-        const rules = (obj.userData && obj.userData.rules) ? obj.userData.rules : {};
-        if (rules.collidable) {
-            const objBox = new THREE.Box3().setFromObject(obj);
-            if (box.intersectsBox(objBox)) return true;
-        }
+        const objBox = new THREE.Box3().setFromObject(obj);
+        if (box.intersectsBox(objBox)) return true;
     }
     return false;
 }
 
 // Determine whether the zombie has line-of-sight to the player
-function zombieSeesPlayer(zombie, playerPos) {
+function zombieSeesPlayer(zombie, playerPos, obstacles) {
     const dir = playerPos.clone().sub(zombie.position);
     const dist = dir.length();
     if (dist > (zombie.userData.spotDistance || 0)) return false;
     dir.normalize();
     const ray = new THREE.Raycaster(zombie.position.clone(), dir, 0, dist);
-    const obstacles = getLoadedObjects().filter(o => {
-        if (o === zombie) return false;
-        const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
-        return rules.collidable;
-    });
-    const hits = ray.intersectObjects(obstacles, true);
+    const hits = ray.intersectObjects(obstacles.filter(o => o !== zombie), true);
     return hits.length === 0;
 }
 
 // Update zombies: handle animation and simple AI movement
 export function updateZombies(delta, playerObj, onPlayerHit) {
     const playerPos = playerObj.position ? playerObj.position : playerObj;
+    const allObjects = getLoadedObjects();
+    const collidableObjects = allObjects.filter(o => {
+        const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
+        return rules.collidable;
+    });
+
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return;
         if (zombie.userData.mixer) {
@@ -243,14 +240,14 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         }
 
         let moving = false;
-        const seesPlayer = zombieSeesPlayer(zombie, playerPos);
+        const seesPlayer = zombieSeesPlayer(zombie, playerPos, collidableObjects);
         if (seesPlayer) {
             const dir = playerPos.clone().sub(zombie.position);
             const dist = dir.length();
             dir.y = 0;
             dir.normalize();
             const proposed = zombie.position.clone().addScaledVector(dir, zombie.userData.speed);
-            if (!checkZombieCollision(zombie, proposed)) {
+            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
                 zombie.position.copy(proposed);
                 zombie.lookAt(playerPos.x, zombie.position.y, playerPos.z);
                 moving = true;
@@ -273,7 +270,7 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
                 zombie.userData._wanderTime = 2 + Math.random() * 3;
             }
             const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
-            if (!checkZombieCollision(zombie, proposed)) {
+            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
                 zombie.position.copy(proposed);
                 moving = true;
             } else {
