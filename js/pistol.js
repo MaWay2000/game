@@ -261,6 +261,17 @@ export function setPistolMoving(moving) {
     if (!pistolMixer || !idleAction || !jogAction || isReloading) return;
 
     const target = moving ? jogAction : idleAction;
+
+    // Allow the jump animation to finish when the player is idle.
+    // Movement.js calls this function every frame, which previously
+    // caused the idle jump clip to be interrupted and skipped after
+    // only a few frames.  If we're not moving and the jump animation
+    // is currently playing, leave it alone so it can play its full
+    // duration.
+    if (!moving && currentAction === jumpAction) {
+        return;
+    }
+
     if (currentAction === target) return;
 
     currentAction?.fadeOut(0.2);
@@ -269,7 +280,7 @@ export function setPistolMoving(moving) {
 
     if (moving) {
         clearTimeout(jumpTimeout);
-    } else {
+    } else if (currentAction !== jumpAction) {
         scheduleRandomJump();
     }
 }
