@@ -179,7 +179,7 @@ export function updateBullets(deltaTime) {
                 const zombieBox = new THREE.Box3().setFromObject(zombie);
                 if (bulletBox.intersectsBox(zombieBox)) {
                     hit = true;
-                    damageZombie(zombie, 1);
+                    damageZombie(zombie, 1, bullet.userData.velocity);
                     break;
                 }
             }
