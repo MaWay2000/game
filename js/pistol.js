@@ -40,7 +40,8 @@ export function addPistolToCamera(camera) {
                     reloadAction.clampWhenFinished = true;
                 }
 
-                const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'Idle');
+                // Use the "Jump" clip as the idle animation for the pistol
+                const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'Jump');
                 if (idleClip) {
                     idleAction = pistolMixer.clipAction(idleClip);
                     idleAction.play();
