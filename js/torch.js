@@ -95,6 +95,10 @@ export function updateTorchTarget(camera) {
     camera.getWorldPosition(worldPos);
     const worldDir = new THREE.Vector3();
     camera.getWorldDirection(worldDir);
+    // Keep the torch aimed horizontally so walls stay lit
+    // even if the player looks down toward the floor.
+    worldDir.y = 0;
+    worldDir.normalize();
     torchTarget.position.copy(worldPos.clone().add(worldDir.multiplyScalar(10)));
     if (torchTarget.parent !== sceneRef) sceneRef.add(torchTarget);
 }
