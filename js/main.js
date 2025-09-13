@@ -49,21 +49,40 @@ function applyShake(delta) {
   }
 }
 
+// Current knockback velocity applied each frame
+let knockbackVelocity = new THREE.Vector3();
+
+// Smoothly move the player according to knockback velocity
+function applyKnockback(delta) {
+  if (knockbackVelocity.lengthSq() === 0) return;
+
+  // Proposed new position after applying knockback this frame
+  const displacement = knockbackVelocity.clone().multiplyScalar(delta);
+  const target = cameraContainer.position.clone().add(displacement);
+
+  // Stop knockback if we'd collide with the world
+  if (movement.checkCollision && movement.checkCollision(target)) {
+    knockbackVelocity.set(0, 0, 0);
+    return;
+  }
+
+  // Move player
+  cameraContainer.position.copy(target);
+
+  // Gradually reduce velocity so knockback tapers off
+  const DAMPING = 5; // higher = quicker slowdown
+  knockbackVelocity.multiplyScalar(Math.max(1 - DAMPING * delta, 0));
+  if (knockbackVelocity.lengthSq() < 0.0001) {
+    knockbackVelocity.set(0, 0, 0);
+  }
+}
+
 function handlePlayerHit(dir) {
   hitSound.currentTime = 0;
   hitSound.play();
   if (dir) {
-    const knockback = 1 + Math.random() * 2;
-    const basePos = cameraContainer.position.clone();
-    let step = knockback;
-    let target = basePos.clone().addScaledVector(dir, step);
-    if (movement.checkCollision) {
-      while (step > 0 && movement.checkCollision(target)) {
-        step *= 0.5;
-        target = basePos.clone().addScaledVector(dir, step);
-      }
-    }
-    cameraContainer.position.copy(target);
+    const strength = 5; // initial knockback speed
+    knockbackVelocity.copy(dir).multiplyScalar(strength);
   }
   movement.setEnabled(false);
   setTimeout(() => movement.setEnabled(true), 500);
@@ -215,6 +234,7 @@ function animate() {
   const delta = clock.getDelta();
 
   movement.update();
+  applyKnockback(delta);
   applyShake(delta);
 
   // Chunk logic (this does not affect zombies)
