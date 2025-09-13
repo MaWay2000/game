@@ -260,7 +260,7 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
             zombie.userData._nextAttack = zombie.userData._nextAttack ?? 0;
             zombie.userData._nextAttack -= delta;
             if (dist < 1.2 && zombie.userData._nextAttack <= 0) {
-                if (typeof onPlayerHit === 'function') onPlayerHit();
+                if (typeof onPlayerHit === 'function') onPlayerHit(dir.clone());
                 zombie.userData._nextAttack = zombie.userData.attackCooldown;
             }
         } else {

@@ -49,9 +49,13 @@ function applyShake(delta) {
   }
 }
 
-function handlePlayerHit() {
+function handlePlayerHit(dir) {
   hitSound.currentTime = 0;
   hitSound.play();
+  if (dir) {
+    const knockback = 1 + Math.random() * 2;
+    cameraContainer.position.addScaledVector(dir, knockback);
+  }
   movement.setEnabled(false);
   setTimeout(() => movement.setEnabled(true), 500);
   spawnSplash();
