@@ -227,6 +227,32 @@ function checkPlayerCollision(pos, collidables) {
     return false;
 }
 
+// Melee attack from player: damage and knock back nearby zombies
+export function playerMeleeAttack(playerObj) {
+    const MELEE_RANGE = 1; // meters
+    const KNOCKBACK = 0.5 * 0.3048; // 0.5 feet in world units
+
+    const allObjects = getLoadedObjects();
+    const collidableObjects = allObjects.filter(o => {
+        const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
+        return rules.collidable && !zombies.includes(o);
+    });
+
+    zombies.forEach(zombie => {
+        if (zombie.userData.hp <= 0) return;
+        const offset = new THREE.Vector3().subVectors(zombie.position, playerObj.position);
+        const dist = Math.hypot(offset.x, offset.z);
+        if (dist <= MELEE_RANGE) {
+            const dir = offset.setY(0).normalize();
+            const proposed = zombie.position.clone().addScaledVector(dir, KNOCKBACK);
+            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                zombie.position.copy(proposed);
+            }
+            damageZombie(zombie, 1);
+        }
+    });
+}
+
 // Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit) {
     const allObjects = getLoadedObjects();
