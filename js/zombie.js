@@ -242,31 +242,54 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         }
 
         let moving = false;
-        // Wander randomly
-        zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
-        zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
-        if (zombie.userData._wanderTime <= 0) {
-            const angle = Math.random() * Math.PI * 2;
-            zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
-            zombie.userData._wanderTime = 2 + Math.random() * 3;
-        }
-        const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
-        if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-            zombie.position.copy(proposed);
-            // Rotate smoothly to face the direction of movement
-            const targetRot = Math.atan2(
-                zombie.userData._wanderDir.x,
-                zombie.userData._wanderDir.z
-            );
-            const currentRot = zombie.rotation.y;
-            const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
-            const turnSpeed = zombie.userData.turnSpeed || 5;
-            zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
-            moving = true;
+
+        // Hunt the player if within spotting distance
+        const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
+        const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
+        const spotRange = zombie.userData.spotDistance || 8;
+
+        if (distToPlayer <= spotRange) {
+            // Move directly toward the player
+            const dir = toPlayer.setY(0).normalize();
+            const proposed = zombie.position.clone().addScaledVector(dir, zombie.userData.speed);
+            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                zombie.position.copy(proposed);
+                const targetRot = Math.atan2(dir.x, dir.z);
+                const currentRot = zombie.rotation.y;
+                const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
+                const turnSpeed = zombie.userData.turnSpeed || 5;
+                zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
+                moving = true;
+            }
+            // Reset wandering so the zombie continues to chase
+            zombie.userData._wanderTime = 0;
         } else {
-            zombie.userData._wanderTime = 0; // pick new direction next frame
+            // Wander randomly when the player is not nearby
+            zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
+            zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
+            if (zombie.userData._wanderTime <= 0) {
+                const angle = Math.random() * Math.PI * 2;
+                zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
+                zombie.userData._wanderTime = 2 + Math.random() * 3;
+            }
+            const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
+            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                zombie.position.copy(proposed);
+                // Rotate smoothly to face the direction of movement
+                const targetRot = Math.atan2(
+                    zombie.userData._wanderDir.x,
+                    zombie.userData._wanderDir.z
+                );
+                const currentRot = zombie.rotation.y;
+                const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
+                const turnSpeed = zombie.userData.turnSpeed || 5;
+                zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
+                moving = true;
+            } else {
+                zombie.userData._wanderTime = 0; // pick new direction next frame
+            }
+            zombie.userData._wanderTime -= delta;
         }
-        zombie.userData._wanderTime -= delta;
 
         // Reduce attack cooldown timer
         zombie.userData._hitTimer = Math.max((zombie.userData._hitTimer || 0) - delta, 0);
