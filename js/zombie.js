@@ -428,10 +428,23 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
     // Handle death: keep corpse, lay it down, and notify listeners
     if (zombie.userData.hp <= 0 && !zombie.userData._dead) {
         zombie.userData._dead = true;
-        // Spawn an extra burst of larger blood effects when the zombie dies
-        for (let i = 0; i < 20; i++) {
-            const scaleMultiplier = 3 + Math.random() * 2; // 3-5 times larger
-            spawnBloodEffect(zombie, undefined, scaleMultiplier);
+        // Spawn repeated bursts of larger blood effects when the zombie dies
+        const bursts = 3;
+        const delay = 100; // ms between bursts
+        for (let b = 0; b < bursts; b++) {
+            setTimeout(() => {
+                for (let i = 0; i < 20; i++) {
+                    const scaleMultiplier = 10 + Math.random() * 10; // 10-20 times larger
+                    const offsetRange = 0.00254; // ~0.1 inch
+                    const offset = new THREE.Vector3(
+                        (Math.random() - 0.5) * 2 * offsetRange,
+                        0,
+                        (Math.random() - 0.5) * 2 * offsetRange
+                    );
+                    const pos = zombie.position.clone().add(offset);
+                    spawnBloodEffect(zombie, pos, scaleMultiplier);
+                }
+            }, b * delay);
         }
 
         // Rotate the zombie so the body lies flat on the ground
