@@ -239,6 +239,11 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
         if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
             zombie.position.copy(proposed);
+            // Rotate to face the direction of movement
+            zombie.rotation.y = Math.atan2(
+                zombie.userData._wanderDir.x,
+                zombie.userData._wanderDir.z
+            );
             moving = true;
         } else {
             zombie.userData._wanderTime = 0; // pick new direction next frame
