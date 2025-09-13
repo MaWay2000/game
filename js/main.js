@@ -105,7 +105,7 @@ function handlePlayerHit(dir) {
 
 // ---- Torch (SpotLight) setup ----
 const TORCH_COLOR = 0xffe5a0;
-const TORCH_INTENSITY = 2.7;
+const TORCH_INTENSITY = 13.5;
 const TORCH_DISTANCE = 18;
 const TORCH_ANGLE = THREE.MathUtils.degToRad(36);
 const TORCH_PENUMBRA = 0.95;
