@@ -7,8 +7,7 @@ let clipAmmo = 10;
 let maxClip = 10;
 let isReloading = false;
 let canShoot = true;
-let reloadTimeout = null;
-let reloadCallback = null;
+let reloadInterval = null;
 let pistolMixer;
 let reloadAction;
 let idleAction;
@@ -20,37 +19,6 @@ const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
 insertSoundTemplate.volume = 0.5;
 
 const flyingBullets = [];
-
-function reloadStep() {
-    if (!isReloading) {
-        clearTimeout(reloadTimeout);
-        reloadAction?.stop();
-        setPistolMoving(isMoving);
-        return;
-    }
-
-    if (clipAmmo < maxClip) {
-        clipAmmo++;
-        updateHUD(clipAmmo, 100);
-        console.log(`?? +1 Bullet... Ammo: ${clipAmmo}`);
-
-        const insertSound = insertSoundTemplate.cloneNode();
-        insertSound.play();
-        if (reloadAction) {
-            reloadAction.reset().play();
-        }
-
-        reloadTimeout = setTimeout(reloadStep, isMoving ? 1200 : 400);
-    } else {
-        clearTimeout(reloadTimeout);
-        isReloading = false;
-        console.log("? Reload complete.");
-        reloadCallback?.();
-        reloadCallback = null;
-        reloadAction?.stop();
-        setPistolMoving(isMoving);
-    }
-}
 
 export function addPistolToCamera(camera) {
     const loader = new THREE.GLTFLoader();
@@ -110,9 +78,8 @@ export function shootPistol(scene, camera) {
     if (isReloading) {
         console.log("? Reload canceled + firing...");
         isReloading = false;
-        if (reloadTimeout) clearTimeout(reloadTimeout);
+        if (reloadInterval) clearInterval(reloadInterval);
         reloadAction?.stop();
-        reloadCallback = null;
         canShoot = true;
         setPistolMoving(isMoving);
 
@@ -199,30 +166,44 @@ export function reloadAmmo(onReloaded) {
     currentAction?.stop();
     currentAction = null;
 
-    reloadCallback = onReloaded;
+    const intervalDuration = isMoving ? 1200 : 400;
     if (reloadAction) {
         reloadAction.timeScale = isMoving ? 1 / 3 : 1;
         reloadAction.reset().play();
     }
 
-    reloadTimeout = setTimeout(reloadStep, isMoving ? 1200 : 400);
+    reloadInterval = setInterval(() => {
+        if (!isReloading) {
+            clearInterval(reloadInterval);
+            reloadAction?.stop();
+            setPistolMoving(isMoving);
+            return;
+        }
+
+        if (clipAmmo < maxClip) {
+            clipAmmo++;
+            updateHUD(clipAmmo, 100);
+            console.log(`?? +1 Bullet... Ammo: ${clipAmmo}`);
+
+            const insertSound = insertSoundTemplate.cloneNode();
+            insertSound.play();
+            if (reloadAction) {
+                reloadAction.reset().play();
+            }
+        } else {
+            clearInterval(reloadInterval);
+            isReloading = false;
+            console.log("? Reload complete.");
+            onReloaded?.();
+            reloadAction?.stop();
+            setPistolMoving(isMoving);
+        }
+    }, intervalDuration);
 }
 
 export function setPistolMoving(moving) {
     isMoving = moving;
-
-    if (isReloading) {
-        if (reloadAction) {
-            reloadAction.timeScale = isMoving ? 1 / 3 : 1;
-        }
-        if (reloadTimeout) {
-            clearTimeout(reloadTimeout);
-            reloadTimeout = setTimeout(reloadStep, isMoving ? 1200 : 400);
-        }
-        return;
-    }
-
-    if (!pistolMixer || !idleAction || !jogAction) return;
+    if (!pistolMixer || !idleAction || !jogAction || isReloading) return;
 
     const target = moving ? jogAction : idleAction;
     if (currentAction === target) return;
