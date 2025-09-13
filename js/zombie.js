@@ -232,7 +232,8 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
     const allObjects = getLoadedObjects();
     const collidableObjects = allObjects.filter(o => {
         const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
-        return rules.collidable;
+        // Ignore other zombies so they don't block each other
+        return rules.collidable && !zombies.includes(o);
     });
 
     zombies.forEach(zombie => {
