@@ -4,88 +4,6 @@ let zombies = [];
 let zombieTypeIds = null;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 
-// Helper for horizontal distance (ignore Y axis)
-function distanceXZ(a, b) {
-    const dx = a.x - b.x, dz = a.z - b.z;
-    return Math.sqrt(dx * dx + dz * dz);
-}
-
-// Build a simple grid of blocked cells from collidable objects
-function buildObstacleMap(objects) {
-    const map = new Set();
-    for (const obj of objects) {
-        const rules = obj.userData && obj.userData.rules;
-        if (!rules || !rules.collidable) continue;
-        const box = new THREE.Box3().setFromObject(obj);
-        const minX = Math.floor(box.min.x);
-        const maxX = Math.floor(box.max.x);
-        const minZ = Math.floor(box.min.z);
-        const maxZ = Math.floor(box.max.z);
-        for (let x = minX; x <= maxX; x++) {
-            for (let z = minZ; z <= maxZ; z++) {
-                map.add(`${x},${z}`);
-            }
-        }
-    }
-    return map;
-}
-
-// Check if a straight line between start and goal hits any obstacles
-function hasLineOfSight(start, goal, obstacles) {
-    let x0 = Math.floor(start.x), z0 = Math.floor(start.z);
-    const x1 = Math.floor(goal.x), z1 = Math.floor(goal.z);
-    const dx = Math.abs(x1 - x0), dz = Math.abs(z1 - z0);
-    const sx = x0 < x1 ? 1 : -1, sz = z0 < z1 ? 1 : -1;
-    let err = dx - dz;
-    const endKey = `${x1},${z1}`;
-    while (true) {
-        const key = `${x0},${z0}`;
-        if (key !== `${Math.floor(start.x)},${Math.floor(start.z)}` && key !== endKey && obstacles.has(key)) {
-            return false;
-        }
-        if (x0 === x1 && z0 === z1) break;
-        const e2 = 2 * err;
-        if (e2 > -dz) { err -= dz; x0 += sx; }
-        if (e2 < dx) { err += dx; z0 += sz; }
-    }
-    return true;
-}
-
-// Breadth-first search on grid to reach goal
-function findPath(start, goal, obstacles, maxNodes = 4000) {
-    const startKey = `${start.x},${start.z}`;
-    const queue = [start];
-    const cameFrom = { [startKey]: null };
-    const dirs = [
-        [1, 0], [-1, 0], [0, 1], [0, -1]
-    ];
-    while (queue.length && Object.keys(cameFrom).length < maxNodes) {
-        const current = queue.shift();
-        const curKey = `${current.x},${current.z}`;
-        if (current.x === goal.x && current.z === goal.z) {
-            const path = [];
-            let k = curKey;
-            while (k) {
-                const [cx, cz] = k.split(',').map(Number);
-                path.push({ x: cx + 0.5, z: cz + 0.5 });
-                k = cameFrom[k];
-            }
-            path.reverse();
-            path.shift(); // remove start
-            return path;
-        }
-        for (const [dx, dz] of dirs) {
-            const nx = current.x + dx, nz = current.z + dz;
-            const nk = `${nx},${nz}`;
-            if (cameFrom[nk] !== undefined) continue;
-            if (obstacles.has(nk) && nk !== startKey) continue;
-            cameFrom[nk] = curKey;
-            queue.push({ x: nx, z: nz });
-        }
-    }
-    return [];
-}
-
 // Loads zombie type ids from zombies.json (async, cached)
 async function getZombieTypeIds() {
     if (zombieTypeIds) return zombieTypeIds;
@@ -233,7 +151,8 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
         zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
         zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
-        zombieMesh.userData.ai = true;
+        // AI disabled: mark zombie as non-AI
+        zombieMesh.userData.ai = false;
         zombies.push(zombieMesh);
     }
 }
@@ -271,103 +190,15 @@ function setZombieAnimation(zombie, moving) {
     }
 }
 
-// Simple wandering behavior when the zombie does not see the player
-function wanderZombie(zombie, obstacles, delta) {
-    zombie.userData._wanderTimer = (zombie.userData._wanderTimer || 0) - delta;
-    if (zombie.userData._wanderTimer <= 0 || !zombie.userData._wanderDir) {
-        const angle = Math.random() * Math.PI * 2;
-        zombie.userData._wanderDir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-        zombie.userData._wanderTimer = 1 + Math.random() * 3;
-    }
-
-    const step = zombie.userData.speed || 0.02;
-    const move = zombie.userData._wanderDir.clone().multiplyScalar(step);
-    const newPos = zombie.position.clone().add(move);
-    const cellKey = `${Math.floor(newPos.x)},${Math.floor(newPos.z)}`;
-    if (!obstacles.has(cellKey)) {
-        zombie.position.copy(newPos);
-        zombie.lookAt(newPos.x + zombie.userData._wanderDir.x, zombie.position.y, newPos.z + zombie.userData._wanderDir.z);
-        return true;
-    }
-
-    // hit obstacle -> choose a new direction next frame
-    zombie.userData._wanderTimer = 0;
-    return false;
-}
-
-// Update zombies: move them toward the player using a simple grid-based path
-// finding routine that avoids collidable objects. If a zombie collides with the
-// player, the provided callback is invoked.
-export function updateZombies(playerPosition, delta, collidableObjects = [], onPlayerCollide = () => {}) {
-    const obstacles = buildObstacleMap(collidableObjects);
-    const playerBox = new THREE.Box3().setFromCenterAndSize(
-        new THREE.Vector3(playerPosition.x, 1.6, playerPosition.z),
-        new THREE.Vector3(0.5, 1.6, 0.5)
-    );
-
+// Update zombies: animations only, no movement or AI behaviour
+export function updateZombies(delta) {
     zombies.forEach(zombie => {
-        if (zombie.userData.hp <= 0) return; // dead
-
-        // countdown attack cooldown timer
-        zombie.userData._attackCooldown = Math.max((zombie.userData._attackCooldown || 0) - delta, 0);
-
+        if (zombie.userData.hp <= 0) return;
         if (zombie.userData.mixer) {
             zombie.userData.mixer.update(delta);
         }
-
-        let moving = false;
-        const start = { x: Math.floor(zombie.position.x), z: Math.floor(zombie.position.z) };
-        const goal = { x: Math.floor(playerPosition.x), z: Math.floor(playerPosition.z) };
-        const dist = distanceXZ(zombie.position, playerPosition);
-        const canSee = dist < (zombie.userData.spotDistance || 0) && hasLineOfSight(start, goal, obstacles);
-
-        if (canSee) {
-            const dir = new THREE.Vector3(playerPosition.x - zombie.position.x, 0, playerPosition.z - zombie.position.z);
-            const step = zombie.userData.speed || 0.02;
-            if (dir.lengthSq() > step * step) {
-                dir.normalize().multiplyScalar(step);
-                zombie.position.add(dir);
-            } else {
-                zombie.position.set(playerPosition.x, zombie.position.y, playerPosition.z);
-            }
-            zombie.lookAt(playerPosition.x, zombie.position.y, playerPosition.z);
-            moving = true;
-            zombie.userData.path = [];
-            zombie.userData._lastGoal = goal;
-        } else {
-            const last = zombie.userData._lastGoal || {};
-            if (!Array.isArray(zombie.userData.path)) zombie.userData.path = [];
-            if (zombie.userData.path.length === 0 || last.x !== goal.x || last.z !== goal.z) {
-                zombie.userData.path = findPath(start, goal, obstacles);
-                zombie.userData._lastGoal = goal;
-            }
-
-            if (zombie.userData.path.length > 0) {
-                const target = zombie.userData.path[0];
-                const dir = new THREE.Vector3(target.x - zombie.position.x, 0, target.z - zombie.position.z);
-                const step = zombie.userData.speed || 0.02;
-                if (dir.lengthSq() > step * step) {
-                    dir.normalize().multiplyScalar(step);
-                    zombie.position.add(dir);
-                    zombie.lookAt(zombie.position.x + dir.x, zombie.position.y, zombie.position.z + dir.z);
-                } else {
-                    zombie.position.set(target.x, zombie.position.y, target.z);
-                    zombie.userData.path.shift();
-                }
-                moving = true;
-            } else {
-                moving = wanderZombie(zombie, obstacles, delta);
-                zombie.userData._lastGoal = null;
-            }
-        }
-
-        setZombieAnimation(zombie, moving);
-
-        const zombieBox = new THREE.Box3().setFromObject(zombie);
-        if (zombieBox.intersectsBox(playerBox) && zombie.userData._attackCooldown === 0) {
-            onPlayerCollide(zombie);
-            zombie.userData._attackCooldown = zombie.userData.attackCooldown || 1;
-        }
+        // Always play idle animation
+        setZombieAnimation(zombie, false);
     });
 }
 

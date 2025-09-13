@@ -1,12 +1,12 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects, getLoadedObjects } from './mapLoader.js';
+import { loadMap, updateVisibleObjects } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD } from './hud.js';
 import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, updateZombies, getZombies } from './zombie.js';
+import { spawnZombiesFromMap, updateZombies } from './zombie.js';
 
 // --- Scene and Camera setup ---
 const scene = new THREE.Scene();
@@ -215,9 +215,8 @@ function animate() {
 
   updateTorchTarget(camera, torch);
 
-  // ---- ZOMBIE AI update ----
-  const playerPos = cameraContainer.position;
-  updateZombies(playerPos, delta, getLoadedObjects(), handlePlayerHit);
+  // ---- Zombie animation update ----
+  updateZombies(delta);
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
