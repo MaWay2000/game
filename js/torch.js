@@ -19,7 +19,8 @@ export function setupTorch(camera, scene) {
     torch = new THREE.SpotLight(
         TORCH_COLOR, TORCH_INTENSITY, TORCH_DISTANCE, TORCH_ANGLE, TORCH_PENUMBRA, TORCH_DECAY
     );
-    torch.position.set(0, 0.5, 0);
+    // Place the light slightly in front of the camera so close walls stay illuminated
+    torch.position.set(0, 0.5, -0.2);
     camera.add(torch);
 
     torchTarget = new THREE.Object3D();
