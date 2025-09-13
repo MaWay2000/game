@@ -8,7 +8,7 @@ export function setupMovement(cameraContainer, camera) {
         keys[e.code] = true;
 
         if (e.code === 'KeyR') {
-            reloadAmmo(10);
+            reloadAmmo();
             console.log('?? Reloaded!');
         }
     });
