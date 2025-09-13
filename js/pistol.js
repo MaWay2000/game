@@ -20,6 +20,14 @@ export function addPistolToCamera(camera) {
         'models/pistol.glb',
         gltf => {
             pistol = gltf.scene;
+
+            // Log available animation clips for future reference
+            if (gltf.animations && gltf.animations.length) {
+                console.log('Pistol actions:', gltf.animations.map(clip => clip.name));
+            } else {
+                console.log('Pistol has no animations');
+            }
+
             // Attach the pistol to the camera and ensure it's always rendered
             pistol.traverse(obj => obj.frustumCulled = false);
             pistol.position.set(0.4, -0.3, -0.7);
