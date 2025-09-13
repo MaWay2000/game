@@ -15,11 +15,19 @@ insertSoundTemplate.volume = 0.5;
 const flyingBullets = [];
 
 export function addPistolToCamera(camera) {
-    const geometry = new THREE.BoxGeometry(0.3, 0.2, 0.6);
-    const material = new THREE.MeshLambertMaterial({ color: 0x222222 });
-    pistol = new THREE.Mesh(geometry, material);
-    pistol.position.set(0.4, -0.3, -0.7);
-    camera.add(pistol);
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+        'models/pistol.glb',
+        gltf => {
+            pistol = gltf.scene;
+            pistol.position.set(0.4, -0.3, -0.7);
+            camera.add(pistol);
+        },
+        undefined,
+        err => {
+            console.error('Failed to load pistol model', err);
+        }
+    );
 
     updateHUD(clipAmmo, 100);
 }
