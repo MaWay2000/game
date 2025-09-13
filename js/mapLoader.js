@@ -39,6 +39,13 @@ function loadGLTFModel(id, modelPath) {
     });
 }
 
+function applyPosition(mesh, position, rule) {
+    mesh.position.fromArray(position);
+    if (position[1] === 0.5 && rule && rule.geometry) {
+        mesh.position.y = rule.geometry[1] / 2;
+    }
+}
+
 export async function loadMap(scene) {
     // GitHub Pages and other static hosts cannot execute PHP files.
     // Instead of requesting "mapmaker.php" to list available JSON files,
@@ -157,7 +164,7 @@ export async function loadMap(scene) {
                 });
                 mesh.userData.mixer = mixer;
             }
-            mesh.position.fromArray(position);
+            applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             if (rule.ai) mesh.userData.ai = true;
@@ -167,13 +174,13 @@ export async function loadMap(scene) {
             let geo = geometries[type] || new THREE.BoxGeometry(...(rule.geometry || [1,1,1]));
             let mat = materials[type] || new THREE.MeshLambertMaterial({ color: rule.color || 0x44ff44 });
             mesh = new THREE.Mesh(geo, mat);
-            mesh.position.fromArray(position);
+            applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule, ai: true };
             loadedObjects.push(mesh);
         } else if (rule && geometries[type] && materials[type]) {
             mesh = new THREE.Mesh(geometries[type], materials[type]);
-            mesh.position.fromArray(position);
+            applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             loadedObjects.push(mesh);
@@ -193,7 +200,7 @@ export async function loadMap(scene) {
                 mat = new THREE.MeshLambertMaterial({ color: rule.color, opacity: 1 });
             }
             mesh = new THREE.Mesh(geo, mat);
-            mesh.position.fromArray(position);
+            applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             loadedObjects.push(mesh);
