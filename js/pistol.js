@@ -23,6 +23,7 @@ export function addPistolToCamera(camera) {
             // Attach the pistol to the camera and ensure it's always rendered
             pistol.traverse(obj => obj.frustumCulled = false);
             pistol.position.set(0.4, -0.3, -0.7);
+            pistol.rotation.y = Math.PI; // Ensure pistol faces the camera
             camera.add(pistol);
         },
         undefined,
