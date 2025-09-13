@@ -54,7 +54,16 @@ function handlePlayerHit(dir) {
   hitSound.play();
   if (dir) {
     const knockback = 1 + Math.random() * 2;
-    cameraContainer.position.addScaledVector(dir, knockback);
+    const basePos = cameraContainer.position.clone();
+    let step = knockback;
+    let target = basePos.clone().addScaledVector(dir, step);
+    if (movement.checkCollision) {
+      while (step > 0 && movement.checkCollision(target)) {
+        step *= 0.5;
+        target = basePos.clone().addScaledVector(dir, step);
+      }
+    }
+    cameraContainer.position.copy(target);
   }
   movement.setEnabled(false);
   setTimeout(() => movement.setEnabled(true), 500);

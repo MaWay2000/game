@@ -60,5 +60,5 @@ export function setupMovement(cameraContainer, camera) {
         enabled = val;
     }
 
-    return { update, setEnabled };
+    return { update, setEnabled, checkCollision };
 }
