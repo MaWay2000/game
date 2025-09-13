@@ -232,6 +232,7 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieMesh.userData.hp = zombieMesh.userData.hp ?? 10;
         zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
         zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
+        zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
         zombieMesh.userData.ai = true;
         zombies.push(zombieMesh);
     }
@@ -307,6 +308,9 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return; // dead
 
+        // countdown attack cooldown timer
+        zombie.userData._attackCooldown = Math.max((zombie.userData._attackCooldown || 0) - delta, 0);
+
         if (zombie.userData.mixer) {
             zombie.userData.mixer.update(delta);
         }
@@ -339,8 +343,9 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
         setZombieAnimation(zombie, moving);
 
         const zombieBox = new THREE.Box3().setFromObject(zombie);
-        if (zombieBox.intersectsBox(playerBox)) {
+        if (zombieBox.intersectsBox(playerBox) && zombie.userData._attackCooldown === 0) {
             onPlayerCollide(zombie);
+            zombie.userData._attackCooldown = zombie.userData.attackCooldown || 1;
         }
     });
 }
