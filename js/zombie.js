@@ -371,9 +371,9 @@ export function damageZombie(zombie, dmg, hitDir) {
     // Reduce health
     zombie.userData.hp -= dmg;
 
-    // Apply a knockback impulse in the direction of the hit
+    // Apply a knockback impulse in the direction of the hit (~2 feet)
     if (hitDir) {
-        const kb = hitDir.clone().setY(0).normalize().multiplyScalar(0.5);
+        const kb = hitDir.clone().setY(0).normalize().multiplyScalar(2);
         if (!zombie.userData.knockback) {
             zombie.userData.knockback = new THREE.Vector3();
         }
