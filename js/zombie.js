@@ -197,8 +197,8 @@ export function updateZombies(delta) {
         if (zombie.userData.mixer) {
             zombie.userData.mixer.update(delta);
         }
-        // Always play idle animation
-        setZombieAnimation(zombie, false);
+        // Play the default animation so zombies aren't static
+        setZombieAnimation(zombie, true);
     });
 }
 
