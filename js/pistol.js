@@ -204,9 +204,16 @@ export function shootPistol(scene, camera) {
     console.log(`Bang! Ammo: ${clipAmmo}`);
     updateHUD(clipAmmo, 100);
 
-    // Allow shooting again after short delay
+    // Allow shooting again after short delay or trigger reload when empty
     setTimeout(() => {
-        canShoot = true;
+        if (clipAmmo === 0) {
+            console.log("?? Empty clip. Auto-reloading...");
+            reloadAmmo(() => {
+                canShoot = true;
+            });
+        } else {
+            canShoot = true;
+        }
     }, 170);
 }
 
