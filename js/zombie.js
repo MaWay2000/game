@@ -244,6 +244,19 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
 
         let moving = false;
 
+        // Apply knockback velocity if present
+        if (zombie.userData.knockback) {
+            const kb = zombie.userData.knockback;
+            if (kb.lengthSq() > 0.0001) {
+                const proposed = zombie.position.clone().add(kb);
+                if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                    zombie.position.copy(proposed);
+                }
+                kb.multiplyScalar(0.6);
+                moving = true;
+            }
+        }
+
         // Hunt the player if within spotting distance
         const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
         const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
@@ -358,10 +371,13 @@ export function damageZombie(zombie, dmg, hitDir) {
     // Reduce health
     zombie.userData.hp -= dmg;
 
-    // Apply a small knockback in the direction of the hit
+    // Apply a knockback impulse in the direction of the hit
     if (hitDir) {
         const kb = hitDir.clone().setY(0).normalize().multiplyScalar(0.5);
-        zombie.position.add(kb);
+        if (!zombie.userData.knockback) {
+            zombie.userData.knockback = new THREE.Vector3();
+        }
+        zombie.userData.knockback.add(kb);
     }
 
     // Reset animation so the zombie visibly reacts
