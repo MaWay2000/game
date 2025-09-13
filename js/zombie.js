@@ -159,6 +159,7 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
         zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
         zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
+        zombieMesh.userData.turnSpeed = zombieMesh.userData.turnSpeed ?? 5;
         // AI disabled: mark zombie as non-AI
         zombieMesh.userData.ai = false;
         zombies.push(zombieMesh);
@@ -239,11 +240,15 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
         if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
             zombie.position.copy(proposed);
-            // Rotate to face the direction of movement
-            zombie.rotation.y = Math.atan2(
+            // Rotate smoothly to face the direction of movement
+            const targetRot = Math.atan2(
                 zombie.userData._wanderDir.x,
                 zombie.userData._wanderDir.z
             );
+            const currentRot = zombie.rotation.y;
+            const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
+            const turnSpeed = zombie.userData.turnSpeed || 5;
+            zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
             moving = true;
         } else {
             zombie.userData._wanderTime = 0; // pick new direction next frame
