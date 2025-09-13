@@ -428,9 +428,10 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
     // Handle death: keep corpse, lay it down, and notify listeners
     if (zombie.userData.hp <= 0 && !zombie.userData._dead) {
         zombie.userData._dead = true;
-        // Spawn an extra burst of blood effects when the zombie dies
+        // Spawn an extra burst of larger blood effects when the zombie dies
         for (let i = 0; i < 20; i++) {
-            spawnBloodEffect(zombie);
+            const scaleMultiplier = 3 + Math.random() * 2; // 3-5 times larger
+            spawnBloodEffect(zombie, undefined, scaleMultiplier);
         }
 
         // Rotate the zombie so the body lies flat on the ground
@@ -447,7 +448,7 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
 
 // Spawn a blood effect that flies away from the zombie
 // starting from the impact point and moving in a random direction
-function spawnBloodEffect(zombie, hitPos) {
+function spawnBloodEffect(zombie, hitPos, sizeMultiplier = 1) {
     if (!bloodEffectModel || !zombie.parent) return;
 
     const effect = bloodEffectModel.clone(true);
@@ -456,7 +457,8 @@ function spawnBloodEffect(zombie, hitPos) {
         ? zombie.userData.rules.geometry
         : DEFAULT_ZOMBIE_SIZE;
 
-    const factor = 1 / (3 + Math.random() * 9); // 3-12 times smaller
+    const baseFactor = 1 / (3 + Math.random() * 9); // 3-12 times smaller
+    const factor = baseFactor * sizeMultiplier;
     effect.scale.set(size[0] * factor, size[1] * factor, size[2] * factor);
 
     if (hitPos) {
