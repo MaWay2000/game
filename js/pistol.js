@@ -138,6 +138,10 @@ export function shootPistol(scene, camera) {
     }
 
     if (isReloading) {
+        if (clipAmmo === 0) {
+            console.log("? Reloading...");
+            return;
+        }
         console.log(clipAmmo > 0 ? "? Reload canceled + firing..." : "? Reload canceled.");
         isReloading = false;
         if (reloadInterval) {
