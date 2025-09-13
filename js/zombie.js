@@ -160,8 +160,8 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
         zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
         zombieMesh.userData.turnSpeed = zombieMesh.userData.turnSpeed ?? 5;
-        // AI disabled: mark zombie as non-AI
-        zombieMesh.userData.ai = false;
+        // Mark zombie objects for AI interactions (e.g., bullet hit tests)
+        zombieMesh.userData.ai = true;
         zombies.push(zombieMesh);
     }
 }
