@@ -371,9 +371,12 @@ export function damageZombie(zombie, dmg, hitDir) {
     // Reduce health
     zombie.userData.hp -= dmg;
 
-    // Apply a knockback impulse in the direction of the hit (~2 feet)
+    // Apply a knockback impulse with some directional randomness (~0.5 feet)
     if (hitDir) {
-        const kb = hitDir.clone().setY(0).normalize().multiplyScalar(2);
+        const dir = hitDir.clone().setY(0).normalize();
+        const offset = THREE.MathUtils.degToRad(Math.random() * 150 - 75);
+        dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), offset);
+        const kb = dir.multiplyScalar(0.5);
         if (!zombie.userData.knockback) {
             zombie.userData.knockback = new THREE.Vector3();
         }
