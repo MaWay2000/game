@@ -138,7 +138,7 @@ export function shootPistol(scene, camera) {
     }
 
     if (isReloading) {
-        console.log("? Reload canceled + firing...");
+        console.log(clipAmmo > 0 ? "? Reload canceled + firing..." : "? Reload canceled.");
         isReloading = false;
         if (reloadInterval) clearInterval(reloadInterval);
         if (reloadTimeout) clearTimeout(reloadTimeout);
@@ -147,7 +147,9 @@ export function shootPistol(scene, camera) {
         canShoot = true;
         setPistolMoving(isMoving);
 
-        setTimeout(() => shootPistol(scene, camera), 0);
+        if (clipAmmo > 0) {
+            setTimeout(() => shootPistol(scene, camera), 0);
+        }
         return;
     }
 
