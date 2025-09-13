@@ -1,5 +1,5 @@
 export const TORCH_COLOR = 0xffe5a0;
-export const TORCH_INTENSITY = 2.7;
+export const TORCH_INTENSITY = 13.5;
 export const TORCH_DISTANCE = 15;
 export const TORCH_ANGLE = THREE.MathUtils.degToRad(36);
 export const TORCH_PENUMBRA = 0.95;
@@ -28,7 +28,7 @@ export function setupTorch(camera, scene) {
 
     torchWorking = true;
     torchBrokenUntil = 0;
-    nextBreakCheck = performance.now() + Math.random() * 1000 + 1000; // 20–55s
+    nextBreakCheck = performance.now() + Math.random() * 1000 + 1000; // 20â€“55s
 
     return torch;
 }
@@ -37,9 +37,9 @@ export function updateTorchFlicker(now) {
     if (torchWorking) {
         // Check if torch should break
         if (now > nextBreakCheck) {
-            if (Math.random() < 0.21) { // 27% chance every 20–55s
+            if (Math.random() < 0.21) { // 27% chance every 20â€“55s
                 torchWorking = false;
-                const duration = Math.random() * 500 + 3000; // 2–5s
+                const duration = Math.random() * 500 + 3000; // 2â€“5s
                 torchBrokenUntil = now + duration;
                 flickerActive = false;
                 flickerStart = 0;
@@ -50,7 +50,7 @@ export function updateTorchFlicker(now) {
         }
         torch.intensity = TORCH_INTENSITY;
     } else {
-        // Flicker: Start 0–2s into break, then for rest of break
+        // Flicker: Start 0â€“2s into break, then for rest of break
         if (!flickerActive && (now > torchBrokenUntil - 2000 || Math.random() < 0.5)) {
             flickerActive = true;
             flickerStart = now;
