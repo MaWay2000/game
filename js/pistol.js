@@ -15,11 +15,37 @@ let jogAction;
 let currentAction;
 let fireAction;
 let isMoving = false;
+let jumpAction;
+let jumpTimeout;
 
 const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
 insertSoundTemplate.volume = 0.5;
 
 const flyingBullets = [];
+
+function scheduleRandomJump() {
+    if (!jumpAction) return;
+    clearTimeout(jumpTimeout);
+    const delay = Math.random() * 7000 + 3000;
+    jumpTimeout = setTimeout(() => {
+        if (!isMoving && !isReloading && currentAction === idleAction) {
+            currentAction.fadeOut(0.2);
+            jumpAction.reset().fadeIn(0.2).play();
+            currentAction = jumpAction;
+            const duration = jumpAction.getClip().duration * 1000;
+            setTimeout(() => {
+                if (!isMoving && !isReloading) {
+                    jumpAction.fadeOut(0.2);
+                    idleAction.reset().fadeIn(0.2).play();
+                    currentAction = idleAction;
+                    scheduleRandomJump();
+                }
+            }, duration);
+        } else {
+            scheduleRandomJump();
+        }
+    }, delay);
+}
 
 export function addPistolToCamera(camera) {
     const loader = new THREE.GLTFLoader();
@@ -40,12 +66,18 @@ export function addPistolToCamera(camera) {
                     reloadAction.clampWhenFinished = true;
                 }
 
-                // Use the "Jump" clip as the idle animation for the pistol
-                const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'Jump');
+                const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'Idle');
                 if (idleClip) {
                     idleAction = pistolMixer.clipAction(idleClip);
                     idleAction.play();
                     currentAction = idleAction;
+                }
+
+                const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'Jump');
+                if (jumpClip) {
+                    jumpAction = pistolMixer.clipAction(jumpClip);
+                    jumpAction.setLoop(THREE.LoopOnce, 1);
+                    jumpAction.clampWhenFinished = true;
                 }
 
                 const jogClip = THREE.AnimationClip.findByName(gltf.animations, 'Jog');
@@ -58,6 +90,10 @@ export function addPistolToCamera(camera) {
                     fireAction = pistolMixer.clipAction(fireClip);
                     fireAction.setLoop(THREE.LoopOnce, 1);
                     fireAction.clampWhenFinished = true;
+                }
+
+                if (idleAction && jumpAction) {
+                    scheduleRandomJump();
                 }
             } else {
                 console.log('Pistol has no animations');
@@ -175,6 +211,7 @@ export function reloadAmmo(onReloaded) {
     }
 
     isReloading = true;
+    clearTimeout(jumpTimeout);
     console.log("? Reloading one by one...");
 
     const reloadStart = new Audio('sounds/pistol-reload.wav');
@@ -229,6 +266,12 @@ export function setPistolMoving(moving) {
     currentAction?.fadeOut(0.2);
     target.reset().fadeIn(0.2).play();
     currentAction = target;
+
+    if (moving) {
+        clearTimeout(jumpTimeout);
+    } else {
+        scheduleRandomJump();
+    }
 }
 
 export function updateBullets(deltaTime) {
