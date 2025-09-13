@@ -140,8 +140,14 @@ export function shootPistol(scene, camera) {
     if (isReloading) {
         console.log(clipAmmo > 0 ? "? Reload canceled + firing..." : "? Reload canceled.");
         isReloading = false;
-        if (reloadInterval) clearInterval(reloadInterval);
-        if (reloadTimeout) clearTimeout(reloadTimeout);
+        if (reloadInterval) {
+            clearInterval(reloadInterval);
+            reloadInterval = null;
+        }
+        if (reloadTimeout) {
+            clearTimeout(reloadTimeout);
+            reloadTimeout = null;
+        }
         reloadFastAction?.stop();
         reloadCompleteAction?.stop();
         canShoot = true;
@@ -240,8 +246,14 @@ export function reloadAmmo(onReloaded) {
     currentAction?.stop();
     currentAction = null;
 
-    if (reloadInterval) clearInterval(reloadInterval);
-    if (reloadTimeout) clearTimeout(reloadTimeout);
+    if (reloadInterval) {
+        clearInterval(reloadInterval);
+        reloadInterval = null;
+    }
+    if (reloadTimeout) {
+        clearTimeout(reloadTimeout);
+        reloadTimeout = null;
+    }
 
     if (clipAmmo === 0 && reloadCompleteAction) {
         console.log("? Reloading from empty...");
@@ -256,6 +268,7 @@ export function reloadAmmo(onReloaded) {
             onReloaded?.();
             reloadCompleteAction.stop();
             setPistolMoving(isMoving);
+            reloadTimeout = null;
         }, duration);
         return;
     }
@@ -271,6 +284,7 @@ export function reloadAmmo(onReloaded) {
     reloadInterval = setInterval(() => {
         if (!isReloading) {
             clearInterval(reloadInterval);
+            reloadInterval = null;
             reloadFastAction?.stop();
             setPistolMoving(isMoving);
             return;
@@ -288,6 +302,7 @@ export function reloadAmmo(onReloaded) {
             }
         } else {
             clearInterval(reloadInterval);
+            reloadInterval = null;
             isReloading = false;
             console.log("? Reload complete.");
             onReloaded?.();
