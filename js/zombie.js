@@ -410,11 +410,9 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
         // Rotate the zombie so the body lies flat on the ground
         zombie.rotation.x = -Math.PI / 2;
 
-        // Drop the corpse slightly so it rests on the floor
-        const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
-            ? zombie.userData.rules.geometry
-            : DEFAULT_ZOMBIE_SIZE;
-        zombie.position.y -= size[1] / 2;
+        // Keep the corpse on the floor instead of sinking below it.
+        // The zombie's y-position already represents ground level, so no
+        // additional offset is needed when laying it down.
 
         // Emit an event so the main game can react (screen shake, etc.)
         window.dispatchEvent(new CustomEvent('zombieKilled', { detail: { zombie } }));
