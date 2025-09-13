@@ -42,7 +42,11 @@ function loadGLTFModel(id, modelPath) {
 function applyPosition(mesh, position, rule) {
     mesh.position.fromArray(position);
     if (position[1] === 0.5 && rule && rule.geometry) {
-        mesh.position.y = rule.geometry[1] / 2;
+        if (rule.ai && rule.model) {
+            mesh.position.y = 0;
+        } else {
+            mesh.position.y = rule.geometry[1] / 2;
+        }
     }
 }
 
