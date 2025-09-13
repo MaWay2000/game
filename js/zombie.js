@@ -214,6 +214,19 @@ function checkZombieCollision(zombie, proposed, collidables) {
     return false;
 }
 
+// Simple collision check for player using loaded map objects
+function checkPlayerCollision(pos, collidables) {
+    const playerBox = new THREE.Box3().setFromCenterAndSize(
+        new THREE.Vector3(pos.x, 1.6, pos.z),
+        new THREE.Vector3(0.5, 1.6, 0.5)
+    );
+    for (const obj of collidables) {
+        const box = new THREE.Box3().setFromObject(obj);
+        if (playerBox.intersectsBox(box)) return true;
+    }
+    return false;
+}
+
 // Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit) {
     const allObjects = getLoadedObjects();
@@ -254,6 +267,29 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
             zombie.userData._wanderTime = 0; // pick new direction next frame
         }
         zombie.userData._wanderTime -= delta;
+
+        // Reduce attack cooldown timer
+        zombie.userData._hitTimer = Math.max((zombie.userData._hitTimer || 0) - delta, 0);
+
+        // Player collision
+        const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
+            ? zombie.userData.rules.geometry
+            : DEFAULT_ZOMBIE_SIZE;
+        const zCenter = new THREE.Vector3(zombie.position.x, zombie.position.y + size[1] / 2, zombie.position.z);
+        const zBox = new THREE.Box3().setFromCenterAndSize(zCenter, new THREE.Vector3(...size));
+        const pCenter = new THREE.Vector3(playerObj.position.x, 1.6, playerObj.position.z);
+        const pBox = new THREE.Box3().setFromCenterAndSize(pCenter, new THREE.Vector3(0.5, 1.6, 0.5));
+        if (pBox.intersectsBox(zBox) && zombie.userData._hitTimer === 0) {
+            const angle = Math.random() * Math.PI * 2;
+            const dir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+            const DIST = 0.6; // ~2 feet
+            const target = playerObj.position.clone().addScaledVector(dir, DIST);
+            if (!checkPlayerCollision(target, collidableObjects)) {
+                playerObj.position.copy(target);
+            }
+            if (onPlayerHit) onPlayerHit(dir.clone());
+            zombie.userData._hitTimer = zombie.userData.attackCooldown || 1;
+        }
 
         setZombieAnimation(zombie, moving);
     });
