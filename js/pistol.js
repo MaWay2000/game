@@ -20,6 +20,8 @@ export function addPistolToCamera(camera) {
         'models/pistol.glb',
         gltf => {
             pistol = gltf.scene;
+            // Attach the pistol to the camera and ensure it's always rendered
+            pistol.traverse(obj => obj.frustumCulled = false);
             pistol.position.set(0.4, -0.3, -0.7);
             camera.add(pistol);
         },
