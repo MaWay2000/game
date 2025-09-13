@@ -10,6 +10,9 @@ let canShoot = true;
 let reloadInterval = null;
 let pistolMixer;
 let reloadAction;
+let idleAction;
+let jogAction;
+let currentAction;
 
 const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
 insertSoundTemplate.volume = 0.5;
@@ -27,11 +30,24 @@ export function addPistolToCamera(camera) {
             if (gltf.animations && gltf.animations.length) {
                 console.log('Pistol actions:', gltf.animations.map(clip => clip.name));
                 pistolMixer = new THREE.AnimationMixer(pistol);
-                const clip = THREE.AnimationClip.findByName(gltf.animations, 'Reload_Fast');
-                if (clip) {
-                    reloadAction = pistolMixer.clipAction(clip);
+
+                const reloadClip = THREE.AnimationClip.findByName(gltf.animations, 'Reload_Fast');
+                if (reloadClip) {
+                    reloadAction = pistolMixer.clipAction(reloadClip);
                     reloadAction.setLoop(THREE.LoopOnce, 1);
                     reloadAction.clampWhenFinished = true;
+                }
+
+                const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'Idle');
+                if (idleClip) {
+                    idleAction = pistolMixer.clipAction(idleClip);
+                    idleAction.play();
+                    currentAction = idleAction;
+                }
+
+                const jogClip = THREE.AnimationClip.findByName(gltf.animations, 'Jog');
+                if (jogClip) {
+                    jogAction = pistolMixer.clipAction(jogClip);
                 }
             } else {
                 console.log('Pistol has no animations');
@@ -177,6 +193,17 @@ export function reloadAmmo(onReloaded) {
             reloadAction?.stop();
         }
     }, 400);
+}
+
+export function setPistolMoving(moving) {
+    if (!pistolMixer || !idleAction || !jogAction) return;
+
+    const target = moving ? jogAction : idleAction;
+    if (currentAction === target) return;
+
+    currentAction?.fadeOut(0.2);
+    target.reset().fadeIn(0.2).play();
+    currentAction = target;
 }
 
 export function updateBullets(deltaTime) {

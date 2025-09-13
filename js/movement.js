@@ -1,5 +1,5 @@
 import { getLoadedObjects } from './mapLoader.js';
-import { reloadAmmo } from './pistol.js';
+import { reloadAmmo, setPistolMoving } from './pistol.js';
 
 export function setupMovement(cameraContainer, camera) {
     const keys = {};
@@ -54,6 +54,9 @@ export function setupMovement(cameraContainer, camera) {
         if (!checkCollision(proposed)) {
             cameraContainer.position.copy(proposed);
         }
+
+        const isMoving = keys['KeyW'] || keys['KeyA'] || keys['KeyS'] || keys['KeyD'];
+        setPistolMoving(!!isMoving);
     }
 
     function setEnabled(val) {
