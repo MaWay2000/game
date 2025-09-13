@@ -435,7 +435,7 @@ function spawnBloodEffect(zombie, hitPos) {
         Math.random() * 2 - 1
     ).normalize();
     const speed = 1; // units per second
-    const maxDist = 0.061 + Math.random() * (0.305 - 0.061); // 0.2-1 ft in meters
+    const maxDist = 0.0061 + Math.random() * (0.0305 - 0.0061); // 0.02-0.1 ft in meters
     bloodEffects.push({
         mesh: effect,
         velocity: dir.multiplyScalar(speed),
