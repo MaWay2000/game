@@ -237,6 +237,32 @@ function checkPlayerCollision(pos, collidables) {
     return false;
 }
 
+// Attempt to move zombie while allowing sliding along walls
+function tryMove(zombie, displacement, collidables) {
+    const target = zombie.position.clone().add(displacement);
+    if (!checkZombieCollision(zombie, target, collidables)) {
+        zombie.position.copy(target);
+        return true;
+    }
+
+    let moved = false;
+    if (displacement.x) {
+        const tx = zombie.position.clone().add(new THREE.Vector3(displacement.x, 0, 0));
+        if (!checkZombieCollision(zombie, tx, collidables)) {
+            zombie.position.x = tx.x;
+            moved = true;
+        }
+    }
+    if (displacement.z) {
+        const tz = zombie.position.clone().add(new THREE.Vector3(0, 0, displacement.z));
+        if (!checkZombieCollision(zombie, tz, collidables)) {
+            zombie.position.z = tz.z;
+            moved = true;
+        }
+    }
+    return moved;
+}
+
 // Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit) {
     const allObjects = getLoadedObjects();
@@ -258,10 +284,8 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         if (zombie.userData.knockback) {
             const kb = zombie.userData.knockback;
             if (kb.lengthSq() > 0.0001) {
-                const proposed = zombie.position.clone().addScaledVector(kb, delta);
-                if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                    zombie.position.copy(proposed);
-                }
+                const displacement = kb.clone().multiplyScalar(delta);
+                tryMove(zombie, displacement, collidableObjects);
                 kb.multiplyScalar(Math.max(0, 1 - 5 * delta));
                 moving = true;
             }
@@ -275,9 +299,8 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         if (distToPlayer <= spotRange) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
-            const proposed = zombie.position.clone().addScaledVector(dir, zombie.userData.speed);
-            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                zombie.position.copy(proposed);
+            const displacement = dir.clone().multiplyScalar(zombie.userData.speed);
+            if (tryMove(zombie, displacement, collidableObjects)) {
                 const targetRot = Math.atan2(dir.x, dir.z);
                 const currentRot = zombie.rotation.y;
                 const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
@@ -296,9 +319,8 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
                 zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
                 zombie.userData._wanderTime = 2 + Math.random() * 3;
             }
-            const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
-            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                zombie.position.copy(proposed);
+            const displacement = zombie.userData._wanderDir.clone().multiplyScalar(zombie.userData.speed * 0.5);
+            if (tryMove(zombie, displacement, collidableObjects)) {
                 // Rotate smoothly to face the direction of movement
                 const targetRot = Math.atan2(
                     zombie.userData._wanderDir.x,
