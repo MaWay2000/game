@@ -335,9 +335,30 @@ export function updateZombies(playerPosition, delta, collidableObjects = [], onP
             zombie.userData.path = [];
             zombie.userData._lastGoal = goal;
         } else {
-            moving = wanderZombie(zombie, obstacles, delta);
-            zombie.userData.path = [];
-            zombie.userData._lastGoal = null;
+            const last = zombie.userData._lastGoal || {};
+            if (!Array.isArray(zombie.userData.path)) zombie.userData.path = [];
+            if (zombie.userData.path.length === 0 || last.x !== goal.x || last.z !== goal.z) {
+                zombie.userData.path = findPath(start, goal, obstacles);
+                zombie.userData._lastGoal = goal;
+            }
+
+            if (zombie.userData.path.length > 0) {
+                const target = zombie.userData.path[0];
+                const dir = new THREE.Vector3(target.x - zombie.position.x, 0, target.z - zombie.position.z);
+                const step = zombie.userData.speed || 0.02;
+                if (dir.lengthSq() > step * step) {
+                    dir.normalize().multiplyScalar(step);
+                    zombie.position.add(dir);
+                    zombie.lookAt(zombie.position.x + dir.x, zombie.position.y, zombie.position.z + dir.z);
+                } else {
+                    zombie.position.set(target.x, zombie.position.y, target.z);
+                    zombie.userData.path.shift();
+                }
+                moving = true;
+            } else {
+                moving = wanderZombie(zombie, obstacles, delta);
+                zombie.userData._lastGoal = null;
+            }
         }
 
         setZombieAnimation(zombie, moving);
