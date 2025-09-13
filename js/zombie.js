@@ -213,20 +213,8 @@ function checkZombieCollision(zombie, proposed, collidables) {
     return false;
 }
 
-// Determine whether the zombie has line-of-sight to the player
-function zombieSeesPlayer(zombie, playerPos, obstacles) {
-    const dir = playerPos.clone().sub(zombie.position);
-    const dist = dir.length();
-    if (dist > (zombie.userData.spotDistance || 0)) return false;
-    dir.normalize();
-    const ray = new THREE.Raycaster(zombie.position.clone(), dir, 0, dist);
-    const hits = ray.intersectObjects(obstacles.filter(o => o !== zombie), true);
-    return hits.length === 0;
-}
-
-// Update zombies: handle animation and simple AI movement
+// Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit) {
-    const playerPos = playerObj.position ? playerObj.position : playerObj;
     const allObjects = getLoadedObjects();
     const collidableObjects = allObjects.filter(o => {
         const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
@@ -240,44 +228,22 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         }
 
         let moving = false;
-        const seesPlayer = zombieSeesPlayer(zombie, playerPos, collidableObjects);
-        if (seesPlayer) {
-            const dir = playerPos.clone().sub(zombie.position);
-            const dist = dir.length();
-            dir.y = 0;
-            dir.normalize();
-            const proposed = zombie.position.clone().addScaledVector(dir, zombie.userData.speed);
-            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                zombie.position.copy(proposed);
-                zombie.lookAt(playerPos.x, zombie.position.y, playerPos.z);
-                moving = true;
-            }
-
-            // Handle melee attack
-            zombie.userData._nextAttack = zombie.userData._nextAttack ?? 0;
-            zombie.userData._nextAttack -= delta;
-            if (dist < 1.2 && zombie.userData._nextAttack <= 0) {
-                if (typeof onPlayerHit === 'function') onPlayerHit(dir.clone());
-                zombie.userData._nextAttack = zombie.userData.attackCooldown;
-            }
-        } else {
-            // Wander randomly when player not visible
-            zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
-            zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
-            if (zombie.userData._wanderTime <= 0) {
-                const angle = Math.random() * Math.PI * 2;
-                zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
-                zombie.userData._wanderTime = 2 + Math.random() * 3;
-            }
-            const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
-            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                zombie.position.copy(proposed);
-                moving = true;
-            } else {
-                zombie.userData._wanderTime = 0; // pick new direction next frame
-            }
-            zombie.userData._wanderTime -= delta;
+        // Wander randomly
+        zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
+        zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
+        if (zombie.userData._wanderTime <= 0) {
+            const angle = Math.random() * Math.PI * 2;
+            zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
+            zombie.userData._wanderTime = 2 + Math.random() * 3;
         }
+        const proposed = zombie.position.clone().addScaledVector(zombie.userData._wanderDir, zombie.userData.speed * 0.5);
+        if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+            zombie.position.copy(proposed);
+            moving = true;
+        } else {
+            zombie.userData._wanderTime = 0; // pick new direction next frame
+        }
+        zombie.userData._wanderTime -= delta;
 
         setZombieAnimation(zombie, moving);
     });
