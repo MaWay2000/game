@@ -6,7 +6,7 @@ import { initHUD, updateHUD } from './hud.js';
 import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, updateZombies } from './zombie.js';
+import { spawnZombiesFromMap, updateZombies, updateBloodEffects } from './zombie.js';
 
 // --- Scene and Camera setup ---
 const scene = new THREE.Scene();
@@ -250,6 +250,7 @@ function animate() {
 
   // ---- Zombie animation & AI update ----
   updateZombies(delta, cameraContainer, handlePlayerHit);
+  updateBloodEffects(delta);
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);

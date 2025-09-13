@@ -6,6 +6,16 @@ let zombies = [];
 let zombieTypeIds = null;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 
+// Blood effect handling
+const bloodEffects = [];
+let bloodEffectModel = null;
+if (THREE?.GLTFLoader) {
+    const bloodLoader = new THREE.GLTFLoader();
+    bloodLoader.load('models/blood_effect.glb', gltf => {
+        bloodEffectModel = gltf.scene;
+    });
+}
+
 // Loads zombie type ids from zombies.json (async, cached)
 async function getZombieTypeIds() {
     if (zombieTypeIds) return zombieTypeIds;
@@ -383,6 +393,9 @@ export function damageZombie(zombie, dmg, hitDir) {
         zombie.userData.knockback.add(kb);
     }
 
+    // Spawn blood effect
+    spawnBloodEffect(zombie, hitDir);
+
     // Reset animation so the zombie visibly reacts
     if (zombie.userData._movingAction) {
         zombie.userData._movingAction.stop();
@@ -393,5 +406,46 @@ export function damageZombie(zombie, dmg, hitDir) {
     // Hide zombie if out of health
     if (zombie.userData.hp <= 0) {
         zombie.visible = false; // or play anim/remove
+    }
+}
+
+// Spawn a blood effect that flies away from the zombie
+function spawnBloodEffect(zombie, hitDir) {
+    if (!bloodEffectModel || !zombie.parent) return;
+
+    const effect = bloodEffectModel.clone(true);
+
+    const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
+        ? zombie.userData.rules.geometry
+        : DEFAULT_ZOMBIE_SIZE;
+
+    const factor = 1 / (3 + Math.random() * 9); // 3-12 times smaller
+    effect.scale.set(size[0] * factor, size[1] * factor, size[2] * factor);
+
+    effect.position.copy(zombie.position);
+
+    const dir = hitDir ? hitDir.clone().setY(0).normalize() : new THREE.Vector3(Math.random() * 2 - 1, 0, Math.random() * 2 - 1).normalize();
+    const speed = 1; // units per second
+    const maxDist = 0.213; // ~0.7 feet in meters
+    bloodEffects.push({
+        mesh: effect,
+        velocity: dir.multiplyScalar(speed),
+        life: 0,
+        maxLife: maxDist / speed
+    });
+
+    zombie.parent.add(effect);
+}
+
+// Update active blood effects
+export function updateBloodEffects(delta) {
+    for (let i = bloodEffects.length - 1; i >= 0; i--) {
+        const eff = bloodEffects[i];
+        eff.mesh.position.addScaledVector(eff.velocity, delta);
+        eff.life += delta;
+        if (eff.life >= eff.maxLife) {
+            eff.mesh.parent?.remove(eff.mesh);
+            bloodEffects.splice(i, 1);
+        }
     }
 }
