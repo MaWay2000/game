@@ -13,6 +13,7 @@ let reloadAction;
 let idleAction;
 let jogAction;
 let currentAction;
+let isMoving = false;
 
 const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
 insertSoundTemplate.volume = 0.5;
@@ -80,6 +81,7 @@ export function shootPistol(scene, camera) {
         if (reloadInterval) clearInterval(reloadInterval);
         reloadAction?.stop();
         canShoot = true;
+        setPistolMoving(isMoving);
 
         setTimeout(() => shootPistol(scene, camera), 0);
         return;
@@ -161,12 +163,20 @@ export function reloadAmmo(onReloaded) {
     reloadStart.volume = 0.6;
     reloadStart.play();
 
-    reloadAction?.reset().play();
+    currentAction?.stop();
+    currentAction = null;
+
+    const intervalDuration = isMoving ? 1200 : 400;
+    if (reloadAction) {
+        reloadAction.timeScale = isMoving ? 1 / 3 : 1;
+        reloadAction.reset().play();
+    }
 
     reloadInterval = setInterval(() => {
         if (!isReloading) {
             clearInterval(reloadInterval);
             reloadAction?.stop();
+            setPistolMoving(isMoving);
             return;
         }
 
@@ -177,19 +187,23 @@ export function reloadAmmo(onReloaded) {
 
             const insertSound = insertSoundTemplate.cloneNode();
             insertSound.play();
-            reloadAction?.reset().play();
+            if (reloadAction) {
+                reloadAction.reset().play();
+            }
         } else {
             clearInterval(reloadInterval);
             isReloading = false;
             console.log("? Reload complete.");
             onReloaded?.();
             reloadAction?.stop();
+            setPistolMoving(isMoving);
         }
-    }, 400);
+    }, intervalDuration);
 }
 
 export function setPistolMoving(moving) {
-    if (!pistolMixer || !idleAction || !jogAction) return;
+    isMoving = moving;
+    if (!pistolMixer || !idleAction || !jogAction || isReloading) return;
 
     const target = moving ? jogAction : idleAction;
     if (currentAction === target) return;
