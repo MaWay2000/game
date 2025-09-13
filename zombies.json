@@ -4,9 +4,9 @@
     "name": "Test",
     "color": "#cccccc",
     "size": [
-      1,
-      1,
-      1
+      0.7,
+      1.8,
+      0.7
     ],
     "collidable": true,
     "model": "models/zombie.glb",
