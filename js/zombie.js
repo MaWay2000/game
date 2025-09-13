@@ -377,7 +377,7 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
 }
 
 // Damage zombie and apply knockback/animation reset
-export function damageZombie(zombie, dmg, hitDir) {
+export function damageZombie(zombie, dmg, hitDir, hitPos) {
     // Reduce health
     zombie.userData.hp -= dmg;
 
@@ -393,8 +393,8 @@ export function damageZombie(zombie, dmg, hitDir) {
         zombie.userData.knockback.add(kb);
     }
 
-    // Spawn blood effect
-    spawnBloodEffect(zombie, hitDir);
+    // Spawn blood effect at the impact point
+    spawnBloodEffect(zombie, hitPos);
 
     // Reset animation so the zombie visibly reacts
     if (zombie.userData._movingAction) {
@@ -410,7 +410,8 @@ export function damageZombie(zombie, dmg, hitDir) {
 }
 
 // Spawn a blood effect that flies away from the zombie
-function spawnBloodEffect(zombie, hitDir) {
+// starting from the impact point and moving in a random direction
+function spawnBloodEffect(zombie, hitPos) {
     if (!bloodEffectModel || !zombie.parent) return;
 
     const effect = bloodEffectModel.clone(true);
@@ -422,11 +423,19 @@ function spawnBloodEffect(zombie, hitDir) {
     const factor = 1 / (3 + Math.random() * 9); // 3-12 times smaller
     effect.scale.set(size[0] * factor, size[1] * factor, size[2] * factor);
 
-    effect.position.copy(zombie.position);
+    if (hitPos) {
+        effect.position.copy(hitPos);
+    } else {
+        effect.position.copy(zombie.position);
+    }
 
-    const dir = hitDir ? hitDir.clone().setY(0).normalize() : new THREE.Vector3(Math.random() * 2 - 1, 0, Math.random() * 2 - 1).normalize();
+    const dir = new THREE.Vector3(
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1
+    ).normalize();
     const speed = 1; // units per second
-    const maxDist = 0.213; // ~0.7 feet in meters
+    const maxDist = 0.061 + Math.random() * (0.305 - 0.061); // 0.2-1 ft in meters
     bloodEffects.push({
         mesh: effect,
         velocity: dir.multiplyScalar(speed),
