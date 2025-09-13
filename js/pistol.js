@@ -112,8 +112,20 @@ export function addPistolToCamera(camera) {
             pistol.traverse(obj => {
                 obj.frustumCulled = false;
 
+                const mats = Array.isArray(obj.material)
+                    ? obj.material
+                    : obj.material
+                        ? [obj.material]
+                        : [];
+
+                for (const mat of mats) {
+                    if (!mat) continue;
+                    // Disable depth testing so the pistol always renders in front
+                    mat.depthTest = false;
+                    mat.depthWrite = false;
+                }
+
                 // Hide loose bullet/shell meshes that appear in first person view
-                const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
                 if (mats.some(m => m && m.name && /bullet|shell/i.test(m.name))) {
                     obj.visible = false;
                 }
