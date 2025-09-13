@@ -282,11 +282,21 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         if (pBox.intersectsBox(zBox) && zombie.userData._hitTimer === 0) {
             const angle = Math.random() * Math.PI * 2;
             const dir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-            const DIST = 0.6; // ~2 feet
+
+            // Move the player far enough so their bounding box no longer
+            // overlaps the zombie. We also exclude the zombie itself from
+            // the collision check so that the player can be nudged out of
+            // an overlapping state.
+            const zombieHalf = size[0] / 2;
+            const playerHalf = 0.5 / 2;
+            const DIST = zombieHalf + playerHalf + 0.05; // small buffer
             const target = playerObj.position.clone().addScaledVector(dir, DIST);
-            if (!checkPlayerCollision(target, collidableObjects)) {
+
+            const others = collidableObjects.filter(obj => obj !== zombie);
+            if (!checkPlayerCollision(target, others)) {
                 playerObj.position.copy(target);
             }
+
             if (onPlayerHit) onPlayerHit(dir.clone());
             zombie.userData._hitTimer = zombie.userData.attackCooldown || 1;
         }
