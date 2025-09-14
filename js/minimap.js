@@ -1,4 +1,6 @@
 let canvas, ctx;
+let fullCanvas, fullCtx;
+let fullVisible = false;
 const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
 
@@ -64,4 +66,84 @@ export function updateMinimap(player, camera, objects) {
     ctx.moveTo(half, half);
     ctx.lineTo(half + dir.x * 10, half + dir.z * 10);
     ctx.stroke();
+
+    if (fullVisible) {
+        drawFullMap(player, camera, objects);
+    }
+}
+
+export function toggleFullMap(player, camera, objects) {
+    if (!fullCanvas) {
+        fullCanvas = document.createElement('canvas');
+        fullCanvas.width = 600;
+        fullCanvas.height = 600;
+        fullCanvas.style.position = 'absolute';
+        fullCanvas.style.left = '50%';
+        fullCanvas.style.top = '50%';
+        fullCanvas.style.transform = 'translate(-50%, -50%)';
+        fullCanvas.style.border = '2px solid white';
+        fullCanvas.style.background = 'rgba(0,0,0,0.8)';
+        fullCanvas.style.zIndex = '1000';
+        fullCanvas.style.display = 'none';
+        document.body.appendChild(fullCanvas);
+        fullCtx = fullCanvas.getContext('2d');
+    }
+    fullVisible = !fullVisible;
+    fullCanvas.style.display = fullVisible ? 'block' : 'none';
+    if (fullVisible) {
+        drawFullMap(player, camera, objects);
+    }
+}
+
+function drawFullMap(player, camera, objects) {
+    if (!fullCtx) return;
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (const obj of objects) {
+        minX = Math.min(minX, obj.position.x);
+        maxX = Math.max(maxX, obj.position.x);
+        minZ = Math.min(minZ, obj.position.z);
+        maxZ = Math.max(maxZ, obj.position.z);
+    }
+    const width = Math.max(maxX - minX, 1);
+    const height = Math.max(maxZ - minZ, 1);
+    const scale = Math.min(fullCanvas.width / width, fullCanvas.height / height);
+    const offsetX = -minX;
+    const offsetZ = -minZ;
+
+    fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
+
+    fullCtx.fillStyle = '#888';
+    for (const obj of objects) {
+        if (obj.userData && obj.userData.type === 'wall') {
+            const geo = obj.userData.rules && obj.userData.rules.geometry;
+            const w = (geo ? geo[0] : 1) * scale;
+            const h = (geo ? geo[2] : 1) * scale;
+            const x = (obj.position.x + offsetX) * scale;
+            const y = (obj.position.z + offsetZ) * scale;
+            fullCtx.fillRect(x - w / 2, y - h / 2, w, h);
+        }
+    }
+
+    fullCtx.fillStyle = 'white';
+    for (const obj of objects) {
+        if (obj.userData && obj.userData.type === 'wall') continue;
+        const x = (obj.position.x + offsetX) * scale;
+        const y = (obj.position.z + offsetZ) * scale;
+        fullCtx.fillRect(x - 2, y - 2, 4, 4);
+    }
+
+    const px = (player.position.x + offsetX) * scale;
+    const py = (player.position.z + offsetZ) * scale;
+    fullCtx.fillStyle = 'red';
+    fullCtx.beginPath();
+    fullCtx.arc(px, py, 4, 0, Math.PI * 2);
+    fullCtx.fill();
+
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    fullCtx.strokeStyle = 'red';
+    fullCtx.beginPath();
+    fullCtx.moveTo(px, py);
+    fullCtx.lineTo(px + dir.x * 10, py + dir.z * 10);
+    fullCtx.stroke();
 }
