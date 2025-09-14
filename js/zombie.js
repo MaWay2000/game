@@ -7,7 +7,8 @@ let zombieTypeIds = null;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 // Zombies beyond this distance from the player are neither rendered nor updated.
 // This reduces CPU/GPU workload when many zombies exist far from the action.
-const ZOMBIE_ACTIVE_DISTANCE = 30;
+// Maximum radius around the player where zombies remain active
+const ZOMBIE_ACTIVE_DISTANCE = 20;
 
 // Blood effect handling
 const bloodEffects = [];
