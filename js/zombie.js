@@ -5,6 +5,9 @@ import { getLoadedObjects } from './mapLoader.js';
 let zombies = [];
 let zombieTypeIds = null;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
+// Zombies beyond this distance from the player are neither rendered nor updated.
+// This reduces CPU/GPU workload when many zombies exist far from the action.
+const ZOMBIE_ACTIVE_DISTANCE = 30;
 
 // Blood effect handling
 const bloodEffects = [];
@@ -319,7 +322,16 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         if (!grid.has(key)) grid.set(key, []);
         grid.get(key).push(z);
     };
-    zombies.forEach(z => { if (z.userData.hp > 0) insertZombie(z); });
+    zombies.forEach(z => {
+        if (z.userData.hp <= 0) return;
+        const dist = z.position.distanceTo(playerObj.position);
+        if (dist > ZOMBIE_ACTIVE_DISTANCE) {
+            z.visible = false;
+            return;
+        }
+        z.visible = true;
+        insertZombie(z);
+    });
 
     // Update a zombie's grid cell when it moves
     const updateCell = z => {
@@ -344,7 +356,7 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
     };
 
     zombies.forEach(zombie => {
-        if (zombie.userData.hp <= 0) return;
+        if (zombie.userData.hp <= 0 || !zombie.visible) return;
         if (zombie.userData.mixer) {
             zombie.userData.mixer.update(delta);
         }
