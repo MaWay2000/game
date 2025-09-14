@@ -272,6 +272,52 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         return rules.collidable && !zombies.includes(o);
     });
 
+    // Build a spatial grid of active zombies to limit neighbor checks
+    let gridCell = DEFAULT_ZOMBIE_SIZE[0];
+    zombies.forEach(z => {
+        const size = (z.userData && z.userData.rules && z.userData.rules.geometry)
+            ? z.userData.rules.geometry
+            : DEFAULT_ZOMBIE_SIZE;
+        gridCell = Math.max(gridCell, size[0]);
+    });
+
+    const grid = new Map();
+    const cellKey = (x, z) => `${x},${z}`;
+
+    // Insert a zombie into the grid and track its cell on the object
+    const insertZombie = z => {
+        const cx = Math.floor(z.position.x / gridCell);
+        const cz = Math.floor(z.position.z / gridCell);
+        z.userData._cellX = cx;
+        z.userData._cellZ = cz;
+        const key = cellKey(cx, cz);
+        if (!grid.has(key)) grid.set(key, []);
+        grid.get(key).push(z);
+    };
+    zombies.forEach(z => { if (z.userData.hp > 0) insertZombie(z); });
+
+    // Update a zombie's grid cell when it moves
+    const updateCell = z => {
+        const cx = Math.floor(z.position.x / gridCell);
+        const cz = Math.floor(z.position.z / gridCell);
+        if (cx === z.userData._cellX && cz === z.userData._cellZ) {
+            return { cx, cz };
+        }
+        const oldKey = cellKey(z.userData._cellX, z.userData._cellZ);
+        const oldArr = grid.get(oldKey);
+        if (oldArr) {
+            const idx = oldArr.indexOf(z);
+            if (idx !== -1) oldArr.splice(idx, 1);
+            if (oldArr.length === 0) grid.delete(oldKey);
+        }
+        const newKey = cellKey(cx, cz);
+        if (!grid.has(newKey)) grid.set(newKey, []);
+        grid.get(newKey).push(z);
+        z.userData._cellX = cx;
+        z.userData._cellZ = cz;
+        return { cx, cz };
+    };
+
     zombies.forEach(zombie => {
         if (zombie.userData.hp <= 0) return;
         if (zombie.userData.mixer) {
@@ -340,26 +386,40 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         // Prevent zombies from stacking by nudging them away from
         // each other when they get too close. This keeps a small
         // separation between zombies while still allowing them to
-        // chase the player.
+        // chase the player. Use a spatial grid to only compare nearby zombies.
         const mySize = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
             ? zombie.userData.rules.geometry
             : DEFAULT_ZOMBIE_SIZE;
-        zombies.forEach(other => {
-            if (other === zombie || other.userData.hp <= 0) return;
-            const otherSize = (other.userData && other.userData.rules && other.userData.rules.geometry)
-                ? other.userData.rules.geometry
-                : DEFAULT_ZOMBIE_SIZE;
-            const minDist = (mySize[0] + otherSize[0]) / 2;
-            const offset = new THREE.Vector3().subVectors(zombie.position, other.position);
-            const dist = Math.hypot(offset.x, offset.z);
-            if (dist > 0 && dist < minDist) {
-                const push = offset.setY(0).normalize().multiplyScalar((minDist - dist) * 0.5);
-                const proposed = zombie.position.clone().add(push);
-                if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                    zombie.position.copy(proposed);
-                }
+
+        // Ensure the grid cell reflects the zombie's current position
+        const { cx, cz } = updateCell(zombie);
+
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dz = -1; dz <= 1; dz++) {
+                const key = cellKey(cx + dx, cz + dz);
+                const cell = grid.get(key);
+                if (!cell) continue;
+                cell.forEach(other => {
+                    if (other === zombie || other.userData.hp <= 0) return;
+                    const otherSize = (other.userData && other.userData.rules && other.userData.rules.geometry)
+                        ? other.userData.rules.geometry
+                        : DEFAULT_ZOMBIE_SIZE;
+                    const minDist = (mySize[0] + otherSize[0]) / 2;
+                    const offset = new THREE.Vector3().subVectors(zombie.position, other.position);
+                    const dist = Math.hypot(offset.x, offset.z);
+                    if (dist > 0 && dist < minDist) {
+                        const push = offset.setY(0).normalize().multiplyScalar((minDist - dist) * 0.5);
+                        const proposed = zombie.position.clone().add(push);
+                        if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                            zombie.position.copy(proposed);
+                        }
+                    }
+                });
             }
-        });
+        }
+
+        // Update cell again in case separation pushed the zombie elsewhere
+        updateCell(zombie);
 
         // Reduce attack cooldown timer
         zombie.userData._hitTimer = Math.max((zombie.userData._hitTimer || 0) - delta, 0);
