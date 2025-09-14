@@ -292,6 +292,44 @@ function tryMove(zombie, displacement, collidables) {
     return moved;
 }
 
+// When a zombie becomes active again, ensure it isn't spawning inside
+// a wall or other static object. We attempt to push it out along the
+// smallest penetration axis; if that fails, revert to its last valid
+// position.
+function resolveZombieOverlap(zombie, collidables) {
+    if (!checkZombieCollision(zombie, zombie.position, collidables)) return;
+
+    const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
+        ? zombie.userData.rules.geometry
+        : DEFAULT_ZOMBIE_SIZE;
+    const center = new THREE.Vector3(zombie.position.x, zombie.position.y + size[1] / 2, zombie.position.z);
+    const zBox = new THREE.Box3().setFromCenterAndSize(center, new THREE.Vector3(...size));
+
+    let resolved = false;
+    for (const obj of collidables) {
+        const objBox = getCachedBox(obj);
+        if (!zBox.intersectsBox(objBox)) continue;
+
+        const overlapX = Math.min(zBox.max.x, objBox.max.x) - Math.max(zBox.min.x, objBox.min.x);
+        const overlapZ = Math.min(zBox.max.z, objBox.max.z) - Math.max(zBox.min.z, objBox.min.z);
+
+        if (overlapX < overlapZ) {
+            const dir = (zBox.getCenter(new THREE.Vector3()).x < objBox.getCenter(new THREE.Vector3()).x) ? -overlapX : overlapX;
+            zombie.position.x += dir;
+        } else {
+            const dir = (zBox.getCenter(new THREE.Vector3()).z < objBox.getCenter(new THREE.Vector3()).z) ? -overlapZ : overlapZ;
+            zombie.position.z += dir;
+        }
+        resolved = true;
+        break;
+    }
+
+    if (resolved && checkZombieCollision(zombie, zombie.position, collidables)) {
+        const lastPos = zombie.userData && zombie.userData._lastValidPos;
+        if (lastPos) zombie.position.copy(lastPos);
+    }
+}
+
 // Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit) {
     const allObjects = getLoadedObjects();
@@ -325,12 +363,16 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
     };
     zombies.forEach(z => {
         if (z.userData.hp <= 0) return;
+        const wasInactive = !z.visible;
         const dist = z.position.distanceTo(playerObj.position);
         if (dist > ZOMBIE_ACTIVE_DISTANCE) {
             z.visible = false;
             return;
         }
         z.visible = true;
+        if (wasInactive) {
+            resolveZombieOverlap(z, collidableObjects);
+        }
         insertZombie(z);
     });
 
@@ -493,6 +535,7 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         }
 
         setZombieAnimation(zombie, moving);
+        zombie.userData._lastValidPos = zombie.position.clone();
     });
 }
 
