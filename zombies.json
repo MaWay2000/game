@@ -55,7 +55,7 @@
     "damage": 5,
     "attack_range": 1.2,
     "aggro_range": 6,
-    "spotDistance": 8,
+    "spotDistance": 20,
     "loot": "",
     "ai": true
   },
