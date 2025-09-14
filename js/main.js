@@ -1,8 +1,9 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects } from './mapLoader.js';
+import { loadMap, updateVisibleObjects, getLoadedObjects } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD } from './hud.js';
+import { initMinimap, updateMinimap } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
@@ -245,6 +246,7 @@ initCrosshair();
 enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
 addPistolToCamera(weaponCamera);
+initMinimap();
 
 document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);
@@ -314,6 +316,7 @@ function animate() {
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
+  updateMinimap(cameraContainer, camera, getLoadedObjects());
 
   renderer.clear();
   renderer.render(scene, camera);
