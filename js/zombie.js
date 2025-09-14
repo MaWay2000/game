@@ -5,6 +5,9 @@ import { getLoadedObjects } from './mapLoader.js';
 let zombies = [];
 let zombieTypeIds = null;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
+// Small shrink to make collision boxes less tight so zombies can squeeze
+// through narrow corridors without getting stuck on walls.
+const ZOMBIE_COLLISION_MARGIN = 0.1;
 // Zombies beyond this distance from the player are neither rendered nor updated.
 // This reduces CPU/GPU workload when many zombies exist far from the action.
 // Maximum radius around the player where zombies remain active
@@ -253,7 +256,12 @@ function checkZombieCollision(zombie, proposed, collidables) {
         ? zombie.userData.rules.geometry
         : DEFAULT_ZOMBIE_SIZE;
     const center = new THREE.Vector3(proposed.x, proposed.y + size[1] / 2, proposed.z);
-    const box = new THREE.Box3().setFromCenterAndSize(center, new THREE.Vector3(...size));
+    const boxSize = new THREE.Vector3(
+        size[0] - ZOMBIE_COLLISION_MARGIN,
+        size[1],
+        size[2] - ZOMBIE_COLLISION_MARGIN
+    );
+    const box = new THREE.Box3().setFromCenterAndSize(center, boxSize);
     for (const obj of collidables) {
         if (obj === zombie) continue;
         const objBox = getCachedBox(obj);
