@@ -1,5 +1,5 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects, getLoadedObjects } from './mapLoader.js';
+import { loadMap, updateVisibleObjects, getLoadedObjects, FOG_RADIUS } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD } from './hud.js';
@@ -161,7 +161,8 @@ const geometries = {};
 const materials = {};
 const textureLoader = new THREE.TextureLoader();
 // Increased to ensure zombies remain within loaded map bounds
-const PLAYER_VIEW_DISTANCE = 25;
+// Use the fog-of-war radius from mapLoader so visibility is consistent.
+const PLAYER_VIEW_DISTANCE = FOG_RADIUS;
 
 // Track models for zombies/objects
 const models = {};

@@ -10,6 +10,9 @@ let gltfModels = {};
 let gltfAnimations = {};
 let gltfLoadedFlags = {};
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
+// Radius, in world units, that the player can see. Objects outside this
+// distance remain hidden to create a fog-of-war effect.
+export const FOG_RADIUS = 8;
 
 const textureLoader = new THREE.TextureLoader();
 const gltfLoader = new THREE.GLTFLoader();
@@ -228,8 +231,8 @@ export async function loadMap(scene) {
         }
     }
 
-    updateVisibleObjects(scene, 0, 0, 40);
-    scene.fog = new THREE.Fog(0x000000, 2, 15);
+    updateVisibleObjects(scene, 0, 0, FOG_RADIUS);
+    scene.fog = new THREE.Fog(0x000000, 2, FOG_RADIUS);
     return loadedObjects;
 }
 
