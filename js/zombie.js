@@ -74,6 +74,13 @@ function parallelTraverse(a, b, callback) {
 export async function spawnZombiesFromMap(scene, mapObjects, models, materials) {
     zombies = [];
 
+    // Gather all static collidable objects once so we can test potential
+    // spawn points against walls or other obstacles.
+    const collidableObjects = mapObjects.filter(o => {
+        const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
+        return rules.collidable;
+    });
+
     // Try to load zombie type IDs, but don't rely solely on them. If the
     // fetch fails (e.g. offline or missing file) fall back to objects that
     // already have the `ai` flag set in their userData.
@@ -176,6 +183,52 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieMesh.userData.turnSpeed = zombieMesh.userData.turnSpeed ?? 5;
         // Mark zombie objects for AI interactions (e.g., bullet hit tests)
         zombieMesh.userData.ai = true;
+
+        // Ensure the spawn position isn't inside a wall or other static
+        // obstacle. If a collision is detected, attempt to nudge the zombie
+        // outward along cardinal directions until a free spot is found.
+        if (checkZombieCollision(zombieMesh, zombieMesh.position, collidableObjects)) {
+            const directions = [
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(-1, 0, 0),
+                new THREE.Vector3(0, 0, 1),
+                new THREE.Vector3(0, 0, -1)
+            ];
+            const step = 0.5;
+            const maxDist = 3;
+            let placed = false;
+            for (const dir of directions) {
+                for (let d = step; d <= maxDist; d += step) {
+                    const test = zombieMesh.position.clone().addScaledVector(dir, d);
+                    if (!checkZombieCollision(zombieMesh, test, collidableObjects)) {
+                        zombieMesh.position.copy(test);
+                        placed = true;
+                        break;
+                    }
+                }
+                if (placed) break;
+            }
+            if (!placed) continue; // skip spawning if no free spot found
+        }
+
+        // Avoid spawning multiple zombies on top of each other by enforcing
+        // a minimal separation distance from already placed zombies.
+        const mySize = (zombieMesh.userData && zombieMesh.userData.rules && zombieMesh.userData.rules.geometry)
+            ? zombieMesh.userData.rules.geometry
+            : DEFAULT_ZOMBIE_SIZE;
+        let tooClose = false;
+        for (const other of zombies) {
+            const otherSize = (other.userData && other.userData.rules && other.userData.rules.geometry)
+                ? other.userData.rules.geometry
+                : DEFAULT_ZOMBIE_SIZE;
+            const minDist = (mySize[0] + otherSize[0]) / 2;
+            if (zombieMesh.position.distanceTo(other.position) < minDist) {
+                tooClose = true;
+                break;
+            }
+        }
+        if (tooClose) continue;
+
         zombies.push(zombieMesh);
     }
 }
