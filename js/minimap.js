@@ -4,6 +4,8 @@ let fullVisible = false;
 let fullMapData = null;
 const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
+// Track explored cells so the full map only reveals visited areas
+const exploredCells = new Set();
 
 export function initMinimap() {
     canvas = document.createElement('canvas');
@@ -25,6 +27,8 @@ export function updateMinimap(player, camera, objects) {
 
     const half = SIZE / 2;
     const range = half / SCALE; // world units that fit in minimap radius
+    // Mark nearby cells as explored
+    markExplored(player, range);
     // Draw walls
     ctx.fillStyle = '#888';
     for (const obj of objects) {
@@ -125,6 +129,7 @@ function drawFullMap(player, camera, mapData) {
 
     for (const item of mapData) {
         const [x, , z] = item.position;
+        if (!isExplored(x, z)) continue;
         const color = item.type === 'wall' ? '#888' : 'white';
         fullCtx.fillStyle = color;
         const sx = (x + offsetX) * scale;
@@ -146,4 +151,19 @@ function drawFullMap(player, camera, mapData) {
     fullCtx.moveTo(px, py);
     fullCtx.lineTo(px + dir.x * 10, py + dir.z * 10);
     fullCtx.stroke();
+}
+
+function markExplored(player, range) {
+    const px = Math.floor(player.position.x);
+    const pz = Math.floor(player.position.z);
+    const r = Math.floor(range);
+    for (let dx = -r; dx <= r; dx++) {
+        for (let dz = -r; dz <= r; dz++) {
+            exploredCells.add(`${px + dx},${pz + dz}`);
+        }
+    }
+}
+
+function isExplored(x, z) {
+    return exploredCells.has(`${Math.floor(x)},${Math.floor(z)}`);
 }
