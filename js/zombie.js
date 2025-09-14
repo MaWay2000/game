@@ -432,12 +432,19 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
             }
         }
 
-        // Hunt the player if within spotting distance
+        // Check for nearby gunshots and trigger temporary aggro
+        const spotRange = zombie.userData.spotDistance || 8;
+        if (lastGunshot && zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
+            // Become aggressive toward the player for 3-10 seconds
+            zombie.userData._aggroTime = 3 + Math.random() * 7;
+        }
+        zombie.userData._aggroTime = Math.max(0, (zombie.userData._aggroTime || 0) - delta);
+
+        // Hunt the player if within spotting distance or temporarily aggroed
         const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
         const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
-        const spotRange = zombie.userData.spotDistance || 8;
 
-        if (distToPlayer <= spotRange) {
+        if (distToPlayer <= spotRange || zombie.userData._aggroTime > 0) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
             const displacement = dir.clone().multiplyScalar(zombie.userData.speed);
@@ -452,53 +459,30 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
             // Reset wandering so the zombie continues to chase
             zombie.userData._wanderTime = 0;
         } else {
-            // Investigate recent gunshots if they occurred nearby
-            if (lastGunshot && zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
-                const dir = new THREE.Vector3().subVectors(lastGunshot.position, zombie.position)
-                    .setY(0)
-                    .normalize();
-                zombie.userData._investigateDir = dir;
-                zombie.userData._investigateTime = 2;
+            // Wander randomly when the player is not nearby
+            zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
+            zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
+            if (zombie.userData._wanderTime <= 0) {
+                const angle = Math.random() * Math.PI * 2;
+                zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
+                zombie.userData._wanderTime = 2 + Math.random() * 3;
             }
-
-            if (zombie.userData._investigateTime > 0) {
-                const dir = zombie.userData._investigateDir;
-                const displacement = dir.clone().multiplyScalar(zombie.userData.speed);
-                if (tryMove(zombie, displacement, collidableObjects)) {
-                    const targetRot = Math.atan2(dir.x, dir.z);
-                    const currentRot = zombie.rotation.y;
-                    const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
-                    const turnSpeed = zombie.userData.turnSpeed || 5;
-                    zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
-                    moving = true;
-                }
-                zombie.userData._investigateTime -= delta;
+            const displacement = zombie.userData._wanderDir.clone().multiplyScalar(zombie.userData.speed * 0.5);
+            if (tryMove(zombie, displacement, collidableObjects)) {
+                // Rotate smoothly to face the direction of movement
+                const targetRot = Math.atan2(
+                    zombie.userData._wanderDir.x,
+                    zombie.userData._wanderDir.z
+                );
+                const currentRot = zombie.rotation.y;
+                const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
+                const turnSpeed = zombie.userData.turnSpeed || 5;
+                zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
+                moving = true;
             } else {
-                // Wander randomly when the player is not nearby
-                zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
-                zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
-                if (zombie.userData._wanderTime <= 0) {
-                    const angle = Math.random() * Math.PI * 2;
-                    zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
-                    zombie.userData._wanderTime = 2 + Math.random() * 3;
-                }
-                const displacement = zombie.userData._wanderDir.clone().multiplyScalar(zombie.userData.speed * 0.5);
-                if (tryMove(zombie, displacement, collidableObjects)) {
-                    // Rotate smoothly to face the direction of movement
-                    const targetRot = Math.atan2(
-                        zombie.userData._wanderDir.x,
-                        zombie.userData._wanderDir.z
-                    );
-                    const currentRot = zombie.rotation.y;
-                    const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
-                    const turnSpeed = zombie.userData.turnSpeed || 5;
-                    zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
-                    moving = true;
-                } else {
-                    zombie.userData._wanderTime = 0; // pick new direction next frame
-                }
-                zombie.userData._wanderTime -= delta;
+                zombie.userData._wanderTime = 0; // pick new direction next frame
             }
+            zombie.userData._wanderTime -= delta;
         }
 
         // Prevent zombies from stacking by nudging them away from
