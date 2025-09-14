@@ -237,6 +237,10 @@ export function getLoadedObjects() {
     return visibleObjects;
 }
 
+export function getAllObjects() {
+    return loadedObjects;
+}
+
 export function updateVisibleObjects(scene, playerX, playerZ, viewDist) {
     visibleObjects.forEach(obj => scene.remove(obj));
     visibleObjects = [];

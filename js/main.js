@@ -1,5 +1,5 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects, getLoadedObjects } from './mapLoader.js';
+import { loadMap, updateVisibleObjects, getLoadedObjects, getAllObjects } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD } from './hud.js';
@@ -259,7 +259,7 @@ document.addEventListener('keydown', (e) => {
     torch.visible = !godsSun.visible;
   }
   if (e.code === 'KeyM') {
-    toggleFullMap(cameraContainer, camera, getLoadedObjects());
+    toggleFullMap(cameraContainer, camera, getAllObjects());
   }
 });
 
