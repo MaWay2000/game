@@ -14,7 +14,7 @@ export function initHUD() {
     healthEl = document.createElement('div');
     healthEl.style.position = 'absolute';
     healthEl.style.top = '10px';
-    healthEl.style.right = '10px';
+    healthEl.style.left = '10px';
     healthEl.textContent = 'Health: 100';
     document.body.appendChild(healthEl);
 
