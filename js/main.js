@@ -3,7 +3,7 @@ import { loadMap, updateVisibleObjects, getLoadedObjects } from './mapLoader.js'
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD } from './hud.js';
-import { initMinimap, updateMinimap } from './minimap.js';
+import { initMinimap, updateMinimap, toggleFullMap } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
@@ -257,6 +257,9 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') {
     godsSun.visible = !godsSun.visible;
     torch.visible = !godsSun.visible;
+  }
+  if (e.code === 'KeyM') {
+    toggleFullMap(cameraContainer, camera, getLoadedObjects());
   }
 });
 
