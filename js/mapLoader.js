@@ -50,6 +50,17 @@ function applyPosition(mesh, position, rule) {
     }
 }
 
+// Cache a bounding box for the object so collision tests don't
+// need to reconstruct it every frame. The box is stored along with
+// the transform values so we can detect when it becomes stale.
+function cacheBoundingBox(obj) {
+    obj.updateMatrixWorld(true);
+    obj.userData._bbox = new THREE.Box3().setFromObject(obj);
+    obj.userData._bboxPos = obj.position.clone();
+    obj.userData._bboxQuat = obj.quaternion.clone();
+    obj.userData._bboxScale = obj.scale.clone();
+}
+
 export async function loadMap(scene) {
     // GitHub Pages and other static hosts cannot execute PHP files.
     // Instead of requesting "mapmaker.php" to list available JSON files,
@@ -173,6 +184,7 @@ export async function loadMap(scene) {
             mesh.userData = { ...item, rules: rule };
             if (rule.ai) mesh.userData.ai = true;
             loadedObjects.push(mesh);
+            if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && (rule.ai || item.ai || item.isZombie)) {
             // If missing model, fallback to box for zombie
             let geo = geometries[type] || new THREE.BoxGeometry(...(rule.geometry || [1,1,1]));
@@ -182,12 +194,14 @@ export async function loadMap(scene) {
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule, ai: true };
             loadedObjects.push(mesh);
+            if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && geometries[type] && materials[type]) {
             mesh = new THREE.Mesh(geometries[type], materials[type]);
             applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             loadedObjects.push(mesh);
+            if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && rule.geometry) {
             // Final fallback for unknown object with geometry (render as colored box)
             const geo = new THREE.BoxGeometry(...rule.geometry);
@@ -208,6 +222,7 @@ export async function loadMap(scene) {
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             loadedObjects.push(mesh);
+            if (rule.collidable) cacheBoundingBox(mesh);
         } else {
             console.warn(`Unknown object type: ${type}`, item);
         }
