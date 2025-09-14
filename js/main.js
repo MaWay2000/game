@@ -131,7 +131,7 @@ const torch = new THREE.SpotLight(
     TORCH_DECAY
 );
 // Offset slightly forward so walls remain lit when the player is up close
-torch.position.set(-0.5, 0.5, -0.2); // Above player's eyes
+torch.position.set(0, 0.5, -0.2); // Above player's eyes
 camera.add(torch);
 torch.layers.enable(1);
 scene.add(torch.target);
