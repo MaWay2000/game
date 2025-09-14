@@ -4,9 +4,9 @@
     "name": "Test",
     "color": "#cccccc",
     "size": [
+      0.9,
       0.7,
-      0.7,
-      0.7
+      0.9
     ],
     "collidable": true,
     "model": "models/zombie.glb",
@@ -24,9 +24,9 @@
     "name": "Test3",
     "color": "#cccccc",
     "size": [
-      1,
-      1,
-      1
+      0.9,
+      0.7,
+      0.9
     ],
     "collidable": true,
     "model": "models/zombie3.glb",
@@ -44,9 +44,9 @@
     "name": "Test2",
     "color": "#cccccc",
     "size": [
+      0.9,
       0.7,
-      0.7,
-      0.7
+      0.9
     ],
     "collidable": true,
     "model": "models/zombie2.glb",
