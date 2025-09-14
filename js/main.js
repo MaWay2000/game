@@ -159,7 +159,7 @@ scene.fog = null;
 const geometries = {};
 const materials = {};
 const textureLoader = new THREE.TextureLoader();
-const PLAYER_VIEW_DISTANCE = 18;
+const PLAYER_VIEW_DISTANCE = 21;
 
 // Track models for zombies/objects
 const models = {};
