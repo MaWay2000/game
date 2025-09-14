@@ -159,7 +159,8 @@ scene.fog = null;
 const geometries = {};
 const materials = {};
 const textureLoader = new THREE.TextureLoader();
-const PLAYER_VIEW_DISTANCE = 21;
+// Increased to ensure zombies remain within loaded map bounds
+const PLAYER_VIEW_DISTANCE = 25;
 
 // Track models for zombies/objects
 const models = {};
