@@ -209,6 +209,31 @@ function setZombieAnimation(zombie, moving) {
     }
 }
 
+// Retrieve a cached world-space bounding box for an object. The box is
+// recomputed only if the object's transform has changed since the last
+// time it was requested.
+function getCachedBox(obj) {
+    const ud = obj.userData || (obj.userData = {});
+    if (!ud._bbox) {
+        obj.updateMatrixWorld(true);
+        ud._bbox = new THREE.Box3().setFromObject(obj);
+        ud._bboxPos = obj.position.clone();
+        ud._bboxQuat = obj.quaternion.clone();
+        ud._bboxScale = obj.scale.clone();
+    } else if (
+        !ud._bboxPos.equals(obj.position) ||
+        !ud._bboxQuat.equals(obj.quaternion) ||
+        !ud._bboxScale.equals(obj.scale)
+    ) {
+        obj.updateMatrixWorld(true);
+        ud._bbox.setFromObject(obj);
+        ud._bboxPos.copy(obj.position);
+        ud._bboxQuat.copy(obj.quaternion);
+        ud._bboxScale.copy(obj.scale);
+    }
+    return ud._bbox;
+}
+
 // Simple collision check for zombies using loaded map objects
 function checkZombieCollision(zombie, proposed, collidables) {
     const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
@@ -218,7 +243,7 @@ function checkZombieCollision(zombie, proposed, collidables) {
     const box = new THREE.Box3().setFromCenterAndSize(center, new THREE.Vector3(...size));
     for (const obj of collidables) {
         if (obj === zombie) continue;
-        const objBox = new THREE.Box3().setFromObject(obj);
+        const objBox = getCachedBox(obj);
         if (box.intersectsBox(objBox)) return true;
     }
     return false;
@@ -231,7 +256,7 @@ function checkPlayerCollision(pos, collidables) {
         new THREE.Vector3(0.5, 1.6, 0.5)
     );
     for (const obj of collidables) {
-        const box = new THREE.Box3().setFromObject(obj);
+        const box = getCachedBox(obj);
         if (playerBox.intersectsBox(box)) return true;
     }
     return false;
