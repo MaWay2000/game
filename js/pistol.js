@@ -1,6 +1,6 @@
 import { updateHUD } from './hud.js';
 import { getLoadedObjects } from './mapLoader.js';
-import { getZombies, damageZombie } from './zombie.js';
+import { getZombies, damageZombie, registerGunshot } from './zombie.js';
 
 let pistol;
 let clipAmmo = 10;
@@ -197,6 +197,9 @@ export function shootPistol(scene, camera) {
         velocity: direction.clone().multiplyScalar(0.5),
         life: 0
     };
+
+    // Notify zombies about the gunshot so they can investigate
+    registerGunshot(bullet.position);
 
     scene.add(bullet);
     flyingBullets.push(bullet);
