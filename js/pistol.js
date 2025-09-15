@@ -25,6 +25,55 @@ insertSoundTemplate.volume = 0.5;
 
 const flyingBullets = [];
 
+let bulletTemplate = null;
+let bulletLoadPromise = null;
+
+function ensureBulletModel() {
+    if (bulletTemplate) {
+        return Promise.resolve(bulletTemplate);
+    }
+
+    if (!bulletLoadPromise) {
+        const loader = new THREE.GLTFLoader();
+        bulletLoadPromise = new Promise((resolve, reject) => {
+            loader.load(
+                'models/bullet.glb',
+                gltf => {
+                    bulletTemplate = gltf.scene;
+                    bulletTemplate.traverse(obj => {
+                        if (obj.isMesh) {
+                            obj.castShadow = false;
+                            obj.receiveShadow = false;
+                        }
+                        obj.frustumCulled = false;
+                    });
+
+                    const boundingBox = new THREE.Box3().setFromObject(bulletTemplate);
+                    const size = new THREE.Vector3();
+                    boundingBox.getSize(size);
+                    const maxDimension = Math.max(size.x, size.y, size.z);
+                    const desiredMax = 0.1;
+                    if (maxDimension > 0 && maxDimension !== desiredMax) {
+                        const scaleFactor = desiredMax / maxDimension;
+                        bulletTemplate.scale.multiplyScalar(scaleFactor);
+                    }
+
+                    resolve(bulletTemplate);
+                },
+                undefined,
+                err => {
+                    console.error('Failed to load bullet model', err);
+                    bulletTemplate = null;
+                    bulletLoadPromise = null;
+                    reject(err);
+                }
+            );
+        });
+    }
+
+    return bulletLoadPromise;
+}
+
 function scheduleRandomJump() {
     if (!jumpAction) return;
     clearTimeout(jumpTimeout);
@@ -50,6 +99,8 @@ function scheduleRandomJump() {
 }
 
 export function addPistolToCamera(camera) {
+    ensureBulletModel().catch(() => {});
+
     const loader = new THREE.GLTFLoader();
     loader.load(
         'models/pistol.glb',
@@ -132,7 +183,7 @@ export function addPistolToCamera(camera) {
     updateHUD(clipAmmo, 100);
 }
 
-export function shootPistol(scene, camera) {
+export async function shootPistol(scene, camera) {
     if (!pistol) {
         console.warn('Pistol not ready.');
         return;
@@ -179,19 +230,36 @@ export function shootPistol(scene, camera) {
         return;
     }
 
-    clipAmmo--;
     canShoot = false;
+
+    try {
+        await ensureBulletModel();
+    } catch (err) {
+        console.warn('Unable to fire pistol because the bullet model failed to load.');
+        canShoot = true;
+        return;
+    }
+
+    if (!bulletTemplate) {
+        console.warn('Bullet model not available.');
+        canShoot = true;
+        return;
+    }
+
+    clipAmmo--;
     fireAction?.reset().play();
 
-    // Create bullet
-    const bulletGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-    const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-    bullet.position.copy(camera.getWorldPosition(new THREE.Vector3()));
+    const bullet = bulletTemplate.clone(true);
 
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
     direction.normalize();
+
+    const worldPosition = camera.getWorldPosition(new THREE.Vector3());
+    bullet.position.copy(worldPosition);
+
+    const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), direction);
+    bullet.quaternion.copy(orientation);
 
     bullet.userData = {
         velocity: direction.clone().multiplyScalar(0.5),
