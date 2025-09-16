@@ -37,6 +37,95 @@ const zombieGeometryCache = new Map();
 let zombieDefinitionsMap = null;
 let zombieDefinitionsPromise = null;
 
+// Persistent spatial grid used to keep zombies separated.
+const zombieGrid = new Map();
+let zombieGridCellSize = Math.max(DEFAULT_ZOMBIE_SIZE[0], DEFAULT_ZOMBIE_SIZE[2]);
+
+function cellKey(x, z) {
+    return `${x},${z}`;
+}
+
+function getZombieGeometry(zombie) {
+    const geometry = zombie?.userData?.rules?.geometry;
+    if (Array.isArray(geometry) && geometry.length >= 3) {
+        return geometry;
+    }
+    return DEFAULT_ZOMBIE_SIZE;
+}
+
+function computeZombieGridCellSize() {
+    let size = Math.max(DEFAULT_ZOMBIE_SIZE[0], DEFAULT_ZOMBIE_SIZE[2]);
+    zombies.forEach(zombie => {
+        const geometry = getZombieGeometry(zombie);
+        size = Math.max(size, geometry[0] || size, geometry[2] || size);
+    });
+    return size || DEFAULT_ZOMBIE_SIZE[0];
+}
+
+function addZombieToGrid(zombie, cx, cz) {
+    if (!zombie.userData) zombie.userData = {};
+    const key = cellKey(cx, cz);
+    let bucket = zombieGrid.get(key);
+    if (!bucket) {
+        bucket = [];
+        zombieGrid.set(key, bucket);
+    }
+    bucket.push(zombie);
+    zombie.userData._cellX = cx;
+    zombie.userData._cellZ = cz;
+    zombie.userData._inGrid = true;
+}
+
+function removeZombieFromGrid(zombie) {
+    if (!zombie || !zombie.userData || !zombie.userData._inGrid) return;
+    const key = cellKey(zombie.userData._cellX, zombie.userData._cellZ);
+    const bucket = zombieGrid.get(key);
+    if (bucket) {
+        const idx = bucket.indexOf(zombie);
+        if (idx !== -1) bucket.splice(idx, 1);
+        if (bucket.length === 0) zombieGrid.delete(key);
+    }
+    delete zombie.userData._cellX;
+    delete zombie.userData._cellZ;
+    zombie.userData._inGrid = false;
+}
+
+function updateZombieGridCell(zombie, force = false) {
+    if (!zombie || !zombie.userData) {
+        return { cx: undefined, cz: undefined };
+    }
+    if (zombie.userData.hp <= 0 || !zombie.visible) {
+        removeZombieFromGrid(zombie);
+        return { cx: undefined, cz: undefined };
+    }
+
+    const cx = Math.floor(zombie.position.x / zombieGridCellSize);
+    const cz = Math.floor(zombie.position.z / zombieGridCellSize);
+
+    if (!force && zombie.userData._inGrid && zombie.userData._cellX === cx && zombie.userData._cellZ === cz) {
+        return { cx, cz };
+    }
+
+    removeZombieFromGrid(zombie);
+    addZombieToGrid(zombie, cx, cz);
+    return { cx, cz };
+}
+
+function rebuildZombieGrid() {
+    zombieGrid.clear();
+    zombieGridCellSize = computeZombieGridCellSize();
+    zombies.forEach(zombie => {
+        if (!zombie.userData) zombie.userData = {};
+        zombie.userData._inGrid = false;
+        delete zombie.userData._cellX;
+        delete zombie.userData._cellZ;
+        if (zombie.userData.hp <= 0 || !zombie.visible) return;
+        const cx = Math.floor(zombie.position.x / zombieGridCellSize);
+        const cz = Math.floor(zombie.position.z / zombieGridCellSize);
+        addZombieToGrid(zombie, cx, cz);
+    });
+}
+
 // Blood effect handling
 const bloodEffects = [];
 let bloodEffectModel = null;
@@ -517,6 +606,8 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         zombieMesh.userData.ai = true;
         zombies.push(zombieMesh);
     }
+
+    rebuildZombieGrid();
 }
 
 export async function spawnRandomZombies(scene, count, walkablePositions = []) {
@@ -566,6 +657,10 @@ export async function spawnRandomZombies(scene, count, walkablePositions = []) {
         zombies.push(zombieMesh);
         spawned.push(zombieMesh);
         occupied.add(key);
+    }
+
+    if (spawned.length > 0) {
+        rebuildZombieGrid();
     }
 
     return spawned;
@@ -769,84 +864,40 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         lastGunshot = null;
     }
 
-    // Build a spatial grid of active zombies to limit neighbor checks
-    let gridCell = DEFAULT_ZOMBIE_SIZE[0];
-    zombies.forEach(z => {
-        const size = (z.userData && z.userData.rules && z.userData.rules.geometry)
-            ? z.userData.rules.geometry
-            : DEFAULT_ZOMBIE_SIZE;
-        gridCell = Math.max(gridCell, size[0]);
-    });
-
-    const grid = new Map();
     const corpsesToRemove = [];
-    const cellKey = (x, z) => `${x},${z}`;
-
-    // Insert a zombie into the grid and track its cell on the object
-    const insertZombie = z => {
-        const cx = Math.floor(z.position.x / gridCell);
-        const cz = Math.floor(z.position.z / gridCell);
-        z.userData._cellX = cx;
-        z.userData._cellZ = cz;
-        const key = cellKey(cx, cz);
-        if (!grid.has(key)) grid.set(key, []);
-        grid.get(key).push(z);
-    };
-    zombies.forEach(z => {
-        if (z.userData.hp <= 0) return;
-        const wasInactive = !z.visible;
-        const dist = z.position.distanceTo(playerObj.position);
-        if (dist > activeDistance) {
-            z.visible = false;
-            return;
-        }
-        z.visible = true;
-        if (wasInactive) {
-            resolveZombieOverlap(z, collidableObjects);
-        }
-        insertZombie(z);
-    });
-
-    // Update a zombie's grid cell when it moves
-    const updateCell = z => {
-        const cx = Math.floor(z.position.x / gridCell);
-        const cz = Math.floor(z.position.z / gridCell);
-        if (cx === z.userData._cellX && cz === z.userData._cellZ) {
-            return { cx, cz };
-        }
-        const oldKey = cellKey(z.userData._cellX, z.userData._cellZ);
-        const oldArr = grid.get(oldKey);
-        if (oldArr) {
-            const idx = oldArr.indexOf(z);
-            if (idx !== -1) oldArr.splice(idx, 1);
-            if (oldArr.length === 0) grid.delete(oldKey);
-        }
-        const newKey = cellKey(cx, cz);
-        if (!grid.has(newKey)) grid.set(newKey, []);
-        grid.get(newKey).push(z);
-        z.userData._cellX = cx;
-        z.userData._cellZ = cz;
-        return { cx, cz };
-    };
 
     zombies.forEach(zombie => {
-        if (zombie.userData.hp <= 0) {
+        const ud = zombie.userData || (zombie.userData = {});
+        if (ud.hp <= 0) {
+            removeZombieFromGrid(zombie);
             if (updateDeadZombie(zombie, delta)) {
                 corpsesToRemove.push(zombie);
             }
             return;
         }
 
-        if (!zombie.visible) return;
-        if (zombie.userData.mixer) {
-            zombie.userData.mixer.update(delta);
+        const wasInactive = !zombie.visible;
+        const dist = zombie.position.distanceTo(playerObj.position);
+        if (dist > activeDistance) {
+            zombie.visible = false;
+            removeZombieFromGrid(zombie);
+            return;
+        }
+
+        zombie.visible = true;
+        if (wasInactive) {
+            resolveZombieOverlap(zombie, collidableObjects);
+        }
+
+        if (ud.mixer) {
+            ud.mixer.update(delta);
         }
 
         let moving = false;
 
         // Apply knockback velocity if present
-        if (zombie.userData.knockback) {
-            const kb = zombie.userData.knockback;
+        if (ud.knockback) {
+            const kb = ud.knockback;
             if (kb.lengthSq() > 0.0001) {
                 const displacement = kb.clone().multiplyScalar(delta);
                 tryMove(zombie, displacement, collidableObjects);
@@ -856,111 +907,111 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         }
 
         // Check for nearby gunshots and trigger temporary aggro
-        const baseSpotRange = zombie.userData.spotDistance || 8;
+        const baseSpotRange = ud.spotDistance || 8;
         // Sneaking halves the distance at which zombies can spot the player.
         const spotRangeMultiplier = isSneaking ? 0.5 : 1;
         const spotRange = baseSpotRange * spotRangeMultiplier;
         if (lastGunshot && zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
             // Become aggressive toward the player for 3-10 seconds
-            zombie.userData._aggroTime = 3 + Math.random() * 7;
+            ud._aggroTime = 3 + Math.random() * 7;
         }
-        zombie.userData._aggroTime = Math.max(0, (zombie.userData._aggroTime || 0) - delta);
+        ud._aggroTime = Math.max(0, (ud._aggroTime || 0) - delta);
 
         // Hunt the player if within spotting distance or temporarily aggroed
         const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
         const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
 
-        if (distToPlayer <= spotRange || zombie.userData._aggroTime > 0) {
+        if (distToPlayer <= spotRange || ud._aggroTime > 0) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
-            const displacement = dir.clone().multiplyScalar(zombie.userData.speed);
+            const displacement = dir.clone().multiplyScalar(ud.speed);
             if (tryMove(zombie, displacement, collidableObjects)) {
                 const targetRot = Math.atan2(dir.x, dir.z);
                 const currentRot = zombie.rotation.y;
                 const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
-                const turnSpeed = zombie.userData.turnSpeed || 5;
+                const turnSpeed = ud.turnSpeed || 5;
                 zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
                 moving = true;
             }
             // Reset wandering so the zombie continues to chase
-            zombie.userData._wanderTime = 0;
+            ud._wanderTime = 0;
         } else {
             // Wander randomly when the player is not nearby
-            zombie.userData._wanderTime = zombie.userData._wanderTime ?? 0;
-            zombie.userData._wanderDir = zombie.userData._wanderDir || new THREE.Vector3();
-            if (zombie.userData._wanderTime <= 0) {
+            ud._wanderTime = ud._wanderTime ?? 0;
+            ud._wanderDir = ud._wanderDir || new THREE.Vector3();
+            if (ud._wanderTime <= 0) {
                 const angle = Math.random() * Math.PI * 2;
-                zombie.userData._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
-                zombie.userData._wanderTime = 2 + Math.random() * 3;
+                ud._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
+                ud._wanderTime = 2 + Math.random() * 3;
             }
-            const displacement = zombie.userData._wanderDir.clone().multiplyScalar(zombie.userData.speed * 0.5);
+            const displacement = ud._wanderDir.clone().multiplyScalar(ud.speed * 0.5);
             if (tryMove(zombie, displacement, collidableObjects)) {
                 // Rotate smoothly to face the direction of movement
                 const targetRot = Math.atan2(
-                    zombie.userData._wanderDir.x,
-                    zombie.userData._wanderDir.z
+                    ud._wanderDir.x,
+                    ud._wanderDir.z
                 );
                 const currentRot = zombie.rotation.y;
                 const rotDiff = THREE.MathUtils.euclideanModulo(targetRot - currentRot + Math.PI, Math.PI * 2) - Math.PI;
-                const turnSpeed = zombie.userData.turnSpeed || 5;
+                const turnSpeed = ud.turnSpeed || 5;
                 zombie.rotation.y = currentRot + rotDiff * Math.min(1, turnSpeed * delta);
                 moving = true;
             } else {
-                zombie.userData._wanderTime = 0; // pick new direction next frame
+                ud._wanderTime = 0; // pick new direction next frame
             }
-            zombie.userData._wanderTime -= delta;
+            ud._wanderTime -= delta;
         }
 
         // Prevent zombies from stacking by nudging them away from
         // each other when they get too close. This keeps a small
         // separation between zombies while still allowing them to
         // chase the player. Use a spatial grid to only compare nearby zombies.
-        const mySize = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
-            ? zombie.userData.rules.geometry
+        const mySize = (ud && ud.rules && ud.rules.geometry)
+            ? ud.rules.geometry
             : DEFAULT_ZOMBIE_SIZE;
 
-        // Ensure the grid cell reflects the zombie's current position
-        const { cx, cz } = updateCell(zombie);
+        const { cx, cz } = updateZombieGridCell(zombie, wasInactive);
 
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dz = -1; dz <= 1; dz++) {
-                const key = cellKey(cx + dx, cz + dz);
-                const cell = grid.get(key);
-                if (!cell) continue;
-                cell.forEach(other => {
-                    if (other === zombie || other.userData.hp <= 0) return;
-                    const otherSize = (other.userData && other.userData.rules && other.userData.rules.geometry)
-                        ? other.userData.rules.geometry
-                        : DEFAULT_ZOMBIE_SIZE;
-                    const minDist = (mySize[0] + otherSize[0]) / 2;
-                    const offset = new THREE.Vector3().subVectors(zombie.position, other.position);
-                    const dist = Math.hypot(offset.x, offset.z);
-                    if (dist > 0 && dist < minDist) {
-                        const push = offset.setY(0).normalize().multiplyScalar((minDist - dist) * 0.5);
-                        const proposed = zombie.position.clone().add(push);
-                        if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
-                            zombie.position.copy(proposed);
+        if (cx !== undefined && cz !== undefined) {
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dz = -1; dz <= 1; dz++) {
+                    const cell = zombieGrid.get(cellKey(cx + dx, cz + dz));
+                    if (!cell) continue;
+                    cell.forEach(other => {
+                        if (other === zombie || other.userData.hp <= 0) return;
+                        const otherSize = (other.userData && other.userData.rules && other.userData.rules.geometry)
+                            ? other.userData.rules.geometry
+                            : DEFAULT_ZOMBIE_SIZE;
+                        const minDist = (mySize[0] + otherSize[0]) / 2;
+                        const offset = new THREE.Vector3().subVectors(zombie.position, other.position);
+                        const dist = Math.hypot(offset.x, offset.z);
+                        if (dist > 0 && dist < minDist) {
+                            const push = offset.setY(0).normalize().multiplyScalar((minDist - dist) * 0.5);
+                            const proposed = zombie.position.clone().add(push);
+                            if (!checkZombieCollision(zombie, proposed, collidableObjects)) {
+                                zombie.position.copy(proposed);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
         // Update cell again in case separation pushed the zombie elsewhere
-        updateCell(zombie);
+        updateZombieGridCell(zombie);
 
         // Reduce attack cooldown timer
-        zombie.userData._hitTimer = Math.max((zombie.userData._hitTimer || 0) - delta, 0);
+        ud._hitTimer = Math.max((ud._hitTimer || 0) - delta, 0);
 
         // Player collision
-        const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
-            ? zombie.userData.rules.geometry
+        const size = (ud && ud.rules && ud.rules.geometry)
+            ? ud.rules.geometry
             : DEFAULT_ZOMBIE_SIZE;
         const zCenter = new THREE.Vector3(zombie.position.x, zombie.position.y + size[1] / 2, zombie.position.z);
         const zBox = new THREE.Box3().setFromCenterAndSize(zCenter, new THREE.Vector3(...size));
         const pCenter = new THREE.Vector3(playerObj.position.x, 1.6, playerObj.position.z);
         const pBox = new THREE.Box3().setFromCenterAndSize(pCenter, new THREE.Vector3(0.5, 1.6, 0.5));
-        if (pBox.intersectsBox(zBox) && zombie.userData._hitTimer === 0) {
+        if (pBox.intersectsBox(zBox) && ud._hitTimer === 0) {
             const angle = Math.random() * Math.PI * 2;
             const dir = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
 
@@ -979,16 +1030,17 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
             }
 
             if (onPlayerHit) onPlayerHit(dir.clone());
-            zombie.userData._hitTimer = zombie.userData.attackCooldown || 1;
+            ud._hitTimer = ud.attackCooldown || 1;
         }
 
         setZombieAnimation(zombie, moving);
-        zombie.userData._lastValidPos = zombie.position.clone();
+        ud._lastValidPos = zombie.position.clone();
     });
 
     if (corpsesToRemove.length) {
         const loadedObjects = getAllObjects();
         corpsesToRemove.forEach(deadZombie => {
+            removeZombieFromGrid(deadZombie);
             deadZombie.parent?.remove(deadZombie);
             const idx = zombies.indexOf(deadZombie);
             if (idx !== -1) {
@@ -1003,6 +1055,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
                 loadedObjects.splice(loadedIdx, 1);
             }
         });
+        rebuildZombieGrid();
     }
 }
 
