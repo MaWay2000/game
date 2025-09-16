@@ -1,7 +1,7 @@
 export const TORCH_COLOR = 0xffe5a0;
 export const TORCH_INTENSITY = 13.5;
 export const TORCH_DISTANCE = 15;
-export const TORCH_ANGLE = THREE.MathUtils.degToRad(36);
+export const TORCH_ANGLE = THREE.MathUtils.degToRad(60);
 export const TORCH_PENUMBRA = 0.95;
 export const TORCH_DECAY = 1.5;
 
@@ -19,8 +19,8 @@ export function setupTorch(camera, scene) {
     torch = new THREE.SpotLight(
         TORCH_COLOR, TORCH_INTENSITY, TORCH_DISTANCE, TORCH_ANGLE, TORCH_PENUMBRA, TORCH_DECAY
     );
-    // Place the light slightly in front of the camera so close walls stay illuminated
-    torch.position.set(0, 0.5, -0.2);
+    // Place the light close to the camera and center it on the player's view
+    torch.position.set(0, 0, -0.2);
     camera.add(torch);
 
     torchTarget = new THREE.Object3D();
