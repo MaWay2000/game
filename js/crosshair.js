@@ -30,6 +30,9 @@ export function initCrosshair() {
 
 export function drawCrosshair(delta = 0.016) {
     if (!ctx) return;
+    if (canvas && canvas.style.display === 'none') {
+        return;
+    }
 
     recoilGap = Math.max(0, recoilGap - RECOIL_DECAY * delta);
     const desiredGap = Math.max(
@@ -96,4 +99,14 @@ export function getCrosshairSpreadRadians() {
     const maxSpreadRadians = (MAX_SPREAD_DEGREES * Math.PI) / 180;
 
     return normalized * maxSpreadRadians;
+}
+
+export function setCrosshairVisible(visible) {
+    if (!canvas) return;
+    canvas.style.display = visible ? 'block' : 'none';
+    if (!visible && ctx) {
+        ctx.clearRect(0, 0, CROSSHAIR_SIZE, CROSSHAIR_SIZE);
+        recoilGap = 0;
+        currentGap = BASE_GAP;
+    }
 }

@@ -2,6 +2,7 @@ let canvas, ctx;
 let fullCanvas, fullCtx;
 let fullVisible = false;
 let fullMapData = null;
+let minimapEnabled = true;
 const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
 // Track explored cells so the full map only reveals visited areas
@@ -22,7 +23,7 @@ export function initMinimap() {
 }
 
 export function updateMinimap(player, camera, objects) {
-    if (!ctx) return;
+    if (!ctx || !minimapEnabled) return;
     ctx.clearRect(0, 0, SIZE, SIZE);
 
     const half = SIZE / 2;
@@ -78,6 +79,10 @@ export function updateMinimap(player, camera, objects) {
 }
 
 export async function toggleFullMap(player, camera) {
+    if (!minimapEnabled) {
+        return;
+    }
+
     if (!fullCanvas) {
         fullCanvas = document.createElement('canvas');
         fullCanvas.width = 600;
@@ -106,6 +111,22 @@ export async function toggleFullMap(player, camera) {
             }
         }
         drawFullMap(player, camera, fullMapData);
+    }
+}
+
+export function setMinimapEnabled(enabled) {
+    minimapEnabled = enabled;
+
+    if (canvas) {
+        canvas.style.display = enabled ? 'block' : 'none';
+        if (!enabled && ctx) {
+            ctx.clearRect(0, 0, SIZE, SIZE);
+        }
+    }
+
+    if (!enabled && fullCanvas) {
+        fullCanvas.style.display = 'none';
+        fullVisible = false;
     }
 }
 
