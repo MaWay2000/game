@@ -7,7 +7,7 @@ import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects } from './zombie.js';
+import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
 
 // --- Scene and Camera setup ---
@@ -336,6 +336,7 @@ enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
 addPistolToCamera(weaponCamera);
 initMinimap();
+initZombieSettingsUI();
 
 document.addEventListener('mousedown', (e) => {
   if (isPlayerDead) return;
