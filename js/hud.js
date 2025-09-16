@@ -116,3 +116,13 @@ export function updateHUD(ammo, health) {
         renderHealthBar();
     }
 }
+
+export function setHUDVisible(visible) {
+    const display = visible ? 'block' : 'none';
+    if (hudContainer) {
+        hudContainer.style.display = display;
+    }
+    if (healthContainer) {
+        healthContainer.style.display = display;
+    }
+}

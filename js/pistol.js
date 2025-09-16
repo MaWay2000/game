@@ -20,6 +20,7 @@ let fireAction;
 let isMoving = false;
 let jumpAction;
 let jumpTimeout;
+let pistolEnabled = true;
 
 const insertSoundTemplate = new Audio('sounds/pistol-insert.wav');
 insertSoundTemplate.volume = 0.5;
@@ -185,6 +186,10 @@ export function addPistolToCamera(camera) {
 }
 
 export async function shootPistol(scene, camera) {
+    if (!pistolEnabled) {
+        return;
+    }
+
     if (!pistol) {
         console.warn('Pistol not ready.');
         return;
@@ -316,6 +321,11 @@ export async function shootPistol(scene, camera) {
 }
 
 export function reloadAmmo(onReloaded) {
+    if (!pistolEnabled) {
+        onReloaded?.();
+        return;
+    }
+
     if (!pistol) {
         console.warn('Pistol not ready.');
         onReloaded?.();
@@ -406,6 +416,7 @@ export function reloadAmmo(onReloaded) {
 
 export function setPistolMoving(moving) {
     isMoving = moving;
+    if (!pistolEnabled) return;
     if (!pistolMixer || !idleAction || !jogAction || isReloading) return;
 
     const target = moving ? jogAction : idleAction;
@@ -430,6 +441,42 @@ export function setPistolMoving(moving) {
         clearTimeout(jumpTimeout);
     } else if (currentAction !== jumpAction) {
         scheduleRandomJump();
+    }
+}
+
+export function setPistolEnabled(enabled) {
+    const wasEnabled = pistolEnabled;
+
+    if (!enabled && wasEnabled) {
+        setPistolMoving(false);
+    }
+
+    pistolEnabled = enabled;
+
+    if (!enabled) {
+        canShoot = false;
+        if (reloadInterval) {
+            clearInterval(reloadInterval);
+            reloadInterval = null;
+        }
+        if (reloadTimeout) {
+            clearTimeout(reloadTimeout);
+            reloadTimeout = null;
+        }
+        isReloading = false;
+        reloadFastAction?.stop();
+        reloadCompleteAction?.stop();
+        if (jumpTimeout) {
+            clearTimeout(jumpTimeout);
+            jumpTimeout = null;
+        }
+        jumpAction?.stop();
+    } else {
+        canShoot = true;
+    }
+
+    if (pistol) {
+        pistol.visible = enabled;
     }
 }
 

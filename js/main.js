@@ -2,10 +2,10 @@ import { setupCamera, enablePointerLock } from './camera.js';
 import { loadMap, updateVisibleObjects, getLoadedObjects, getWalkablePositions } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
-import { initHUD, updateHUD } from './hud.js';
-import { initMinimap, updateMinimap, toggleFullMap } from './minimap.js';
-import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
-import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
+import { initHUD, updateHUD, setHUDVisible } from './hud.js';
+import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './minimap.js';
+import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled } from './pistol.js';
+import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { setupZoom } from './zoom.js';
 import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
@@ -78,6 +78,9 @@ function applyShake(delta) {
 // Current knockback velocity applied each frame
 let knockbackVelocity = new THREE.Vector3();
 
+let isPlayerDead = false;
+let movementEnableTimeout = null;
+
 // Smoothly move the player according to knockback velocity
 function applyKnockback(delta) {
   if (knockbackVelocity.lengthSq() === 0) return;
@@ -104,7 +107,7 @@ function applyKnockback(delta) {
 }
 
 function handlePlayerHit(dir) {
-  if (playerHealth <= 0) {
+  if (isPlayerDead || playerHealth <= 0) {
     return;
   }
 
@@ -113,6 +116,10 @@ function handlePlayerHit(dir) {
   if (dir) {
     const strength = 5; // initial knockback speed
     knockbackVelocity.copy(dir).multiplyScalar(strength);
+  }
+  if (movementEnableTimeout) {
+    clearTimeout(movementEnableTimeout);
+    movementEnableTimeout = null;
   }
   movement.setEnabled(false);
   spawnSplash();
@@ -125,15 +132,36 @@ function handlePlayerHit(dir) {
   }
 
   if (playerHealth > 0) {
-    setTimeout(() => movement.setEnabled(true), 500);
+    movementEnableTimeout = setTimeout(() => {
+      if (!isPlayerDead) {
+        movement.setEnabled(true);
+      }
+      movementEnableTimeout = null;
+    }, 500);
   } else {
     handlePlayerDeath();
   }
 }
 
 function handlePlayerDeath() {
+  if (isPlayerDead) {
+    return;
+  }
+  isPlayerDead = true;
+
   knockbackVelocity.set(0, 0, 0);
   canvas.style.transform = '';
+
+  if (movementEnableTimeout) {
+    clearTimeout(movementEnableTimeout);
+    movementEnableTimeout = null;
+  }
+  movement.setEnabled(false);
+  setPistolEnabled(false);
+  setHUDVisible(false);
+  setCrosshairVisible(false);
+  setMinimapEnabled(false);
+  canvas.style.pointerEvents = 'none';
 
   if (document.exitPointerLock) {
     document.exitPointerLock();
@@ -310,11 +338,13 @@ addPistolToCamera(weaponCamera);
 initMinimap();
 
 document.addEventListener('mousedown', (e) => {
+  if (isPlayerDead) return;
   if (e.button === 0) shootPistol(scene, camera);
 });
 
 // Toggle "Gods sun" spotlight with the L key
 document.addEventListener('keydown', (e) => {
+  if (isPlayerDead) return;
   if (e.code === 'KeyL') {
     godsSun.visible = !godsSun.visible;
     torch.visible = !godsSun.visible;
