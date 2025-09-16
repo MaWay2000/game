@@ -135,21 +135,51 @@ function handlePlayerDeath() {
   knockbackVelocity.set(0, 0, 0);
   canvas.style.transform = '';
 
+  if (document.exitPointerLock) {
+    document.exitPointerLock();
+  }
+
   if (!deathOverlay) {
     deathOverlay = document.createElement('div');
-    deathOverlay.textContent = 'YOU DIED';
-    deathOverlay.style.position = 'absolute';
-    deathOverlay.style.left = '50%';
-    deathOverlay.style.top = '50%';
-    deathOverlay.style.transform = 'translate(-50%, -50%)';
-    deathOverlay.style.fontSize = '48px';
-    deathOverlay.style.fontWeight = 'bold';
-    deathOverlay.style.color = '#ff4d4d';
-    deathOverlay.style.textShadow = '0 0 20px rgba(0, 0, 0, 0.9)';
-    deathOverlay.style.fontFamily = 'Arial, sans-serif';
+    deathOverlay.style.position = 'fixed';
+    deathOverlay.style.left = '0';
+    deathOverlay.style.top = '0';
+    deathOverlay.style.width = '100%';
+    deathOverlay.style.height = '100%';
+    deathOverlay.style.background = '#000';
+    deathOverlay.style.display = 'flex';
+    deathOverlay.style.flexDirection = 'column';
+    deathOverlay.style.alignItems = 'center';
+    deathOverlay.style.justifyContent = 'center';
+    deathOverlay.style.gap = '24px';
     deathOverlay.style.zIndex = '150';
-    deathOverlay.style.pointerEvents = 'none';
-    deathOverlay.style.letterSpacing = '0.2em';
+    deathOverlay.style.fontFamily = 'Arial, sans-serif';
+    deathOverlay.style.color = '#ff4d4d';
+    deathOverlay.style.textAlign = 'center';
+
+    const deathMessage = document.createElement('div');
+    deathMessage.textContent = 'YOU DIED';
+    deathMessage.style.fontSize = '48px';
+    deathMessage.style.fontWeight = 'bold';
+    deathMessage.style.textShadow = '0 0 20px rgba(0, 0, 0, 0.9)';
+    deathMessage.style.letterSpacing = '0.2em';
+    deathMessage.style.pointerEvents = 'none';
+
+    const restartButton = document.createElement('button');
+    restartButton.textContent = 'Restart';
+    restartButton.style.padding = '12px 24px';
+    restartButton.style.fontSize = '18px';
+    restartButton.style.border = 'none';
+    restartButton.style.borderRadius = '4px';
+    restartButton.style.cursor = 'pointer';
+    restartButton.style.background = '#ffffff';
+    restartButton.style.color = '#000000';
+    restartButton.addEventListener('click', () => {
+      window.location.reload();
+    });
+
+    deathOverlay.appendChild(deathMessage);
+    deathOverlay.appendChild(restartButton);
     document.body.appendChild(deathOverlay);
   }
 }
