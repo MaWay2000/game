@@ -71,7 +71,8 @@
       2,
       0.05
     ],
-    "collidable": false
+    "collidable": false,
+    "model": "models/doors.glb"
   },
   {
     "id": "water",
