@@ -84,6 +84,47 @@ function formatLoadingLabel(value) {
   return label || 'assets';
 }
 
+function getFriendlyLoadingMessage(value) {
+  const label = formatLoadingLabel(value);
+  const normalized = label.toLowerCase();
+
+  const extension = normalized.match(/\.([a-z0-9]+)$/i)?.[1] || '';
+
+  if (/(setting|config|option)/.test(normalized)) {
+    return 'Loading settings';
+  }
+  const isMapAsset =
+    normalized.includes('saved_map') ||
+    normalized.includes('mapmaker') ||
+    /map\.json$/.test(normalized);
+  if (isMapAsset) {
+    return 'Loading map layout';
+  }
+  if (/zombie/.test(normalized) && normalized.includes('.json')) {
+    return 'Loading zombie roster';
+  }
+  if (/object/.test(normalized) && normalized.includes('.json')) {
+    return 'Loading world objects';
+  }
+  if (/(sound|audio)/.test(normalized) || /(mp3|wav|ogg|flac)$/.test(extension)) {
+    return 'Loading audio';
+  }
+  if (/(glb|gltf|fbx)$/i.test(extension) || /model/.test(normalized)) {
+    return 'Loading models';
+  }
+  if (/(png|jpg|jpeg|gif|bmp|webp|tga)$/i.test(extension) || /texture/.test(normalized)) {
+    return 'Loading textures';
+  }
+  if (/(ttf|otf|woff|woff2)$/i.test(extension) || /font/.test(normalized)) {
+    return 'Loading fonts';
+  }
+  if (/(shader|frag|vert)/.test(normalized)) {
+    return 'Loading shaders';
+  }
+
+  return 'Loading assets';
+}
+
 function updateLoadingProgress(loaded, total) {
   if (typeof loaded !== 'number' || typeof total !== 'number') {
     return;
@@ -104,6 +145,16 @@ function setLoadingMessage(text) {
   if (loadingMessage && typeof text === 'string') {
     loadingMessage.textContent = text;
   }
+}
+
+function setLoadingMessageFromLabel(value) {
+  setLoadingMessage(`${getFriendlyLoadingMessage(value)}...`);
+}
+
+function setLoadingErrorMessage(value) {
+  const friendly = getFriendlyLoadingMessage(value);
+  const topic = friendly.replace(/^Loading\s+/i, '') || 'assets';
+  setLoadingMessage(`Trouble loading ${topic.toLowerCase()}... Retrying or skipping...`);
 }
 
 function hideLoadingOverlay() {
@@ -137,20 +188,20 @@ function tryFinalizeLoading() {
 loadingManager.onStart = (url, itemsLoaded, itemsTotal) => {
   updateLoadingProgress(itemsLoaded, itemsTotal);
   if (url) {
-    setLoadingMessage(`Loading ${formatLoadingLabel(url)}...`);
+    setLoadingMessageFromLabel(url);
   }
 };
 
 loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
   updateLoadingProgress(itemsLoaded, itemsTotal);
   if (url) {
-    setLoadingMessage(`Loading ${formatLoadingLabel(url)}...`);
+    setLoadingMessageFromLabel(url);
   }
 };
 
 loadingManager.onError = (url) => {
   if (url) {
-    setLoadingMessage(`Failed to load ${formatLoadingLabel(url)}. Retrying or skipping...`);
+    setLoadingErrorMessage(url);
   }
 };
 
@@ -397,7 +448,7 @@ async function fetchJSONWithTracking(url, { defaultValue = undefined, rethrow = 
   ) {
     updateLoadingProgress(loadingManager.itemsLoaded, loadingManager.itemsTotal);
   }
-  setLoadingMessage(`Loading ${formatLoadingLabel(itemLabel)}...`);
+  setLoadingMessageFromLabel(itemLabel);
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -506,6 +557,9 @@ enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
 addPistolToCamera(weaponCamera);
 initMinimap();
+if (!loadingOverlayHidden) {
+  setLoadingMessageFromLabel('settings');
+}
 initZombieSettingsUI();
 
 document.addEventListener('mousedown', (e) => {
