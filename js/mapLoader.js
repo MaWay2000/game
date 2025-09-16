@@ -21,8 +21,15 @@ const DEFAULT_SAFE_ZONE_SETTINGS = {
     maxY: Infinity
 };
 
-const textureLoader = new THREE.TextureLoader();
-const gltfLoader = new THREE.GLTFLoader();
+let loadingManager = THREE.DefaultLoadingManager;
+let textureLoader = new THREE.TextureLoader(loadingManager);
+let gltfLoader = new THREE.GLTFLoader(loadingManager);
+
+export function registerLoadingManager(manager) {
+    loadingManager = manager || THREE.DefaultLoadingManager;
+    textureLoader = new THREE.TextureLoader(loadingManager);
+    gltfLoader = new THREE.GLTFLoader(loadingManager);
+}
 
 function loadGLTFModel(id, modelPath) {
     return new Promise((resolve, reject) => {
@@ -95,13 +102,23 @@ export async function loadMap(scene) {
     let gltfPromises = [];
     for (let file of jsonFiles) {
         if (file === 'saved_map') continue;
-        const res = await fetch(`${file}.json`);
-        if (!res.ok) continue;
+        const label = `map:${file}.json`;
+        if (loadingManager && typeof loadingManager.itemStart === 'function') {
+            loadingManager.itemStart(label);
+        }
         try {
-            const arr = await res.json();
-            allDefinitions = allDefinitions.concat(arr);
-        } catch (e) {
-            console.warn(`Invalid JSON in ${file}.json`, e);
+            const res = await fetch(`${file}.json`);
+            if (!res.ok) continue;
+            try {
+                const arr = await res.json();
+                allDefinitions = allDefinitions.concat(arr);
+            } catch (e) {
+                console.warn(`Invalid JSON in ${file}.json`, e);
+            }
+        } finally {
+            if (loadingManager && typeof loadingManager.itemEnd === 'function') {
+                loadingManager.itemEnd(label);
+            }
         }
     }
 
@@ -145,7 +162,23 @@ export async function loadMap(scene) {
     await Promise.all(gltfPromises);
 
     // The map data is stored in a static JSON file when served from GitHub Pages.
-    const resMap = await fetch('saved_map.json');
+    const mapLabel = 'map:saved_map.json';
+    if (loadingManager && typeof loadingManager.itemStart === 'function') {
+        loadingManager.itemStart(mapLabel);
+    }
+    let resMap;
+    try {
+        resMap = await fetch('saved_map.json');
+    } catch (error) {
+        console.error('Failed to fetch map data.', error);
+        if (loadingManager && typeof loadingManager.itemEnd === 'function') {
+            loadingManager.itemEnd(mapLabel);
+        }
+        return [];
+    }
+    if (loadingManager && typeof loadingManager.itemEnd === 'function') {
+        loadingManager.itemEnd(mapLabel);
+    }
     if (!resMap.ok) {
         console.error('Failed to fetch map data.');
         return [];
