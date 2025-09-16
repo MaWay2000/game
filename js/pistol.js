@@ -1,6 +1,7 @@
 import { updateHUD } from './hud.js';
 import { getLoadedObjects } from './mapLoader.js';
 import { getZombies, damageZombie, registerGunshot } from './zombie.js';
+import { notifyCrosshairShot } from './crosshair.js';
 
 let pistol;
 let clipAmmo = 10;
@@ -247,6 +248,7 @@ export async function shootPistol(scene, camera) {
     }
 
     clipAmmo--;
+    notifyCrosshairShot();
     fireAction?.reset().play();
 
     const bullet = bulletTemplate.clone(true);
