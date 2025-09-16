@@ -4,6 +4,7 @@ import { getLoadedObjects, getAllObjects, getSafeZones } from './mapLoader.js';
 
 let zombies = [];
 let zombieTypeIds = null;
+let loadingManager = THREE.DefaultLoadingManager;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 // Small shrink to make collision boxes less tight so zombies can squeeze
 // through narrow corridors without getting stuck on walls.
@@ -36,6 +37,10 @@ const zombieRules = new Map();
 const zombieGeometryCache = new Map();
 let zombieDefinitionsMap = null;
 let zombieDefinitionsPromise = null;
+
+export function registerLoadingManager(manager) {
+    loadingManager = manager || THREE.DefaultLoadingManager;
+}
 
 // Persistent spatial grid used to keep zombies separated.
 const zombieGrid = new Map();
@@ -384,6 +389,10 @@ function getZombieActiveDistanceForFrame(delta) {
 // Loads zombie type ids from zombies.json (async, cached)
 async function getZombieTypeIds() {
     if (zombieTypeIds) return zombieTypeIds;
+    const label = 'zombies.json#types';
+    if (loadingManager && typeof loadingManager.itemStart === 'function') {
+        loadingManager.itemStart(label);
+    }
     try {
         const res = await fetch('zombies.json');
         const defs = await res.json();
@@ -391,6 +400,10 @@ async function getZombieTypeIds() {
         return zombieTypeIds;
     } catch (e) {
         return [];
+    } finally {
+        if (loadingManager && typeof loadingManager.itemEnd === 'function') {
+            loadingManager.itemEnd(label);
+        }
     }
 }
 
@@ -456,6 +469,10 @@ function buildRuleFromDefinition(definition) {
 async function loadZombieDefinitions() {
     if (zombieDefinitionsMap) return zombieDefinitionsMap;
     if (!zombieDefinitionsPromise) {
+        const label = 'zombies.json#defs';
+        if (loadingManager && typeof loadingManager.itemStart === 'function') {
+            loadingManager.itemStart(label);
+        }
         zombieDefinitionsPromise = fetch('zombies.json')
             .then(res => res.ok ? res.json() : [])
             .catch(() => [])
@@ -467,6 +484,11 @@ async function loadZombieDefinitions() {
                     }
                 });
                 return zombieDefinitionsMap;
+            })
+            .finally(() => {
+                if (loadingManager && typeof loadingManager.itemEnd === 'function') {
+                    loadingManager.itemEnd(label);
+                }
             });
     }
     return zombieDefinitionsPromise;

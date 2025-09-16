@@ -1,5 +1,5 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects, getLoadedObjects, getWalkablePositions } from './mapLoader.js';
+import { loadMap, updateVisibleObjects, getLoadedObjects, getWalkablePositions, registerLoadingManager as registerMapLoadingManager } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD, setHUDVisible } from './hud.js';
@@ -7,7 +7,7 @@ import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI } from './zombie.js';
+import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
 
 // --- Scene and Camera setup ---
@@ -32,6 +32,122 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 const canvas = renderer.domElement;
+
+const loadingOverlay = document.getElementById('loading-overlay');
+const loadingBarProgress = document.getElementById('loading-bar-progress');
+const loadingPercentage = document.getElementById('loading-percentage');
+const loadingMessage = document.getElementById('loading-message');
+
+const loadingManager = new THREE.LoadingManager();
+registerMapLoadingManager(loadingManager);
+registerZombieLoadingManager(loadingManager);
+
+let loadingOverlayHidden = false;
+let loadingManagerFinished = false;
+let initializationFinished = false;
+let initializationFailed = false;
+let lastProgressLoaded = 0;
+let lastProgressTotal = 0;
+
+function formatLoadingLabel(value) {
+  if (!value || typeof value !== 'string') {
+    return 'assets';
+  }
+  let label = value;
+  const queryIndex = label.indexOf('?');
+  if (queryIndex !== -1) {
+    label = label.slice(0, queryIndex);
+  }
+  const hashIndex = label.indexOf('#');
+  if (hashIndex !== -1) {
+    label = label.slice(0, hashIndex);
+  }
+  label = label.split(/[\\/]/).pop() || label;
+  if (label.includes(':')) {
+    label = label.split(':').pop() || label;
+  }
+  return label || 'assets';
+}
+
+function updateLoadingProgress(loaded, total) {
+  if (typeof loaded !== 'number' || typeof total !== 'number') {
+    return;
+  }
+  lastProgressLoaded = loaded;
+  lastProgressTotal = total;
+  const safeTotal = Math.max(total, 1);
+  const ratio = Math.min(Math.max(loaded / safeTotal, 0), 1);
+  if (loadingBarProgress) {
+    loadingBarProgress.style.transform = `scaleX(${ratio})`;
+  }
+  if (loadingPercentage) {
+    loadingPercentage.textContent = `${Math.round(ratio * 100)}%`;
+  }
+}
+
+function setLoadingMessage(text) {
+  if (loadingMessage && typeof text === 'string') {
+    loadingMessage.textContent = text;
+  }
+}
+
+function hideLoadingOverlay() {
+  if (!loadingOverlay || loadingOverlayHidden) {
+    return;
+  }
+  loadingOverlayHidden = true;
+  loadingOverlay.classList.add('loading-overlay--hidden');
+  setTimeout(() => {
+    if (loadingOverlay.parentNode) {
+      loadingOverlay.parentNode.removeChild(loadingOverlay);
+    }
+  }, 450);
+}
+
+function tryFinalizeLoading() {
+  if (!loadingOverlay || loadingOverlayHidden) {
+    return;
+  }
+  if (loadingManagerFinished && initializationFinished) {
+    const total = lastProgressTotal > 0 ? lastProgressTotal : Math.max(lastProgressLoaded, 1);
+    updateLoadingProgress(total, total);
+    if (!initializationFailed) {
+      setLoadingMessage('Ready!');
+    }
+    const delay = initializationFailed ? 600 : 250;
+    setTimeout(() => hideLoadingOverlay(), delay);
+  }
+}
+
+loadingManager.onStart = (url, itemsLoaded, itemsTotal) => {
+  updateLoadingProgress(itemsLoaded, itemsTotal);
+  if (url) {
+    setLoadingMessage(`Loading ${formatLoadingLabel(url)}...`);
+  }
+};
+
+loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+  updateLoadingProgress(itemsLoaded, itemsTotal);
+  if (url) {
+    setLoadingMessage(`Loading ${formatLoadingLabel(url)}...`);
+  }
+};
+
+loadingManager.onError = (url) => {
+  if (url) {
+    setLoadingMessage(`Failed to load ${formatLoadingLabel(url)}. Retrying or skipping...`);
+  }
+};
+
+loadingManager.onLoad = () => {
+  loadingManagerFinished = true;
+  const total = lastProgressTotal > 0 ? lastProgressTotal : Math.max(lastProgressLoaded, 1);
+  updateLoadingProgress(total, total);
+  if (!initializationFinished && !initializationFailed) {
+    setLoadingMessage('Finalizing...');
+  }
+  tryFinalizeLoading();
+};
 
 // Audio for player getting hit
 const hitSound = new Audio('sounds/gethit.mp3');
@@ -238,7 +354,7 @@ scene.fog = null;
 // --- Geometry & Materials (with texture support) ---
 const geometries = {};
 const materials = {};
-const textureLoader = new THREE.TextureLoader();
+const textureLoader = new THREE.TextureLoader(loadingManager);
 // Increased to ensure zombies remain within loaded map bounds
 const PLAYER_VIEW_DISTANCE = 25;
 const RANDOM_ZOMBIE_COUNT = 400;
@@ -254,16 +370,49 @@ const models = {};
 // --- Only call spawnZombiesFromMap ONCE after map loads ---
 let zombiesSpawned = false;
 
-Promise.all([
-  fetch('objects.json').then(res => {
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  }).catch(() => []),
-  fetch('zombies.json').then(res => res.ok ? res.json() : []).catch(() => [])
-]).then(async ([objects, zombies]) => {
+async function fetchJSONWithTracking(url, { defaultValue = undefined, rethrow = false, label } = {}) {
+  const itemLabel = label || url;
+  if (loadingManager && typeof loadingManager.itemStart === 'function') {
+    loadingManager.itemStart(itemLabel);
+  }
+  if (
+    loadingManager &&
+    typeof loadingManager.itemsLoaded === 'number' &&
+    typeof loadingManager.itemsTotal === 'number'
+  ) {
+    updateLoadingProgress(loadingManager.itemsLoaded, loadingManager.itemsTotal);
+  }
+  setLoadingMessage(`Loading ${formatLoadingLabel(itemLabel)}...`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      if (rethrow || typeof defaultValue === 'undefined') {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return defaultValue;
+    }
+    return await response.json();
+  } catch (error) {
+    if (rethrow || typeof defaultValue === 'undefined') {
+      throw error;
+    }
+    console.warn(`Failed to load ${url}:`, error);
+    return defaultValue;
+  } finally {
+    if (loadingManager && typeof loadingManager.itemEnd === 'function') {
+      loadingManager.itemEnd(itemLabel);
+    }
+  }
+}
+
+async function initializeGame() {
+  try {
+    const [objects, zombies] = await Promise.all([
+      fetchJSONWithTracking('objects.json', { defaultValue: [] }),
+      fetchJSONWithTracking('zombies.json', { defaultValue: [] })
+    ]);
     const allDefs = [...objects, ...zombies];
 
-    // Load geometries/materials/models
     for (const obj of allDefs) {
       const size = obj.size || [1, 1, 1];
       geometries[obj.id] = new THREE.BoxGeometry(...size);
@@ -281,9 +430,8 @@ Promise.all([
         });
       }
 
-      // Optional: load GLTF models if needed for zombies/objects
       if (obj.model && window.THREE.GLTFLoader) {
-        const loader = new THREE.GLTFLoader();
+        const loader = new THREE.GLTFLoader(loadingManager);
         await new Promise(resolve => {
           loader.load(
             obj.model,
@@ -310,9 +458,9 @@ Promise.all([
       }
     }
 
-    // Load map and spawn zombies once!
     const mapObjects = await loadMap(scene, geometries, materials);
     if (!zombiesSpawned) {
+      setLoadingMessage('Spawning zombies...');
       await spawnZombiesFromMap(scene, mapObjects, models, materials);
       const walkablePositions = getWalkablePositions();
       if (walkablePositions.length > 0) {
@@ -321,11 +469,18 @@ Promise.all([
       }
       zombiesSpawned = true;
     }
-  })
-  .catch(err => {
+  } catch (err) {
+    initializationFailed = true;
     console.error('Error loading object/zombie definitions:', err);
+    setLoadingMessage('Failed to initialize game.');
     alert('Failed to load object or zombie definitions.');
-  });
+  } finally {
+    initializationFinished = true;
+    tryFinalizeLoading();
+  }
+}
+
+initializeGame();
 
 // --- Controls, HUD, Movement, etc ---
 const movement = setupMovement(cameraContainer, camera, scene);
