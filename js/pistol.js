@@ -512,7 +512,7 @@ export function updateBullets(deltaTime) {
                 const zombieBox = new THREE.Box3().setFromObject(zombie);
                 if (bulletBox.intersectsBox(zombieBox)) {
                     hit = true;
-                    damageZombie(zombie, 3, bullet.userData.velocity, bullet.position.clone());
+                    damageZombie(zombie, 9, bullet.userData.velocity, bullet.position.clone());
                     break;
                 }
             }
