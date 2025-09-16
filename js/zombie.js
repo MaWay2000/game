@@ -14,8 +14,6 @@ const DEFAULT_BASE_ZOMBIE_ACTIVE_DISTANCE = 20;
 const MIN_BASE_ZOMBIE_ACTIVE_DISTANCE = 8;
 const MAX_BASE_ZOMBIE_ACTIVE_DISTANCE = 40;
 const TARGET_FRAME_TIME = 1 / 60;
-// Prevent exceptionally long frames from causing massive position jumps.
-const MAX_FRAME_SPEED_SCALE = 5;
 const MIN_PERFORMANCE_FACTOR = 0.3;
 const ACTIVE_DISTANCE_SMOOTHING = 8;
 let baseZombieActiveDistance = DEFAULT_BASE_ZOMBIE_ACTIVE_DISTANCE;
@@ -1251,9 +1249,6 @@ function updateDeadZombie(zombie, delta) {
 export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
     const { isSneaking = false } = playerState;
     const activeDistance = getZombieActiveDistanceForFrame(delta);
-    const frameSpeedScale = (typeof delta === 'number' && delta > 0 && Number.isFinite(delta))
-        ? THREE.MathUtils.clamp(delta / TARGET_FRAME_TIME, 0, MAX_FRAME_SPEED_SCALE)
-        : 1;
     updateZombieSettingsDisplay(activeDistance);
     const visibleObjects = getLoadedObjects();
     const collidableObjects = visibleObjects.filter(o => {
@@ -1331,7 +1326,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         if (distToPlayer <= spotRange || ud._aggroTime > 0) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
-            const displacement = dir.clone().multiplyScalar(ud.speed * frameSpeedScale);
+            const displacement = dir.clone().multiplyScalar(ud.speed);
             if (tryMove(zombie, displacement, collidableObjects)) {
                 const targetRot = Math.atan2(dir.x, dir.z);
                 const currentRot = zombie.rotation.y;
@@ -1351,7 +1346,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
                 ud._wanderDir.set(Math.cos(angle), 0, Math.sin(angle));
                 ud._wanderTime = 2 + Math.random() * 3;
             }
-            const displacement = ud._wanderDir.clone().multiplyScalar(ud.speed * 0.5 * frameSpeedScale);
+            const displacement = ud._wanderDir.clone().multiplyScalar(ud.speed * 0.5);
             if (tryMove(zombie, displacement, collidableObjects)) {
                 // Rotate smoothly to face the direction of movement
                 const targetRot = Math.atan2(
