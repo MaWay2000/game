@@ -483,7 +483,7 @@ function applyZombieStats(zombieMesh, definition = null) {
     }
     ud.hp = ud.hp ?? def.hp ?? 10;
     ud.spotDistance = ud.spotDistance ?? def.spotDistance ?? ud.aggro_range ?? 8;
-    ud.speed = ud.speed ?? def.speed ?? 0.01;
+    ud.speed = ud.speed ?? def.speed ?? 0.03;
     ud.attackCooldown = ud.attackCooldown ?? def.attackCooldown ?? 1;
     ud.turnSpeed = ud.turnSpeed ?? def.turnSpeed ?? 5;
 }
@@ -600,7 +600,7 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
 
         zombieMesh.userData.hp = zombieMesh.userData.hp ?? 10;
         zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
-        zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
+        zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.03;
         zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
         zombieMesh.userData.turnSpeed = zombieMesh.userData.turnSpeed ?? 5;
         zombieMesh.userData.ai = true;
