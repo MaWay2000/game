@@ -325,7 +325,7 @@ function animate() {
   renderer.render(scene, camera);
   renderer.clearDepth();
   renderer.render(scene, weaponCamera);
-  drawCrosshair();
+  drawCrosshair(delta);
 }
 
 window.onload = () => {

@@ -1,5 +1,6 @@
 import { getLoadedObjects } from './mapLoader.js';
 import { reloadAmmo, setPistolMoving } from './pistol.js';
+import { setCrosshairMoving } from './crosshair.js';
 
 export function setupMovement(cameraContainer, camera) {
     const keys = {};
@@ -56,11 +57,16 @@ export function setupMovement(cameraContainer, camera) {
         }
 
         const isMoving = keys['KeyW'] || keys['KeyA'] || keys['KeyS'] || keys['KeyD'];
-        setPistolMoving(!!isMoving);
+        const movingBool = !!isMoving;
+        setPistolMoving(movingBool);
+        setCrosshairMoving(movingBool);
     }
 
     function setEnabled(val) {
         enabled = val;
+        if (!enabled) {
+            setCrosshairMoving(false);
+        }
     }
 
     return { update, setEnabled, checkCollision };
