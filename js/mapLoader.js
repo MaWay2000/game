@@ -163,13 +163,6 @@ export async function loadMap(scene) {
                 ? new THREE.Vector3(position.x || 0, position.y || 0, position.z || 0)
                 : null);
         const qualifiesWalkable = (rule && rule.collidable === false) || isWalkableType(type);
-        if (walkablePos && qualifiesWalkable) {
-            const key = `${walkablePos.x}|${walkablePos.y}|${walkablePos.z}`;
-            if (!walkableSet.has(key)) {
-                walkableSet.add(key);
-                walkablePositions.push(walkablePos);
-            }
-        }
         let mesh = null;
 
         // ---- NEW: Always allow zombies and model objects! ----
@@ -248,6 +241,23 @@ export async function loadMap(scene) {
             if (rule.collidable) cacheBoundingBox(mesh);
         } else {
             console.warn(`Unknown object type: ${type}`, item);
+        }
+
+        if (walkablePos && qualifiesWalkable) {
+            const sourcePos = mesh ? mesh.position : walkablePos;
+            const height = (rule && Array.isArray(rule.geometry) && rule.geometry.length >= 2)
+                ? rule.geometry[1] / 2
+                : 0.5;
+            const spawnPos = new THREE.Vector3(
+                sourcePos.x,
+                (sourcePos.y !== undefined ? sourcePos.y : 0) - height,
+                sourcePos.z
+            );
+            const key = `${spawnPos.x}|${spawnPos.y}|${spawnPos.z}`;
+            if (!walkableSet.has(key)) {
+                walkableSet.add(key);
+                walkablePositions.push(spawnPos);
+            }
         }
     }
 
