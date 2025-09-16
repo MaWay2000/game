@@ -33,6 +33,21 @@ renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 const canvas = renderer.domElement;
 
+const canPointerLock = typeof canvas.requestPointerLock === 'function';
+let isPointerLocked = !canPointerLock;
+
+if (canPointerLock) {
+  const updatePointerLockState = () => {
+    isPointerLocked = document.pointerLockElement === canvas;
+  };
+
+  document.addEventListener('pointerlockchange', updatePointerLockState);
+  document.addEventListener('pointerlockerror', () => {
+    isPointerLocked = false;
+  });
+  updatePointerLockState();
+}
+
 const loadingOverlay = document.getElementById('loading-overlay');
 const loadingBarProgress = document.getElementById('loading-bar-progress');
 const loadingPercentage = document.getElementById('loading-percentage');
@@ -495,6 +510,7 @@ initZombieSettingsUI();
 
 document.addEventListener('mousedown', (e) => {
   if (isPlayerDead) return;
+  if (!isPointerLocked) return;
   if (e.button === 0) shootPistol(scene, camera);
 });
 
