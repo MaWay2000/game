@@ -348,7 +348,8 @@ function resolveZombieOverlap(zombie, collidables) {
 }
 
 // Update zombies: handle animation and simple wandering movement
-export function updateZombies(delta, playerObj, onPlayerHit) {
+export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
+    const { isSneaking = false } = playerState;
     const allObjects = getLoadedObjects();
     const collidableObjects = allObjects.filter(o => {
         const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
@@ -441,7 +442,10 @@ export function updateZombies(delta, playerObj, onPlayerHit) {
         }
 
         // Check for nearby gunshots and trigger temporary aggro
-        const spotRange = zombie.userData.spotDistance || 8;
+        const baseSpotRange = zombie.userData.spotDistance || 8;
+        // Sneaking halves the distance at which zombies can spot the player.
+        const spotRangeMultiplier = isSneaking ? 0.5 : 1;
+        const spotRange = baseSpotRange * spotRangeMultiplier;
         if (lastGunshot && zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
             // Become aggressive toward the player for 3-10 seconds
             zombie.userData._aggroTime = 3 + Math.random() * 7;

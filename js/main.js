@@ -314,7 +314,7 @@ function animate() {
   updateTorchTarget(camera, godsSun);
 
   // ---- Zombie animation & AI update ----
-  updateZombies(delta, cameraContainer, handlePlayerHit);
+  updateZombies(delta, cameraContainer, handlePlayerHit, movement.getState());
   updateBloodEffects(delta);
 
   checkPickups(cameraContainer, scene);
