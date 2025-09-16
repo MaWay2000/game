@@ -1,6 +1,6 @@
 import { updateHUD } from './hud.js';
 import { getLoadedObjects } from './mapLoader.js';
-import { getZombies, damageZombie, registerGunshot } from './zombie.js';
+import { getZombies, damageZombie, registerGunshot, getZombieBoundingBox } from './zombie.js';
 import { notifyCrosshairShot, getCrosshairSpreadRadians } from './crosshair.js';
 
 let pistol;
@@ -484,41 +484,96 @@ export function updateBullets(deltaTime) {
     if (pistolMixer) {
         pistolMixer.update(deltaTime);
     }
+
+    const objects = getLoadedObjects();
+    const zombies = getZombies();
+    const displacement = new THREE.Vector3();
+    const startPosition = new THREE.Vector3();
+    const ray = new THREE.Ray();
+    const intersectionPoint = new THREE.Vector3();
+    const hitPoint = new THREE.Vector3();
+    const objBox = new THREE.Box3();
+    const EPSILON = 1e-6;
+    const ZOMBIE_HITBOX_PADDING = 0.05;
+
     for (let i = flyingBullets.length - 1; i >= 0; i--) {
         const bullet = flyingBullets[i];
-        bullet.position.addScaledVector(bullet.userData.velocity, deltaTime * 60);
+        startPosition.copy(bullet.position);
+        displacement.copy(bullet.userData.velocity).multiplyScalar(deltaTime * 60);
+        const travelDistance = displacement.length();
+
         bullet.userData.life += deltaTime;
 
-        const bulletBox = new THREE.Box3().setFromObject(bullet);
-        const objects = getLoadedObjects();
+        if (travelDistance <= 0) {
+            if (bullet.userData.life > 2) {
+                bullet.parent?.remove(bullet);
+                flyingBullets.splice(i, 1);
+            }
+            continue;
+        }
+
+        ray.origin.copy(startPosition);
+        ray.direction.copy(displacement).normalize();
+
         let hit = false;
+        let hitZombie = null;
+        hitPoint.set(0, 0, 0);
 
         for (const obj of objects) {
-            const rules = obj.userData.rules || {};
-            if (obj.userData.ai) continue;
-            if (rules.collidable) {
-                const objBox = new THREE.Box3().setFromObject(obj);
-                if (bulletBox.intersectsBox(objBox)) {
-                    hit = true;
-                    break;
-                }
+            if (!obj) continue;
+            const rules = obj.userData?.rules || {};
+            if (!rules.collidable || obj.userData?.ai) continue;
+
+            objBox.setFromObject(obj);
+
+            if (objBox.containsPoint(startPosition)) {
+                hit = true;
+                break;
+            }
+
+            const intersection = ray.intersectBox(objBox, intersectionPoint);
+            if (intersection && intersectionPoint.distanceTo(startPosition) <= travelDistance + EPSILON) {
+                hit = true;
+                break;
             }
         }
 
         if (!hit) {
-            const zombies = getZombies();
             for (const zombie of zombies) {
-                if (zombie.userData.hp <= 0) continue;
-                const zombieBox = new THREE.Box3().setFromObject(zombie);
-                if (bulletBox.intersectsBox(zombieBox)) {
+                if (!zombie || !zombie.userData || zombie.userData.hp <= 0) continue;
+
+                const zombieBox = getZombieBoundingBox(zombie, zombie.position, false);
+                zombieBox.expandByScalar(ZOMBIE_HITBOX_PADDING);
+
+                if (zombieBox.containsPoint(startPosition)) {
                     hit = true;
-                    damageZombie(zombie, 9, bullet.userData.velocity, bullet.position.clone());
+                    hitZombie = zombie;
+                    hitPoint.copy(startPosition);
+                    break;
+                }
+
+                const intersection = ray.intersectBox(zombieBox, intersectionPoint);
+                if (intersection && intersectionPoint.distanceTo(startPosition) <= travelDistance + EPSILON) {
+                    hit = true;
+                    hitZombie = zombie;
+                    hitPoint.copy(intersectionPoint);
                     break;
                 }
             }
         }
 
-        if (hit || bullet.userData.life > 2) {
+        if (hit) {
+            if (hitZombie) {
+                damageZombie(hitZombie, 9, bullet.userData.velocity, hitPoint.clone());
+            }
+            bullet.parent?.remove(bullet);
+            flyingBullets.splice(i, 1);
+            continue;
+        }
+
+        bullet.position.add(displacement);
+
+        if (bullet.userData.life > 2) {
             bullet.parent?.remove(bullet);
             flyingBullets.splice(i, 1);
         }

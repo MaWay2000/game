@@ -131,7 +131,7 @@ function getSafeZoneList() {
     return Array.isArray(zones) ? zones : [];
 }
 
-function getZombieBoundingBox(zombie, position, includeMargin = true) {
+export function getZombieBoundingBox(zombie, position, includeMargin = true) {
     const geometry = getZombieGeometry(zombie);
     const width = (geometry?.[0] ?? DEFAULT_ZOMBIE_SIZE[0]) || DEFAULT_ZOMBIE_SIZE[0];
     const height = (geometry?.[1] ?? DEFAULT_ZOMBIE_SIZE[1]) || DEFAULT_ZOMBIE_SIZE[1];
