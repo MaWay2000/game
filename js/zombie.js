@@ -13,6 +13,7 @@ const ZOMBIE_COLLISION_MARGIN = 0.1;
 // Maximum radius around the player where zombies remain active
 const ZOMBIE_ACTIVE_DISTANCE = 20;
 const CORPSE_SINK_DURATION = 10; // seconds before a corpse disappears
+const CORPSE_FLOAT_DELAY = 3; // delay before corpse begins descending
 const CORPSE_SINK_DISTANCE_MULTIPLIER = 1; // sink by one body height
 
 let zombieModelsCache = {};
@@ -559,7 +560,12 @@ function updateDeadZombie(zombie, delta) {
         ud._corpseSinkDistance = height * CORPSE_SINK_DISTANCE_MULTIPLIER;
     }
     ud._corpseTime = (ud._corpseTime || 0) + delta;
-    const progress = Math.min(ud._corpseTime / CORPSE_SINK_DURATION, 1);
+    if (ud._corpseTime < CORPSE_FLOAT_DELAY) {
+        zombie.position.y = ud._corpseStartY;
+        return false;
+    }
+    const activeTime = ud._corpseTime - CORPSE_FLOAT_DELAY;
+    const progress = Math.min(activeTime / CORPSE_SINK_DURATION, 1);
     const sinkDistance = ud._corpseSinkDistance || 0;
     zombie.position.y = ud._corpseStartY - sinkDistance * progress;
 
