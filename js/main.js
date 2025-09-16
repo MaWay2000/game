@@ -8,6 +8,7 @@ import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
 import { spawnZombiesFromMap, updateZombies, updateBloodEffects } from './zombie.js';
+import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
 
 // --- Scene and Camera setup ---
 const scene = new THREE.Scene();
@@ -116,26 +117,8 @@ function handlePlayerHit(dir) {
 }
 
 // ---- Torch (SpotLight) setup ----
-const TORCH_COLOR = 0xffe5a0;
-const TORCH_INTENSITY = 13.5;
-const TORCH_DISTANCE = 18;
-const TORCH_ANGLE = THREE.MathUtils.degToRad(36);
-const TORCH_PENUMBRA = 0.95;
-const TORCH_DECAY = 1.5;
-
-const torch = new THREE.SpotLight(
-    TORCH_COLOR,
-    TORCH_INTENSITY,
-    TORCH_DISTANCE,
-    TORCH_ANGLE,
-    TORCH_PENUMBRA,
-    TORCH_DECAY
-);
-// Offset slightly forward so walls remain lit when the player is up close
-torch.position.set(0, 0.5, -0.2); // Above player's eyes
-camera.add(torch);
+const torch = setupTorch(camera, scene);
 torch.layers.enable(1);
-scene.add(torch.target);
 
 // Secondary bright spotlight that can flood the area with light
 const GODS_SUN_COLOR = 0xffffff;
@@ -283,13 +266,16 @@ let lastChunkX = null, lastChunkZ = null;
 const UPDATE_CHUNK_SIZE = 5;
 
 // --- Torch direction logic ---
-function updateTorchTarget(camera, torch) {
-    const worldPos = new THREE.Vector3();
-    camera.getWorldPosition(worldPos);
-    const worldDir = new THREE.Vector3();
-    camera.getWorldDirection(worldDir);
-    torch.target.position.copy(worldPos.clone().add(worldDir.multiplyScalar(10)));
-    if (torch.target.parent !== scene) scene.add(torch.target);
+const spotlightTargetPos = new THREE.Vector3();
+const spotlightTargetDir = new THREE.Vector3();
+
+function updateSpotlightTarget(camera, spotlight) {
+  camera.getWorldPosition(spotlightTargetPos);
+  camera.getWorldDirection(spotlightTargetDir);
+  spotlight.target.position
+    .copy(spotlightTargetPos)
+    .addScaledVector(spotlightTargetDir, 10);
+  if (spotlight.target.parent !== scene) scene.add(spotlight.target);
 }
 
 const clock = new THREE.Clock();
@@ -310,8 +296,9 @@ function animate() {
     lastChunkZ = playerZ;
   }
 
-  updateTorchTarget(camera, torch);
-  updateTorchTarget(camera, godsSun);
+  updateTorchFlicker(performance.now());
+  updateTorchTarget(camera);
+  updateSpotlightTarget(camera, godsSun);
 
   // ---- Zombie animation & AI update ----
   updateZombies(delta, cameraContainer, handlePlayerHit, movement.getState());
