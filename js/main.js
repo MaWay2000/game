@@ -104,6 +104,10 @@ function applyKnockback(delta) {
 }
 
 function handlePlayerHit(dir) {
+  if (playerHealth <= 0) {
+    return;
+  }
+
   hitSound.currentTime = 0;
   hitSound.play();
   if (dir) {
@@ -111,9 +115,43 @@ function handlePlayerHit(dir) {
     knockbackVelocity.copy(dir).multiplyScalar(strength);
   }
   movement.setEnabled(false);
-  setTimeout(() => movement.setEnabled(true), 500);
   spawnSplash();
   triggerShake();
+
+  const previousHealth = playerHealth;
+  playerHealth = Math.max(0, playerHealth - PLAYER_HIT_DAMAGE);
+  if (playerHealth !== previousHealth) {
+    updateHUD(undefined, playerHealth);
+  }
+
+  if (playerHealth > 0) {
+    setTimeout(() => movement.setEnabled(true), 500);
+  } else {
+    handlePlayerDeath();
+  }
+}
+
+function handlePlayerDeath() {
+  knockbackVelocity.set(0, 0, 0);
+  canvas.style.transform = '';
+
+  if (!deathOverlay) {
+    deathOverlay = document.createElement('div');
+    deathOverlay.textContent = 'YOU DIED';
+    deathOverlay.style.position = 'absolute';
+    deathOverlay.style.left = '50%';
+    deathOverlay.style.top = '50%';
+    deathOverlay.style.transform = 'translate(-50%, -50%)';
+    deathOverlay.style.fontSize = '48px';
+    deathOverlay.style.fontWeight = 'bold';
+    deathOverlay.style.color = '#ff4d4d';
+    deathOverlay.style.textShadow = '0 0 20px rgba(0, 0, 0, 0.9)';
+    deathOverlay.style.fontFamily = 'Arial, sans-serif';
+    deathOverlay.style.zIndex = '150';
+    deathOverlay.style.pointerEvents = 'none';
+    deathOverlay.style.letterSpacing = '0.2em';
+    document.body.appendChild(deathOverlay);
+  }
 }
 
 // ---- Torch (SpotLight) setup ----
@@ -146,6 +184,11 @@ const textureLoader = new THREE.TextureLoader();
 // Increased to ensure zombies remain within loaded map bounds
 const PLAYER_VIEW_DISTANCE = 25;
 const RANDOM_ZOMBIE_COUNT = 400;
+const PLAYER_MAX_HEALTH = 100;
+const PLAYER_HIT_DAMAGE = 10;
+
+let playerHealth = PLAYER_MAX_HEALTH;
+let deathOverlay = null;
 
 // Track models for zombies/objects
 const models = {};
@@ -228,8 +271,8 @@ Promise.all([
 
 // --- Controls, HUD, Movement, etc ---
 const movement = setupMovement(cameraContainer, camera, scene);
-initHUD();
-updateHUD(10, 100);
+initHUD(PLAYER_MAX_HEALTH);
+updateHUD(10, playerHealth);
 initCrosshair();
 enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
