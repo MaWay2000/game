@@ -72,7 +72,13 @@
       0.05
     ],
     "collidable": false,
-    "model": "models/doors.glb"
+    "model": "models/doors.glb",
+    "modelRotation": [
+      1.5707963267948966,
+      0,
+      0
+    ],
+    "modelCenter": true
   },
   {
     "id": "water",
