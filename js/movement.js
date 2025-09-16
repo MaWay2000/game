@@ -2,7 +2,7 @@ import { getLoadedObjects } from './mapLoader.js';
 import { reloadAmmo, setPistolMoving } from './pistol.js';
 import { setCrosshairMoving } from './crosshair.js';
 
-const BASE_SPEED = 0.03;
+const BASE_SPEED = 0.09;
 // Sneaking lowers the player's speed and noise footprint.
 const SNEAK_MULTIPLIER = 0.5;
 
