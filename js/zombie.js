@@ -12,6 +12,8 @@ const ZOMBIE_COLLISION_MARGIN = 0.1;
 // This reduces CPU/GPU workload when many zombies exist far from the action.
 // Maximum radius around the player where zombies remain active
 const ZOMBIE_ACTIVE_DISTANCE = 20;
+const CORPSE_SINK_DURATION = 10; // seconds before a corpse disappears
+const CORPSE_SINK_DISTANCE_MULTIPLIER = 1; // sink by one body height
 
 let zombieModelsCache = {};
 let zombieMaterialsCache = {};
@@ -544,11 +546,31 @@ function resolveZombieOverlap(zombie, collidables) {
     }
 }
 
+function updateDeadZombie(zombie, delta) {
+    const ud = zombie.userData || (zombie.userData = {});
+    const size = (ud && ud.rules && ud.rules.geometry)
+        ? ud.rules.geometry
+        : DEFAULT_ZOMBIE_SIZE;
+    if (ud._corpseStartY === undefined) {
+        ud._corpseStartY = zombie.position.y;
+    }
+    if (ud._corpseSinkDistance === undefined) {
+        const height = (size && size[1] > 0) ? size[1] : DEFAULT_ZOMBIE_SIZE[1];
+        ud._corpseSinkDistance = height * CORPSE_SINK_DISTANCE_MULTIPLIER;
+    }
+    ud._corpseTime = (ud._corpseTime || 0) + delta;
+    const progress = Math.min(ud._corpseTime / CORPSE_SINK_DURATION, 1);
+    const sinkDistance = ud._corpseSinkDistance || 0;
+    zombie.position.y = ud._corpseStartY - sinkDistance * progress;
+
+    return progress >= 1;
+}
+
 // Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
     const { isSneaking = false } = playerState;
-    const allObjects = getLoadedObjects();
-    const collidableObjects = allObjects.filter(o => {
+    const visibleObjects = getLoadedObjects();
+    const collidableObjects = visibleObjects.filter(o => {
         const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
         // Ignore other zombies so they don't block each other
         return rules.collidable && !zombies.includes(o);
@@ -570,6 +592,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
     });
 
     const grid = new Map();
+    const corpsesToRemove = [];
     const cellKey = (x, z) => `${x},${z}`;
 
     // Insert a zombie into the grid and track its cell on the object
@@ -620,7 +643,14 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
     };
 
     zombies.forEach(zombie => {
-        if (zombie.userData.hp <= 0 || !zombie.visible) return;
+        if (zombie.userData.hp <= 0) {
+            if (updateDeadZombie(zombie, delta)) {
+                corpsesToRemove.push(zombie);
+            }
+            return;
+        }
+
+        if (!zombie.visible) return;
         if (zombie.userData.mixer) {
             zombie.userData.mixer.update(delta);
         }
@@ -768,6 +798,25 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         setZombieAnimation(zombie, moving);
         zombie.userData._lastValidPos = zombie.position.clone();
     });
+
+    if (corpsesToRemove.length) {
+        const loadedObjects = getAllObjects();
+        corpsesToRemove.forEach(deadZombie => {
+            deadZombie.parent?.remove(deadZombie);
+            const idx = zombies.indexOf(deadZombie);
+            if (idx !== -1) {
+                zombies.splice(idx, 1);
+            }
+            const visibleIdx = visibleObjects.indexOf(deadZombie);
+            if (visibleIdx !== -1) {
+                visibleObjects.splice(visibleIdx, 1);
+            }
+            const loadedIdx = loadedObjects.indexOf(deadZombie);
+            if (loadedIdx !== -1) {
+                loadedObjects.splice(loadedIdx, 1);
+            }
+        });
+    }
 }
 
 // Damage zombie and apply knockback/animation reset
@@ -800,6 +849,20 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
     // Handle death: keep corpse, lay it down, and notify listeners
     if (zombie.userData.hp <= 0 && !zombie.userData._dead) {
         zombie.userData._dead = true;
+        zombie.visible = true;
+        zombie.userData._corpseTime = 0;
+        zombie.userData._corpseStartY = zombie.position.y;
+        const corpseSize = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
+            ? zombie.userData.rules.geometry
+            : DEFAULT_ZOMBIE_SIZE;
+        const corpseHeight = (corpseSize && corpseSize[1] > 0) ? corpseSize[1] : DEFAULT_ZOMBIE_SIZE[1];
+        zombie.userData._corpseSinkDistance = corpseHeight * CORPSE_SINK_DISTANCE_MULTIPLIER;
+        if (zombie.userData.knockback) {
+            zombie.userData.knockback.set(0, 0, 0);
+        }
+        if (zombie.userData.mixer && typeof zombie.userData.mixer.stopAllAction === 'function') {
+            zombie.userData.mixer.stopAllAction();
+        }
         // Spawn repeated bursts of larger blood effects when the zombie dies
         const bursts = 3;
         const delay = 100; // ms between bursts
@@ -822,9 +885,8 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
         // Rotate the zombie so the body lies flat on the ground
         zombie.rotation.x = -Math.PI / 2;
 
-        // Keep the corpse on the floor instead of sinking below it.
-        // The zombie's y-position already represents ground level, so no
-        // additional offset is needed when laying it down.
+        // Lay the corpse flat at ground level before the sinking effect
+        // gradually lowers it beneath the floor.
 
         // Emit an event so the main game can react (screen shake, etc.)
         window.dispatchEvent(new CustomEvent('zombieKilled', { detail: { zombie } }));
