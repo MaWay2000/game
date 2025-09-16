@@ -29,7 +29,7 @@ export function setupTorch(camera, scene) {
 
     torchWorking = true;
     torchBrokenUntil = 0;
-    nextBreakCheck = performance.now() + Math.random() * 1000 + 1000; // 20–55s
+    nextBreakCheck = performance.now() + Math.random() * 35000 + 20000; // 20–55s window
 
     return torch;
 }
@@ -38,7 +38,7 @@ export function updateTorchFlicker(now) {
     if (torchWorking) {
         // Check if torch should break
         if (now > nextBreakCheck) {
-            if (Math.random() < 0.21) { // 27% chance every 20–55s
+            if (Math.random() < 0.21) { // 21% chance every 20–55s
                 torchWorking = false;
                 const duration = Math.random() * 500 + 3000; // 2–5s
                 torchBrokenUntil = now + duration;
@@ -47,7 +47,7 @@ export function updateTorchFlicker(now) {
                 playedOff = false;
                 playedDamnit = false;
             }
-            nextBreakCheck = now + (Math.random() * 1000 + 1000); // next break window
+            nextBreakCheck = now + (Math.random() * 35000 + 20000); // schedule next check in 20–55s
         }
         torch.intensity = TORCH_INTENSITY;
     } else {
