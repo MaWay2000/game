@@ -10,8 +10,16 @@ let gltfModels = {};
 let gltfAnimations = {};
 let gltfLoadedFlags = {};
 let walkablePositions = [];
+let safeZones = [];
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 const WALKABLE_TYPE_KEYWORDS = ['floor', 'terrain', 'ground'];
+const DEFAULT_SAFE_ZONE_SETTINGS = {
+    blockDoors: true,
+    padding: 0.5,
+    maxDistance: 24,
+    minY: -Infinity,
+    maxY: Infinity
+};
 
 const textureLoader = new THREE.TextureLoader();
 const gltfLoader = new THREE.GLTFLoader();
@@ -104,7 +112,8 @@ export async function loadMap(scene) {
             ai: obj.ai === true || obj.isZombie === true, // extra fallback
             geometry: obj.size ? obj.size.slice() : ((obj.ai === true || obj.isZombie === true) ? DEFAULT_ZOMBIE_SIZE.slice() : [1,1,1]),
             color: obj.color || '#999999',
-            texture: obj.texture || null
+            texture: obj.texture || null,
+            safeZone: obj.safeZone !== undefined ? JSON.parse(JSON.stringify(obj.safeZone)) : false
         };
         if (!obj.model) {
             if (!geometries[obj.id] && obj.size) {
@@ -151,6 +160,7 @@ export async function loadMap(scene) {
 
     loadedObjects = [];
     walkablePositions = [];
+    safeZones = [];
     const walkableSet = new Set();
 
     for (const item of mapData) {
@@ -261,9 +271,138 @@ export async function loadMap(scene) {
         }
     }
 
+    computeSafeZones();
     updateVisibleObjects(scene, 0, 0, 40);
     scene.fog = new THREE.Fog(0x000000, 2, 15);
     return loadedObjects;
+}
+
+function tileKey(x, z) {
+    return `${x}|${z}`;
+}
+
+function normalizeSafeZoneConfig(config) {
+    if (!config) return null;
+    if (config === true) {
+        return { ...DEFAULT_SAFE_ZONE_SETTINGS };
+    }
+    if (typeof config === 'object') {
+        return {
+            blockDoors: config.blockDoors !== false,
+            padding: typeof config.padding === 'number' ? config.padding : DEFAULT_SAFE_ZONE_SETTINGS.padding,
+            maxDistance: typeof config.maxDistance === 'number' ? config.maxDistance : DEFAULT_SAFE_ZONE_SETTINGS.maxDistance,
+            minY: typeof config.minY === 'number' ? config.minY : DEFAULT_SAFE_ZONE_SETTINGS.minY,
+            maxY: typeof config.maxY === 'number' ? config.maxY : DEFAULT_SAFE_ZONE_SETTINGS.maxY
+        };
+    }
+    return null;
+}
+
+function buildSafeZoneFromOrigin(origin, config, collidableTiles, doorTiles) {
+    if (!origin || !origin.position) return null;
+
+    const startX = Math.round(origin.position.x);
+    const startZ = Math.round(origin.position.z);
+    const queue = [{ x: startX, z: startZ }];
+    const visited = new Set();
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+
+    const maxDistance = Math.max(1, config.maxDistance ?? DEFAULT_SAFE_ZONE_SETTINGS.maxDistance);
+
+    for (let i = 0; i < queue.length; i++) {
+        const { x, z } = queue[i];
+        const key = tileKey(x, z);
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (z < minZ) minZ = z;
+        if (z > maxZ) maxZ = z;
+
+        const neighbors = [
+            { x: x + 1, z },
+            { x: x - 1, z },
+            { x, z: z + 1 },
+            { x, z: z - 1 }
+        ];
+
+        for (const neighbor of neighbors) {
+            const nk = tileKey(neighbor.x, neighbor.z);
+            if (visited.has(nk)) continue;
+            if (Math.abs(neighbor.x - startX) > maxDistance || Math.abs(neighbor.z - startZ) > maxDistance) continue;
+            if (collidableTiles.has(nk)) continue;
+            if (config.blockDoors && doorTiles.has(nk)) continue;
+            queue.push(neighbor);
+        }
+    }
+
+    if (!visited.size) return null;
+
+    const padding = Math.max(0, Number.isFinite(config.padding) ? config.padding : DEFAULT_SAFE_ZONE_SETTINGS.padding);
+    const zoneMinX = minX - padding;
+    const zoneMaxX = maxX + padding;
+    const zoneMinZ = minZ - padding;
+    const zoneMaxZ = maxZ + padding;
+
+    if (!(zoneMinX < zoneMaxX) || !(zoneMinZ < zoneMaxZ)) {
+        return null;
+    }
+
+    const minY = Number.isFinite(config.minY) ? config.minY : DEFAULT_SAFE_ZONE_SETTINGS.minY;
+    const maxY = Number.isFinite(config.maxY) ? config.maxY : DEFAULT_SAFE_ZONE_SETTINGS.maxY;
+
+    return {
+        minX: zoneMinX,
+        maxX: zoneMaxX,
+        minZ: zoneMinZ,
+        maxZ: zoneMaxZ,
+        minY,
+        maxY,
+        origin: origin.position.clone ? origin.position.clone() : { ...origin.position },
+        sourceType: origin.userData?.type || null
+    };
+}
+
+function computeSafeZones() {
+    safeZones = [];
+    if (!Array.isArray(loadedObjects) || loadedObjects.length === 0) {
+        return;
+    }
+
+    const collidableTiles = new Set();
+    const doorTiles = new Set();
+    const origins = [];
+
+    for (const obj of loadedObjects) {
+        if (!obj || !obj.userData) continue;
+        const rule = obj.userData.rules || {};
+        const pos = obj.position || { x: 0, z: 0, y: 0 };
+        const key = tileKey(Math.round(pos.x || 0), Math.round(pos.z || 0));
+
+        if (rule.collidable) {
+            collidableTiles.add(key);
+        }
+        if (obj.userData.type === 'door') {
+            doorTiles.add(key);
+        }
+
+        const safeZoneConfig = normalizeSafeZoneConfig(rule.safeZone);
+        if (safeZoneConfig) {
+            origins.push({ object: obj, config: safeZoneConfig });
+        }
+    }
+
+    origins.forEach(({ object, config }) => {
+        const zone = buildSafeZoneFromOrigin(object, config, collidableTiles, doorTiles);
+        if (zone) {
+            safeZones.push(zone);
+        }
+    });
 }
 
 export function getLoadedObjects() {
@@ -272,6 +411,10 @@ export function getLoadedObjects() {
 
 export function getAllObjects() {
     return loadedObjects;
+}
+
+export function getSafeZones() {
+    return safeZones;
 }
 
 export function getWalkablePositions() {
