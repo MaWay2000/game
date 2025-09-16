@@ -136,7 +136,7 @@ camera.add(godsSun);
 godsSun.layers.enable(1);
 scene.add(godsSun.target);
 
-scene.add(new THREE.AmbientLight(0x000000)); // Only what torch sees is visible
+scene.add(new THREE.AmbientLight(0x222222)); // Only what torch sees is visible
 scene.fog = null;
 
 // --- Geometry & Materials (with texture support) ---
