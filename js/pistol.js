@@ -181,7 +181,7 @@ export function addPistolToCamera(camera) {
         }
     );
 
-    updateHUD(clipAmmo, 100);
+    updateHUD(clipAmmo);
 }
 
 export async function shootPistol(scene, camera) {
@@ -300,7 +300,7 @@ export async function shootPistol(scene, camera) {
     fireSound.play();
 
     console.log(`Bang! Ammo: ${clipAmmo}`);
-    updateHUD(clipAmmo, 100);
+    updateHUD(clipAmmo);
 
     // Allow shooting again after short delay or trigger reload when empty
     setTimeout(() => {
@@ -354,7 +354,7 @@ export function reloadAmmo(onReloaded) {
         const duration = (reloadCompleteAction.getClip().duration / reloadCompleteAction.timeScale) * 1000;
         reloadTimeout = setTimeout(() => {
             clipAmmo = maxClip;
-            updateHUD(clipAmmo, 100);
+            updateHUD(clipAmmo);
             isReloading = false;
             console.log("? Reload complete.");
             onReloaded?.();
@@ -384,7 +384,7 @@ export function reloadAmmo(onReloaded) {
 
         if (clipAmmo < maxClip) {
             clipAmmo++;
-            updateHUD(clipAmmo, 100);
+            updateHUD(clipAmmo);
             console.log(`?? +1 Bullet... Ammo: ${clipAmmo}`);
 
             const insertSound = insertSoundTemplate.cloneNode();
