@@ -73,47 +73,6 @@ function applyPosition(mesh, position, rule) {
     }
 }
 
-function parseVector3(value) {
-    if (!value) return null;
-    if (Array.isArray(value)) {
-        const [x = 0, y = 0, z = 0] = value;
-        return [
-            Number(x) || 0,
-            Number(y) || 0,
-            Number(z) || 0
-        ];
-    }
-    if (typeof value === 'object') {
-        const { x = 0, y = 0, z = 0 } = value;
-        return [
-            Number(x) || 0,
-            Number(y) || 0,
-            Number(z) || 0
-        ];
-    }
-    return null;
-}
-
-function computeBoundingBox(object) {
-    const box = new THREE.Box3().setFromObject(object);
-    if (box.isEmpty()) {
-        box.makeEmpty();
-        object.traverse(node => {
-            if (node.isMesh && node.geometry) {
-                if (!node.geometry.boundingBox) {
-                    node.geometry.computeBoundingBox();
-                }
-                if (node.geometry.boundingBox) {
-                    const nodeBox = node.geometry.boundingBox.clone();
-                    nodeBox.applyMatrix4(node.matrixWorld);
-                    box.union(nodeBox);
-                }
-            }
-        });
-    }
-    return box;
-}
-
 // Cache a bounding box for the object so collision tests don't
 // need to reconstruct it every frame. The box is stored along with
 // the transform values so we can detect when it becomes stale.
@@ -171,9 +130,6 @@ export async function loadMap(scene) {
             geometry: obj.size ? obj.size.slice() : ((obj.ai === true || obj.isZombie === true) ? DEFAULT_ZOMBIE_SIZE.slice() : [1,1,1]),
             color: obj.color || '#999999',
             texture: obj.texture || null,
-            modelRotation: parseVector3(obj.modelRotation),
-            modelOffset: parseVector3(obj.modelOffset),
-            modelCenter: obj.modelCenter === true,
             safeZone: obj.safeZone !== undefined ? JSON.parse(JSON.stringify(obj.safeZone)) : false
         };
         if (!obj.model) {
@@ -254,76 +210,38 @@ export async function loadMap(scene) {
 
         // ---- NEW: Always allow zombies and model objects! ----
         if (rule && rule.model && gltfModels[type]) {
-            const modelRoot = gltfModels[type].clone(true);
-            modelRoot.traverse(node => {
+            mesh = gltfModels[type].clone(true);
+            mesh.traverse(node => {
                 if (node.isMesh) {
                     node.material = node.material.clone();
                     node.material.opacity = 1;
                     node.material.transparent = false;
                 }
             });
-
-            const container = new THREE.Group();
-            container.add(modelRoot);
-
-            if (rule.modelRotation) {
-                const [rx, ry, rz] = rule.modelRotation;
-                modelRoot.rotation.x += rx || 0;
-                modelRoot.rotation.y += ry || 0;
-                modelRoot.rotation.z += rz || 0;
-            }
-
-            modelRoot.updateMatrixWorld(true);
-
             if (rule.geometry) {
-                const box = computeBoundingBox(modelRoot);
+                const box = new THREE.Box3().setFromObject(mesh);
                 const size = new THREE.Vector3();
                 box.getSize(size);
                 if (size.x > 0 && size.y > 0 && size.z > 0) {
-                    const scaleVec = new THREE.Vector3(
+                    mesh.scale.set(
                         rule.geometry[0] / size.x,
                         rule.geometry[1] / size.y,
                         rule.geometry[2] / size.z
                     );
-                    modelRoot.scale.multiply(scaleVec);
                 }
             }
-
-            modelRoot.updateMatrixWorld(true);
-
-            if (rule.modelCenter) {
-                const centeredBox = computeBoundingBox(modelRoot);
-                const center = new THREE.Vector3();
-                centeredBox.getCenter(center);
-                if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
-                    modelRoot.position.sub(center);
-                }
-            }
-
-            if (rule.modelOffset) {
-                const [ox, oy, oz] = rule.modelOffset;
-                modelRoot.position.x += ox || 0;
-                modelRoot.position.y += oy || 0;
-                modelRoot.position.z += oz || 0;
-            }
-
-            modelRoot.updateMatrixWorld(true);
-
-            let mixer = null;
             if (gltfAnimations[type] && gltfAnimations[type].length > 0) {
-                mixer = new THREE.AnimationMixer(modelRoot);
+                const mixer = new THREE.AnimationMixer(mesh);
                 gltfAnimations[type].forEach(clip => {
                     const action = mixer.clipAction(clip);
                     action.play();
                 });
+                mesh.userData.mixer = mixer;
             }
-
-            mesh = container;
             applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             if (rule.ai) mesh.userData.ai = true;
-            if (mixer) mesh.userData.mixer = mixer;
             loadedObjects.push(mesh);
             if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && (rule.ai || item.ai || item.isZombie)) {
