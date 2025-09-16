@@ -9,7 +9,9 @@ let textures = {};
 let gltfModels = {};
 let gltfAnimations = {};
 let gltfLoadedFlags = {};
+let walkablePositions = [];
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
+const WALKABLE_TYPE_KEYWORDS = ['floor', 'terrain', 'ground'];
 
 const textureLoader = new THREE.TextureLoader();
 const gltfLoader = new THREE.GLTFLoader();
@@ -37,6 +39,12 @@ function loadGLTFModel(id, modelPath) {
             }
         );
     });
+}
+
+function isWalkableType(type) {
+    if (!type) return false;
+    const lower = type.toLowerCase();
+    return WALKABLE_TYPE_KEYWORDS.some(keyword => lower.includes(keyword));
 }
 
 function applyPosition(mesh, position, rule) {
@@ -142,11 +150,26 @@ export async function loadMap(scene) {
     }
 
     loadedObjects = [];
+    walkablePositions = [];
+    const walkableSet = new Set();
 
     for (const item of mapData) {
         const { position, type, rotation = 0 } = item;
         if (type === 'hill') continue;
         const rule = objectRules[type];
+        const walkablePos = Array.isArray(position)
+            ? new THREE.Vector3(position[0] || 0, position[1] || 0, position[2] || 0)
+            : (position && typeof position === 'object' && 'x' in position && 'z' in position
+                ? new THREE.Vector3(position.x || 0, position.y || 0, position.z || 0)
+                : null);
+        const qualifiesWalkable = (rule && rule.collidable === false) || isWalkableType(type);
+        if (walkablePos && qualifiesWalkable) {
+            const key = `${walkablePos.x}|${walkablePos.y}|${walkablePos.z}`;
+            if (!walkableSet.has(key)) {
+                walkableSet.add(key);
+                walkablePositions.push(walkablePos);
+            }
+        }
         let mesh = null;
 
         // ---- NEW: Always allow zombies and model objects! ----
@@ -239,6 +262,10 @@ export function getLoadedObjects() {
 
 export function getAllObjects() {
     return loadedObjects;
+}
+
+export function getWalkablePositions() {
+    return walkablePositions.map(pos => pos.clone());
 }
 
 export function updateVisibleObjects(scene, playerX, playerZ, viewDist) {

@@ -1,5 +1,5 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects, getLoadedObjects } from './mapLoader.js';
+import { loadMap, updateVisibleObjects, getLoadedObjects, getWalkablePositions } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD } from './hud.js';
@@ -7,7 +7,7 @@ import { initMinimap, updateMinimap, toggleFullMap } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair } from './crosshair.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, updateZombies, updateBloodEffects } from './zombie.js';
+import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
 
 // --- Scene and Camera setup ---
@@ -145,6 +145,7 @@ const materials = {};
 const textureLoader = new THREE.TextureLoader();
 // Increased to ensure zombies remain within loaded map bounds
 const PLAYER_VIEW_DISTANCE = 25;
+const RANDOM_ZOMBIE_COUNT = 10;
 
 // Track models for zombies/objects
 const models = {};
@@ -209,12 +210,16 @@ Promise.all([
     }
 
     // Load map and spawn zombies once!
-    loadMap(scene, geometries, materials).then(mapObjects => {
-      if (!zombiesSpawned) {
-        spawnZombiesFromMap(scene, mapObjects, models, materials);
-        zombiesSpawned = true;
+    const mapObjects = await loadMap(scene, geometries, materials);
+    if (!zombiesSpawned) {
+      await spawnZombiesFromMap(scene, mapObjects, models, materials);
+      const walkablePositions = getWalkablePositions();
+      if (walkablePositions.length > 0) {
+        const spawnCount = Math.min(RANDOM_ZOMBIE_COUNT, walkablePositions.length);
+        await spawnRandomZombies(scene, spawnCount, walkablePositions);
       }
-    });
+      zombiesSpawned = true;
+    }
   })
   .catch(err => {
     console.error('Error loading object/zombie definitions:', err);
