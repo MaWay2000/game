@@ -90,13 +90,8 @@ export function notifyCrosshairShot() {
 }
 
 export function getCrosshairSpreadRadians() {
-    const effectiveGap = Math.max(
-        currentGap,
-        moving ? MOVING_GAP : BASE_GAP,
-        BASE_GAP + recoilGap
-    );
-
-    const extraGap = Math.max(0, effectiveGap - BASE_GAP);
+    const displayedGap = Math.max(currentGap, BASE_GAP);
+    const extraGap = Math.max(0, displayedGap - BASE_GAP);
     const normalized = SHOOT_RECOIL > 0 ? Math.min(extraGap / SHOOT_RECOIL, 1) : 0;
     const maxSpreadRadians = (MAX_SPREAD_DEGREES * Math.PI) / 180;
 
