@@ -145,7 +145,7 @@ const materials = {};
 const textureLoader = new THREE.TextureLoader();
 // Increased to ensure zombies remain within loaded map bounds
 const PLAYER_VIEW_DISTANCE = 25;
-const RANDOM_ZOMBIE_COUNT = 10;
+const RANDOM_ZOMBIE_COUNT = 400;
 
 // Track models for zombies/objects
 const models = {};
