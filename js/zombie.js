@@ -955,6 +955,15 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         return rules.collidable && !zombies.includes(o);
     });
 
+    const safeZones = getSafeZoneList();
+    const playerPosition = playerObj?.position;
+    const playerInSafeZone = playerPosition
+        ? pointInsideAnySafeZone(playerPosition, safeZones)
+        : false;
+    const gunshotInSafeZone = (lastGunshot && safeZones.length)
+        ? pointInsideAnySafeZone(lastGunshot.position, safeZones)
+        : false;
+
     // Clear old gunshot data after a few seconds
     const now = performance.now() / 1000;
     if (lastGunshot && now - lastGunshot.time > 3) {
@@ -1008,7 +1017,8 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         // Sneaking halves the distance at which zombies can spot the player.
         const spotRangeMultiplier = isSneaking ? 0.5 : 1;
         const spotRange = baseSpotRange * spotRangeMultiplier;
-        if (lastGunshot && zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
+        if (!playerInSafeZone && lastGunshot && !gunshotInSafeZone &&
+            zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
             // Become aggressive toward the player for 3-10 seconds
             ud._aggroTime = 3 + Math.random() * 7;
         }
@@ -1018,7 +1028,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
         const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
 
-        if (distToPlayer <= spotRange || ud._aggroTime > 0) {
+        if (!playerInSafeZone && (distToPlayer <= spotRange || ud._aggroTime > 0)) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
             const displacement = dir.clone().multiplyScalar(ud.speed);
