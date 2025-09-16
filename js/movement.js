@@ -6,6 +6,31 @@ const BASE_SPEED = 0.09;
 // Sneaking lowers the player's speed and noise footprint.
 const SNEAK_MULTIPLIER = 0.5;
 
+const runSound = new Audio('sounds/run.mp3');
+runSound.loop = true;
+runSound.preload = 'auto';
+runSound.volume = 0.4;
+
+function ensureRunSoundPlaying() {
+    if (!runSound.paused) {
+        return;
+    }
+    const playPromise = runSound.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch((err) => {
+            console.warn('Unable to play running sound:', err);
+        });
+    }
+}
+
+function stopRunSound() {
+    if (runSound.paused) {
+        return;
+    }
+    runSound.pause();
+    runSound.currentTime = 0;
+}
+
 export function setupMovement(cameraContainer, camera) {
     const keys = {};
     let enabled = true;
@@ -78,12 +103,19 @@ export function setupMovement(cameraContainer, camera) {
         const movingBool = !!isMoving;
         setPistolMoving(movingBool);
         setCrosshairMoving(movingBool);
+
+        if (enabled && movingBool && !sneaking) {
+            ensureRunSoundPlaying();
+        } else {
+            stopRunSound();
+        }
     }
 
     function setEnabled(val) {
         enabled = val;
         if (!enabled) {
             setCrosshairMoving(false);
+            stopRunSound();
         }
     }
 
