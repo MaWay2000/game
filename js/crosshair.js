@@ -4,9 +4,9 @@ const CROSSHAIR_SIZE = 64;
 const HALF_SIZE = CROSSHAIR_SIZE / 2;
 const LINE_WIDTH = 2;
 const ARM_LENGTH = 10;
-const BASE_GAP = 6;
-const MOVING_GAP = 12;
-const SHOOT_RECOIL = 14;
+const BASE_GAP = 12;
+const MOVING_GAP = 24;
+const SHOOT_RECOIL = 28;
 const RECOIL_DECAY = 30; // Units of gap per second removed after firing
 const SMOOTH_SPEED = 12; // Higher values snap faster to the desired gap
 
