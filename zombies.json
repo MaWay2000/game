@@ -1,80 +1,421 @@
 [
   {
-    "id": "aaaa",
-    "name": "Test",
-    "color": "#cccccc",
+    "id": "alpha",
+    "name": "Alpha",
+    "color": "#a63f3f",
     "size": [
-      0.9,
-      1.2,
-      0.9
+      0.78,
+      1.55,
+      0.78
     ],
     "collidable": true,
     "model": "models/zombie.glb",
-    "hp": 15,
-    "speed": 0.09,
-    "damage": 5,
-    "attack_range": 1.2,
+    "hp": 16,
+    "speed": 0.08,
+    "damage": 4,
+    "attack_range": 1.1,
     "aggro_range": 6,
-    "spotDistance": 20,
-    "loot": "",
-    "ai": true
-  },
-    {
-    "id": "ccc",
-    "name": "Test3",
-    "color": "#cccccc",
-    "size": [
-      0.9,
-      1.3,
-      0.9
-    ],
-    "collidable": true,
-    "model": "models/zombie3.glb",
-    "hp": 15,
-    "speed": 0.09,
-    "damage": 5,
-    "attack_range": 1.2,
-    "aggro_range": 6,
-    "spotDistance": 20,
+    "spotDistance": 12,
     "loot": "",
     "ai": true
   },
   {
-    "id": "bbbb",
-    "name": "Test2",
-    "color": "#cccccc",
+    "id": "bravo",
+    "name": "Bravo",
+    "color": "#a6713f",
     "size": [
-      0.9,
-      1.4,
-      0.4
+      0.81,
+      1.61,
+      0.81
     ],
     "collidable": true,
     "model": "models/zombie2.glb",
-    "hp": 15,
-    "speed": 0.09,
-    "damage": 5,
+    "hp": 18,
+    "speed": 0.083,
+    "damage": 4,
     "attack_range": 1.2,
     "aggro_range": 6,
+    "spotDistance": 13,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "charlie",
+    "name": "Charlie",
+    "color": "#a6a23f",
+    "size": [
+      0.84,
+      1.67,
+      0.84
+    ],
+    "collidable": true,
+    "model": "models/zombie3.glb",
+    "hp": 20,
+    "speed": 0.086,
+    "damage": 5,
+    "attack_range": 1.3,
+    "aggro_range": 6,
+    "spotDistance": 14,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "delta",
+    "name": "Delta",
+    "color": "#79a63f",
+    "size": [
+      0.87,
+      1.73,
+      0.87
+    ],
+    "collidable": true,
+    "model": "models/zombie4.glb",
+    "hp": 22,
+    "speed": 0.089,
+    "damage": 5,
+    "attack_range": 1.1,
+    "aggro_range": 6,
+    "spotDistance": 15,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "echo",
+    "name": "Echo",
+    "color": "#47a63f",
+    "size": [
+      0.78,
+      1.79,
+      0.78
+    ],
+    "collidable": true,
+    "model": "models/zombie5.glb",
+    "hp": 24,
+    "speed": 0.092,
+    "damage": 6,
+    "attack_range": 1.2,
+    "aggro_range": 7,
+    "spotDistance": 16,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "foxtrot",
+    "name": "Foxtrot",
+    "color": "#3fa668",
+    "size": [
+      0.81,
+      1.85,
+      0.81
+    ],
+    "collidable": true,
+    "model": "models/zombie6.glb",
+    "hp": 26,
+    "speed": 0.095,
+    "damage": 6,
+    "attack_range": 1.3,
+    "aggro_range": 7,
+    "spotDistance": 17,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "golf",
+    "name": "Golf",
+    "color": "#3fa69a",
+    "size": [
+      0.84,
+      1.91,
+      0.84
+    ],
+    "collidable": true,
+    "model": "models/zombie7.glb",
+    "hp": 28,
+    "speed": 0.098,
+    "damage": 7,
+    "attack_range": 1.1,
+    "aggro_range": 7,
+    "spotDistance": 18,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "hotel",
+    "name": "Hotel",
+    "color": "#3f73a6",
+    "size": [
+      0.87,
+      1.97,
+      0.87
+    ],
+    "collidable": true,
+    "model": "models/zombie8.glb",
+    "hp": 30,
+    "speed": 0.101,
+    "damage": 7,
+    "attack_range": 1.2,
+    "aggro_range": 7,
+    "spotDistance": 19,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "india",
+    "name": "India",
+    "color": "#663fa6",
+    "size": [
+      0.78,
+      2.03,
+      0.78
+    ],
+    "collidable": true,
+    "model": "models/zombie9.glb",
+    "hp": 32,
+    "speed": 0.104,
+    "damage": 8,
+    "attack_range": 1.3,
+    "aggro_range": 8,
     "spotDistance": 20,
     "loot": "",
     "ai": true
   },
   {
-    "id": "",
-    "name": "",
-    "color": "#cccccc",
+    "id": "juliet",
+    "name": "Juliet",
+    "color": "#953fa6",
     "size": [
-      0.7,
-      1.4,
-      0.7
+      0.81,
+      2.09,
+      0.81
     ],
     "collidable": true,
-    "hp": 15,
-    "speed": 0.09,
-    "damage": 5,
+    "model": "models/zombie10.glb",
+    "hp": 34,
+    "speed": 0.107,
+    "damage": 8,
+    "attack_range": 1.1,
+    "aggro_range": 8,
+    "spotDistance": 21,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "kilo",
+    "name": "Kilo",
+    "color": "#a63f7c",
+    "size": [
+      0.84,
+      2.15,
+      0.84
+    ],
+    "collidable": true,
+    "model": "models/zombie11.glb",
+    "hp": 36,
+    "speed": 0.11,
+    "damage": 9,
     "attack_range": 1.2,
-    "aggro_range": 6,
-    "spotDistance": 8,
+    "aggro_range": 8,
+    "spotDistance": 22,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "lima",
+    "name": "Lima",
+    "color": "#a63f4a",
+    "size": [
+      0.87,
+      2.21,
+      0.87
+    ],
+    "collidable": true,
+    "model": "models/zombie12.glb",
+    "hp": 38,
+    "speed": 0.113,
+    "damage": 9,
+    "attack_range": 1.3,
+    "aggro_range": 8,
+    "spotDistance": 23,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "mike",
+    "name": "Mike",
+    "color": "#a65d3f",
+    "size": [
+      0.78,
+      2.27,
+      0.78
+    ],
+    "collidable": true,
+    "model": "models/zombie13.glb",
+    "hp": 40,
+    "speed": 0.116,
+    "damage": 10,
+    "attack_range": 1.1,
+    "aggro_range": 9,
+    "spotDistance": 24,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "november",
+    "name": "November",
+    "color": "#a68f3f",
+    "size": [
+      0.81,
+      2.33,
+      0.81
+    ],
+    "collidable": true,
+    "model": "models/zombie14.glb",
+    "hp": 42,
+    "speed": 0.119,
+    "damage": 10,
+    "attack_range": 1.2,
+    "aggro_range": 9,
+    "spotDistance": 25,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "oscar",
+    "name": "Oscar",
+    "color": "#a6893f",
+    "size": [
+      0.84,
+      2.39,
+      0.84
+    ],
+    "collidable": true,
+    "model": "models/zombie15.glb",
+    "hp": 44,
+    "speed": 0.122,
+    "damage": 11,
+    "attack_range": 1.3,
+    "aggro_range": 9,
+    "spotDistance": 26,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "papa",
+    "name": "Papa",
+    "color": "#92a63f",
+    "size": [
+      0.87,
+      2.45,
+      0.87
+    ],
+    "collidable": true,
+    "model": "models/zombie16.glb",
+    "hp": 46,
+    "speed": 0.125,
+    "damage": 11,
+    "attack_range": 1.1,
+    "aggro_range": 9,
+    "spotDistance": 27,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "quebec",
+    "name": "Quebec",
+    "color": "#60a63f",
+    "size": [
+      0.78,
+      2.51,
+      0.78
+    ],
+    "collidable": true,
+    "model": "models/zombie17.glb",
+    "hp": 48,
+    "speed": 0.128,
+    "damage": 12,
+    "attack_range": 1.2,
+    "aggro_range": 10,
+    "spotDistance": 28,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "romeo",
+    "name": "Romeo",
+    "color": "#3fa650",
+    "size": [
+      0.81,
+      2.57,
+      0.81
+    ],
+    "collidable": true,
+    "model": "models/zombie18.glb",
+    "hp": 50,
+    "speed": 0.131,
+    "damage": 12,
+    "attack_range": 1.3,
+    "aggro_range": 10,
+    "spotDistance": 29,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "sierra",
+    "name": "Sierra",
+    "color": "#3fa681",
+    "size": [
+      0.84,
+      2.63,
+      0.84
+    ],
+    "collidable": true,
+    "model": "models/zombie19.glb",
+    "hp": 52,
+    "speed": 0.134,
+    "damage": 13,
+    "attack_range": 1.1,
+    "aggro_range": 10,
+    "spotDistance": 30,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "tango",
+    "name": "Tango",
+    "color": "#3f9aa6",
+    "size": [
+      0.87,
+      2.69,
+      0.87
+    ],
+    "collidable": true,
+    "model": "models/zombie20.glb",
+    "hp": 54,
+    "speed": 0.137,
+    "damage": 13,
+    "attack_range": 1.2,
+    "aggro_range": 10,
+    "spotDistance": 31,
+    "loot": "",
+    "ai": true
+  },
+  {
+    "id": "uniform",
+    "name": "Uniform",
+    "color": "#3f68a6",
+    "size": [
+      0.78,
+      2.75,
+      0.78
+    ],
+    "collidable": true,
+    "model": "models/zombie20.glb",
+    "hp": 56,
+    "speed": 0.14,
+    "damage": 14,
+    "attack_range": 1.3,
+    "aggro_range": 11,
+    "spotDistance": 32,
     "loot": "",
     "ai": true
   }
