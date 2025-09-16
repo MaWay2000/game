@@ -7,6 +7,7 @@ const ARM_LENGTH = 10;
 const BASE_GAP = 12;
 const MOVING_GAP = 24;
 const SHOOT_RECOIL = 28;
+const MAX_SPREAD_DEGREES = 5;
 const RECOIL_DECAY = 30; // Units of gap per second removed after firing
 const SMOOTH_SPEED = 12; // Higher values snap faster to the desired gap
 
@@ -86,4 +87,18 @@ export function setCrosshairMoving(isMoving) {
 
 export function notifyCrosshairShot() {
     recoilGap = Math.max(recoilGap, SHOOT_RECOIL);
+}
+
+export function getCrosshairSpreadRadians() {
+    const effectiveGap = Math.max(
+        currentGap,
+        moving ? MOVING_GAP : BASE_GAP,
+        BASE_GAP + recoilGap
+    );
+
+    const extraGap = Math.max(0, effectiveGap - BASE_GAP);
+    const normalized = SHOOT_RECOIL > 0 ? Math.min(extraGap / SHOOT_RECOIL, 1) : 0;
+    const maxSpreadRadians = (MAX_SPREAD_DEGREES * Math.PI) / 180;
+
+    return normalized * maxSpreadRadians;
 }

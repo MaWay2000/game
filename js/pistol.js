@@ -1,7 +1,7 @@
 import { updateHUD } from './hud.js';
 import { getLoadedObjects } from './mapLoader.js';
 import { getZombies, damageZombie, registerGunshot } from './zombie.js';
-import { notifyCrosshairShot } from './crosshair.js';
+import { notifyCrosshairShot, getCrosshairSpreadRadians } from './crosshair.js';
 
 let pistol;
 let clipAmmo = 10;
@@ -256,6 +256,20 @@ export async function shootPistol(scene, camera) {
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
     direction.normalize();
+
+    const spreadRadians = getCrosshairSpreadRadians();
+    if (spreadRadians > 0) {
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion).normalize();
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize();
+
+        const horizontalAngle = (Math.random() * 2 - 1) * spreadRadians;
+        const verticalAngle = (Math.random() * 2 - 1) * spreadRadians;
+
+        direction
+            .add(right.multiplyScalar(Math.tan(horizontalAngle)))
+            .add(up.multiplyScalar(Math.tan(verticalAngle)))
+            .normalize();
+    }
 
     const worldPosition = camera.getWorldPosition(new THREE.Vector3());
     bullet.position.copy(worldPosition);
