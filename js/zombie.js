@@ -1,6 +1,6 @@
 // zombie.js
 
-import { getLoadedObjects } from './mapLoader.js';
+import { getLoadedObjects, getAllObjects } from './mapLoader.js';
 
 let zombies = [];
 let zombieTypeIds = null;
@@ -12,6 +12,13 @@ const ZOMBIE_COLLISION_MARGIN = 0.1;
 // This reduces CPU/GPU workload when many zombies exist far from the action.
 // Maximum radius around the player where zombies remain active
 const ZOMBIE_ACTIVE_DISTANCE = 20;
+
+let zombieModelsCache = {};
+let zombieMaterialsCache = {};
+const zombieRules = new Map();
+const zombieGeometryCache = new Map();
+let zombieDefinitionsMap = null;
+let zombieDefinitionsPromise = null;
 
 // Blood effect handling
 const bloodEffects = [];
@@ -82,8 +89,204 @@ function parallelTraverse(a, b, callback) {
     }
 }
 
+function cacheZombieAssets(models, materials) {
+    if (models) zombieModelsCache = models;
+    if (materials) zombieMaterialsCache = materials;
+}
+
+function rememberZombieRule(type, rule) {
+    if (!type || !rule) return;
+    zombieRules.set(type, rule);
+}
+
+function buildRuleFromDefinition(definition) {
+    if (!definition) return null;
+    return {
+        collidable: definition.collidable === true,
+        model: definition.model || null,
+        ai: true,
+        geometry: definition.size ? definition.size.slice() : DEFAULT_ZOMBIE_SIZE.slice(),
+        color: definition.color || '#999999',
+        texture: definition.texture || null
+    };
+}
+
+async function loadZombieDefinitions() {
+    if (zombieDefinitionsMap) return zombieDefinitionsMap;
+    if (!zombieDefinitionsPromise) {
+        zombieDefinitionsPromise = fetch('zombies.json')
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+            .then(defs => {
+                zombieDefinitionsMap = new Map();
+                defs.forEach(def => {
+                    if (def && def.id) {
+                        zombieDefinitionsMap.set(def.id, def);
+                    }
+                });
+                return zombieDefinitionsMap;
+            });
+    }
+    return zombieDefinitionsPromise;
+}
+
+async function getZombieDefinition(type) {
+    if (!type) return null;
+    const defs = await loadZombieDefinitions();
+    return defs.get(type) || null;
+}
+
+async function resolveZombieRule(type, fallbackRule = null) {
+    if (fallbackRule) {
+        rememberZombieRule(type, fallbackRule);
+        return fallbackRule;
+    }
+    if (type && zombieRules.has(type)) {
+        return zombieRules.get(type);
+    }
+    const def = await getZombieDefinition(type);
+    const rule = buildRuleFromDefinition(def);
+    if (rule) rememberZombieRule(type, rule);
+    return rule;
+}
+
+function ensureModelScale(zombieMesh, type, rule) {
+    const modelEntry = type ? zombieModelsCache[type] : null;
+    if (!modelEntry || !modelEntry.scene) return;
+
+    const targetSize = (rule && rule.geometry) ? rule.geometry : DEFAULT_ZOMBIE_SIZE;
+
+    if (!modelEntry._size) {
+        const src = modelEntry.scene;
+        src.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(src);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
+            box.makeEmpty();
+            src.traverse(node => {
+                if (node.isMesh && node.geometry) {
+                    node.geometry.computeBoundingBox();
+                    const nodeBox = node.geometry.boundingBox.clone();
+                    nodeBox.applyMatrix4(node.matrixWorld);
+                    box.union(nodeBox);
+                }
+            });
+            box.getSize(size);
+        }
+        modelEntry._size = size;
+    }
+
+    const size = modelEntry._size;
+    if (size && size.x > 0 && size.y > 0 && size.z > 0) {
+        zombieMesh.scale.set(
+            targetSize[0] / size.x,
+            targetSize[1] / size.y,
+            targetSize[2] / size.z
+        );
+    }
+}
+
+function ensureZombieAnimations(zombieMesh, type) {
+    const modelEntry = type ? zombieModelsCache[type] : null;
+    if (!modelEntry || !Array.isArray(modelEntry.animations) || modelEntry.animations.length === 0) {
+        return;
+    }
+
+    const mixer = new THREE.AnimationMixer(zombieMesh);
+    const actions = {};
+    modelEntry.animations.forEach(clip => {
+        actions[clip.name] = mixer.clipAction(clip);
+    });
+
+    zombieMesh.userData.mixer = mixer;
+    zombieMesh.userData.actions = actions;
+    zombieMesh.userData._actionPlaying = false;
+}
+
+function applyZombieStats(zombieMesh, definition = null) {
+    const ud = zombieMesh.userData || (zombieMesh.userData = {});
+    const def = definition || {};
+    if (def.aggro_range !== undefined && ud.aggro_range === undefined) {
+        ud.aggro_range = def.aggro_range;
+    }
+    ud.hp = ud.hp ?? def.hp ?? 10;
+    ud.spotDistance = ud.spotDistance ?? def.spotDistance ?? ud.aggro_range ?? 8;
+    ud.speed = ud.speed ?? def.speed ?? 0.01;
+    ud.attackCooldown = ud.attackCooldown ?? def.attackCooldown ?? 1;
+    ud.turnSpeed = ud.turnSpeed ?? def.turnSpeed ?? 5;
+}
+
+function createFallbackZombieMesh(type, rule) {
+    const size = (rule && rule.geometry) ? rule.geometry : DEFAULT_ZOMBIE_SIZE;
+    if (!zombieGeometryCache.has(type)) {
+        zombieGeometryCache.set(type, new THREE.BoxGeometry(...size));
+    }
+    const geometry = zombieGeometryCache.get(type);
+
+    let material;
+    if (type && zombieMaterialsCache && zombieMaterialsCache[type]) {
+        material = zombieMaterialsCache[type].clone();
+    } else {
+        const color = (rule && rule.color) ? rule.color : '#44ff44';
+        material = new THREE.MeshLambertMaterial({ color });
+    }
+    return new THREE.Mesh(geometry, material);
+}
+
+function toVector3(pos) {
+    if (!pos) return null;
+    if (pos.isVector3) return pos.clone();
+    if (Array.isArray(pos)) {
+        return new THREE.Vector3(pos[0] || 0, pos[1] || 0, pos[2] || 0);
+    }
+    if (typeof pos === 'object' && 'x' in pos && 'z' in pos) {
+        return new THREE.Vector3(pos.x || 0, pos.y || 0, pos.z || 0);
+    }
+    return null;
+}
+
+async function buildZombieMesh({ type, position, rotation = 0, rule = null, template = null }) {
+    const resolvedRule = await resolveZombieRule(type, rule);
+    const definition = await getZombieDefinition(type);
+    const pos = toVector3(position) || new THREE.Vector3();
+
+    let zombieMesh = null;
+    const modelEntry = type ? zombieModelsCache[type] : null;
+    if (modelEntry && modelEntry.scene) {
+        zombieMesh = cloneSkinned(modelEntry.scene);
+    } else if (template) {
+        zombieMesh = template;
+    } else {
+        zombieMesh = createFallbackZombieMesh(type || 'fallback', resolvedRule);
+    }
+
+    zombieMesh.position.copy(pos);
+    zombieMesh.rotation.y = rotation || 0;
+    zombieMesh.userData = {
+        ...(template ? template.userData || {} : {}),
+        type,
+        ai: true,
+        rules: resolvedRule || (zombieMesh.userData && zombieMesh.userData.rules) || buildRuleFromDefinition(definition) || {
+            geometry: DEFAULT_ZOMBIE_SIZE.slice(),
+            collidable: true,
+            ai: true
+        }
+    };
+
+    ensureModelScale(zombieMesh, type, zombieMesh.userData.rules);
+    ensureZombieAnimations(zombieMesh, type);
+    applyZombieStats(zombieMesh, definition);
+    zombieMesh.userData._lastValidPos = zombieMesh.position.clone();
+
+    rememberZombieRule(type, zombieMesh.userData.rules);
+
+    return { mesh: zombieMesh, usedTemplate: zombieMesh === template };
+}
+
 // Loads zombies from map objects (Mesh-based!)
 export async function spawnZombiesFromMap(scene, mapObjects, models, materials) {
+    cacheZombieAssets(models, materials);
     zombies = [];
 
     // Try to load zombie type IDs, but don't rely solely on them. If the
@@ -103,93 +306,87 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
             (objType && zombieIds.includes(objType));
         if (!isZombie) continue;
 
-        let zombieMesh = obj;
-        const modelPath = obj.userData && obj.userData.rules ? obj.userData.rules.model : undefined;
+        const rotationY = obj.rotation ? obj.rotation.y : 0;
+        const { mesh: zombieMesh, usedTemplate } = await buildZombieMesh({
+            type: objType,
+            position: obj.position,
+            rotation: rotationY,
+            rule: obj.userData ? obj.userData.rules : null,
+            template: obj
+        });
 
-        // If a GLTF model with animations is available, clone it so that the
-        // skeleton/bones can animate independently.
-        if (models && objType && models[objType] && models[objType].scene) {
-            console.log(`Spawning zombie ${objType} using model ${modelPath || 'unknown'}`);
-            zombieMesh = cloneSkinned(models[objType].scene);
-            zombieMesh.position.copy(obj.position);
-            zombieMesh.rotation.copy(obj.rotation);
-            zombieMesh.userData = { ...obj.userData };
+        if (!zombieMesh) continue;
 
-            // Scale model to match defined geometry size (so zombies aren't gigantic)
-            const rule = zombieMesh.userData && zombieMesh.userData.rules;
-            const targetSize = (rule && rule.geometry) ? rule.geometry : DEFAULT_ZOMBIE_SIZE;
-
-            // Compute and cache original model bounding box once per zombie type
-            if (!models[objType]._size) {
-                const src = models[objType].scene;
-                src.updateMatrixWorld(true);
-                const box = new THREE.Box3().setFromObject(src);
-                const size = new THREE.Vector3();
-                box.getSize(size);
-
-                // If any dimension is zero, recompute using mesh geometries to avoid
-                // oversized models when bounding boxes are missing (e.g. skinned meshes)
-                if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
-                    box.makeEmpty();
-                    src.traverse(node => {
-                        if (node.isMesh && node.geometry) {
-                            node.geometry.computeBoundingBox();
-                            const nodeBox = node.geometry.boundingBox.clone();
-                            nodeBox.applyMatrix4(node.matrixWorld);
-                            box.union(nodeBox);
-                        }
-                    });
-                    box.getSize(size);
-                }
-
-                models[objType]._size = size;
-            }
-
-            const size = models[objType]._size;
-            if (size.x > 0 && size.y > 0 && size.z > 0) {
-                zombieMesh.scale.set(
-                    targetSize[0] / size.x,
-                    targetSize[1] / size.y,
-                    targetSize[2] / size.z
-                );
-            }
-
-            if (models[objType].animations && models[objType].animations.length > 0) {
-                const mixer = new THREE.AnimationMixer(zombieMesh);
-                const actions = {};
-                models[objType].animations.forEach(clip => {
-                    actions[clip.name] = mixer.clipAction(clip);
-                });
-
-                // Log available animation clip names for debugging
-                const actionNames = Object.keys(actions);
-                if (actionNames.length > 0) {
-                    console.log(`Zombie ${objType} animation clips:`, actionNames);
-                }
-
-                zombieMesh.userData.mixer = mixer;
-                zombieMesh.userData.actions = actions;
-                zombieMesh.userData._actionPlaying = false;
-            } else {
-                console.log(`Zombie ${objType} model has no animations; static model will not output animation logs.`);
-            }
-
-            scene.add(zombieMesh);
-            if (obj.parent) obj.parent.remove(obj);
-            mapObjects[i] = zombieMesh;
-        } else {
-            console.log(`Spawning zombie ${objType || 'unknown'} without external model`);
+        if (!usedTemplate && obj.parent) {
+            obj.parent.remove(obj);
         }
+
+        if (!usedTemplate) {
+            scene.add(zombieMesh);
+        }
+
+        mapObjects[i] = zombieMesh;
 
         zombieMesh.userData.hp = zombieMesh.userData.hp ?? 10;
         zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
         zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.01;
         zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
         zombieMesh.userData.turnSpeed = zombieMesh.userData.turnSpeed ?? 5;
-        // Mark zombie objects for AI interactions (e.g., bullet hit tests)
         zombieMesh.userData.ai = true;
         zombies.push(zombieMesh);
     }
+}
+
+export async function spawnRandomZombies(scene, count, walkablePositions = []) {
+    if (!scene || !count || count <= 0) return [];
+    if (!Array.isArray(walkablePositions) || walkablePositions.length === 0) return [];
+
+    await loadZombieDefinitions();
+    const idsFromDefs = zombieDefinitionsMap ? Array.from(zombieDefinitionsMap.keys()) : [];
+    const idsFromRules = Array.from(zombieRules.keys());
+    const zombieIds = Array.from(new Set([...idsFromDefs, ...idsFromRules])).filter(Boolean);
+    if (zombieIds.length === 0) return [];
+
+    const collidableObjects = getAllObjects().filter(obj => {
+        const rules = (obj.userData && obj.userData.rules) ? obj.userData.rules : {};
+        return rules.collidable && !zombies.includes(obj);
+    });
+
+    const spawned = [];
+    const occupied = new Set();
+    let attempts = 0;
+    const maxAttempts = Math.max(count * 5, walkablePositions.length * 2);
+
+    while (spawned.length < count && attempts < maxAttempts) {
+        attempts++;
+        const candidateRaw = walkablePositions[Math.floor(Math.random() * walkablePositions.length)];
+        const candidatePos = toVector3(candidateRaw);
+        if (!candidatePos) continue;
+
+        const key = `${candidatePos.x.toFixed(3)}|${candidatePos.y.toFixed(3)}|${candidatePos.z.toFixed(3)}`;
+        if (occupied.has(key)) continue;
+
+        const type = zombieIds[Math.floor(Math.random() * zombieIds.length)];
+        const { mesh: zombieMesh } = await buildZombieMesh({
+            type,
+            position: candidatePos,
+            rotation: Math.random() * Math.PI * 2
+        });
+
+        if (!zombieMesh) continue;
+
+        const colliders = collidableObjects.concat(zombies, spawned);
+        if (checkZombieCollision(zombieMesh, zombieMesh.position, colliders)) {
+            continue;
+        }
+
+        scene.add(zombieMesh);
+        zombies.push(zombieMesh);
+        spawned.push(zombieMesh);
+        occupied.add(key);
+    }
+
+    return spawned;
 }
 
 // Returns all zombie meshes
