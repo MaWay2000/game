@@ -8,10 +8,24 @@ const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 // Small shrink to make collision boxes less tight so zombies can squeeze
 // through narrow corridors without getting stuck on walls.
 const ZOMBIE_COLLISION_MARGIN = 0.1;
-// Zombies beyond this distance from the player are neither rendered nor updated.
-// This reduces CPU/GPU workload when many zombies exist far from the action.
-// Maximum radius around the player where zombies remain active
-const ZOMBIE_ACTIVE_DISTANCE = 20;
+// Base radius around the player where zombies remain active before
+// performance-based scaling is applied.
+const DEFAULT_BASE_ZOMBIE_ACTIVE_DISTANCE = 20;
+const MIN_BASE_ZOMBIE_ACTIVE_DISTANCE = 8;
+const MAX_BASE_ZOMBIE_ACTIVE_DISTANCE = 40;
+const TARGET_FRAME_TIME = 1 / 60;
+const MIN_PERFORMANCE_FACTOR = 0.3;
+const ACTIVE_DISTANCE_SMOOTHING = 8;
+let baseZombieActiveDistance = DEFAULT_BASE_ZOMBIE_ACTIVE_DISTANCE;
+let smoothedZombieActiveDistance = baseZombieActiveDistance;
+let zombieSettingsUI = null;
+let lastDisplayedBaseDistance = null;
+let lastDisplayedEffectiveDistance = null;
+const storedBaseActiveDistance = readStoredBaseZombieActiveDistance();
+if (storedBaseActiveDistance !== null) {
+    baseZombieActiveDistance = storedBaseActiveDistance;
+    smoothedZombieActiveDistance = storedBaseActiveDistance;
+}
 const CORPSE_SINK_DURATION = 10; // seconds before a corpse disappears
 const CORPSE_FLOAT_DELAY = 3; // delay before corpse begins descending
 const CORPSE_SINK_DISTANCE_MULTIPLIER = 1; // sink by one body height
@@ -40,6 +54,171 @@ export function registerGunshot(position) {
         position: position.clone(),
         time: performance.now() / 1000
     };
+}
+
+export function initZombieSettingsUI() {
+    if (typeof document === 'undefined' || zombieSettingsUI) return;
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '12px';
+    container.style.left = '12px';
+    container.style.padding = '10px 14px';
+    container.style.background = 'rgba(0, 0, 0, 0.6)';
+    container.style.color = '#ffffff';
+    container.style.fontFamily = 'Arial, sans-serif';
+    container.style.fontSize = '13px';
+    container.style.lineHeight = '1.4';
+    container.style.borderRadius = '10px';
+    container.style.boxShadow = '0 4px 18px rgba(0, 0, 0, 0.45)';
+    container.style.backdropFilter = 'blur(5px)';
+    container.style.pointerEvents = 'auto';
+    container.style.zIndex = '120';
+    container.style.minWidth = '220px';
+
+    const title = document.createElement('div');
+    title.textContent = 'Zombie Activity Radius';
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '8px';
+    container.appendChild(title);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = String(MIN_BASE_ZOMBIE_ACTIVE_DISTANCE);
+    slider.max = String(MAX_BASE_ZOMBIE_ACTIVE_DISTANCE);
+    slider.step = '1';
+    slider.value = String(baseZombieActiveDistance);
+    slider.style.width = '100%';
+    slider.title = 'Adjust how far away zombies remain active.';
+    slider.setAttribute('aria-label', 'Zombie activity radius');
+    slider.addEventListener('input', event => {
+        setBaseZombieActiveDistance(Number(event.target.value));
+    });
+    container.appendChild(slider);
+
+    const baseRow = document.createElement('div');
+    baseRow.style.display = 'flex';
+    baseRow.style.justifyContent = 'space-between';
+    baseRow.style.gap = '8px';
+    baseRow.style.marginTop = '8px';
+    const baseLabel = document.createElement('span');
+    baseLabel.textContent = 'Base radius';
+    baseLabel.style.opacity = '0.75';
+    const baseValue = document.createElement('span');
+    baseValue.style.fontVariantNumeric = 'tabular-nums';
+    baseRow.appendChild(baseLabel);
+    baseRow.appendChild(baseValue);
+    container.appendChild(baseRow);
+
+    const effectiveRow = document.createElement('div');
+    effectiveRow.style.display = 'flex';
+    effectiveRow.style.justifyContent = 'space-between';
+    effectiveRow.style.gap = '8px';
+    const effectiveLabel = document.createElement('span');
+    effectiveLabel.textContent = 'Effective';
+    effectiveLabel.style.opacity = '0.75';
+    effectiveLabel.style.marginTop = '4px';
+    const effectiveValue = document.createElement('span');
+    effectiveValue.style.fontVariantNumeric = 'tabular-nums';
+    effectiveValue.style.marginTop = '4px';
+    effectiveRow.appendChild(effectiveLabel);
+    effectiveRow.appendChild(effectiveValue);
+    container.appendChild(effectiveRow);
+
+    const hint = document.createElement('div');
+    hint.textContent = 'Lower values improve performance at the cost of distant activity.';
+    hint.style.opacity = '0.65';
+    hint.style.fontSize = '12px';
+    hint.style.marginTop = '8px';
+    container.appendChild(hint);
+
+    document.body.appendChild(container);
+
+    zombieSettingsUI = {
+        container,
+        slider,
+        baseValue,
+        effectiveValue
+    };
+    lastDisplayedBaseDistance = null;
+    lastDisplayedEffectiveDistance = null;
+    updateZombieSettingsDisplay(smoothedZombieActiveDistance);
+}
+
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function readStoredBaseZombieActiveDistance() {
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return null;
+        }
+        const raw = window.localStorage.getItem('zombieActiveDistanceBase');
+        if (raw === null) return null;
+        const parsed = parseFloat(raw);
+        if (!Number.isFinite(parsed)) return null;
+        return clamp(parsed, MIN_BASE_ZOMBIE_ACTIVE_DISTANCE, MAX_BASE_ZOMBIE_ACTIVE_DISTANCE);
+    } catch (err) {
+        console.debug('Unable to read zombie radius preference from storage:', err);
+        return null;
+    }
+}
+
+function persistBaseZombieActiveDistance(value) {
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        window.localStorage.setItem('zombieActiveDistanceBase', String(value));
+    } catch (err) {
+        console.debug('Unable to store zombie radius preference:', err);
+    }
+}
+
+function setBaseZombieActiveDistance(value) {
+    const numeric = Number.isFinite(value) ? value : DEFAULT_BASE_ZOMBIE_ACTIVE_DISTANCE;
+    const clamped = clamp(numeric, MIN_BASE_ZOMBIE_ACTIVE_DISTANCE, MAX_BASE_ZOMBIE_ACTIVE_DISTANCE);
+    baseZombieActiveDistance = clamped;
+    if (smoothedZombieActiveDistance > clamped) {
+        smoothedZombieActiveDistance = clamped;
+    }
+    persistBaseZombieActiveDistance(clamped);
+    if (zombieSettingsUI?.slider && zombieSettingsUI.slider.value !== String(clamped)) {
+        zombieSettingsUI.slider.value = String(clamped);
+    }
+    updateZombieSettingsDisplay(smoothedZombieActiveDistance);
+}
+
+function updateZombieSettingsDisplay(effectiveDistance) {
+    if (!zombieSettingsUI) return;
+    if (lastDisplayedBaseDistance !== baseZombieActiveDistance) {
+        zombieSettingsUI.baseValue.textContent = `${Math.round(baseZombieActiveDistance)} m`;
+        lastDisplayedBaseDistance = baseZombieActiveDistance;
+    }
+    if (typeof effectiveDistance === 'number' && Number.isFinite(effectiveDistance)) {
+        if (lastDisplayedEffectiveDistance === null || Math.abs(lastDisplayedEffectiveDistance - effectiveDistance) >= 0.1) {
+            zombieSettingsUI.effectiveValue.textContent = `${effectiveDistance.toFixed(1)} m`;
+            lastDisplayedEffectiveDistance = effectiveDistance;
+        }
+    }
+}
+
+function getZombieActiveDistanceForFrame(delta) {
+    const frameTime = (typeof delta === 'number' && delta > 0 && Number.isFinite(delta))
+        ? delta
+        : TARGET_FRAME_TIME;
+    const performanceFactor = clamp(TARGET_FRAME_TIME / frameTime, MIN_PERFORMANCE_FACTOR, 1);
+    const targetDistance = baseZombieActiveDistance * performanceFactor;
+    const smoothing = clamp(frameTime * ACTIVE_DISTANCE_SMOOTHING, 0, 1);
+    smoothedZombieActiveDistance += (targetDistance - smoothedZombieActiveDistance) * smoothing;
+    const minDistance = Math.max(
+        MIN_BASE_ZOMBIE_ACTIVE_DISTANCE * MIN_PERFORMANCE_FACTOR,
+        baseZombieActiveDistance * MIN_PERFORMANCE_FACTOR
+    );
+    const maxDistance = baseZombieActiveDistance;
+    smoothedZombieActiveDistance = clamp(smoothedZombieActiveDistance, minDistance, maxDistance);
+    return smoothedZombieActiveDistance;
 }
 
 // Loads zombie type ids from zombies.json (async, cached)
@@ -575,6 +754,8 @@ function updateDeadZombie(zombie, delta) {
 // Update zombies: handle animation and simple wandering movement
 export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
     const { isSneaking = false } = playerState;
+    const activeDistance = getZombieActiveDistanceForFrame(delta);
+    updateZombieSettingsDisplay(activeDistance);
     const visibleObjects = getLoadedObjects();
     const collidableObjects = visibleObjects.filter(o => {
         const rules = (o.userData && o.userData.rules) ? o.userData.rules : {};
@@ -615,7 +796,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         if (z.userData.hp <= 0) return;
         const wasInactive = !z.visible;
         const dist = z.position.distanceTo(playerObj.position);
-        if (dist > ZOMBIE_ACTIVE_DISTANCE) {
+        if (dist > activeDistance) {
             z.visible = false;
             return;
         }
