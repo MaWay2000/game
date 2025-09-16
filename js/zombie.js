@@ -36,6 +36,16 @@ const zombieRules = new Map();
 const zombieGeometryCache = new Map();
 let zombieDefinitionsMap = null;
 let zombieDefinitionsPromise = null;
+const ZOMBIE_LOD_CONFIG_PATH = 'models/zombie_lod.json';
+const ZOMBIE_LOD_ENABLE_DISTANCE = 18;
+const ZOMBIE_LOD_DISABLE_DISTANCE = 14;
+const DEFAULT_ZOMBIE_LOD_CAPACITY = 256;
+let zombieScene = null;
+let zombieLODConfig = null;
+let zombieLODConfigPromise = null;
+const zombieLODManagers = new Map();
+const zombieLODTempColor = new THREE.Color();
+const zombieLODTempTint = new THREE.Color();
 
 // Persistent spatial grid used to keep zombies separated.
 const zombieGrid = new Map();
@@ -421,6 +431,346 @@ async function resolveZombieRule(type, fallbackRule = null) {
     return rule;
 }
 
+function requestZombieLODConfig() {
+    if (zombieLODConfig || zombieLODConfigPromise) {
+        return zombieLODConfigPromise;
+    }
+    zombieLODConfigPromise = fetch(ZOMBIE_LOD_CONFIG_PATH)
+        .then(res => (res.ok ? res.json() : null))
+        .then(json => {
+            if (!json || typeof json !== 'object') {
+                return null;
+            }
+            if (!json.models || typeof json.models !== 'object') {
+                json.models = {};
+            }
+            zombieLODConfig = json;
+            return zombieLODConfig;
+        })
+        .catch(err => {
+            console.warn('Failed to load zombie LOD config', err);
+            return null;
+        });
+    return zombieLODConfigPromise;
+}
+
+function ensureZombieLODScene(scene) {
+    if (!scene) return;
+    if (zombieScene && zombieScene !== scene) {
+        zombieLODManagers.forEach(manager => {
+            if (manager.mesh && manager.mesh.parent === zombieScene) {
+                zombieScene.remove(manager.mesh);
+            }
+        });
+    }
+    zombieScene = scene;
+    zombieLODManagers.forEach(manager => {
+        if (manager.mesh && manager.mesh.parent !== scene) {
+            scene.add(manager.mesh);
+        }
+    });
+}
+
+function getZombieLODTemplateId(zombie) {
+    if (!zombieLODConfig || !zombieLODConfig.models) return null;
+    const overrides = zombieLODConfig.overrides || {};
+    const type = zombie?.userData?.type;
+    const candidate = (type && overrides[type]) || zombieLODConfig.defaultModel;
+    if (candidate && zombieLODConfig.models[candidate]) {
+        return candidate;
+    }
+    const ids = Object.keys(zombieLODConfig.models);
+    return ids.length > 0 ? ids[0] : null;
+}
+
+function getZombieLODKey(zombie, templateId) {
+    const type = zombie?.userData?.type || 'default';
+    const color = zombie?.userData?.rules?.color || '';
+    return `${templateId || 'default'}|${type}|${color}`;
+}
+
+function buildZombieLODGeometry(template, tintHex) {
+    const parts = Array.isArray(template?.parts) && template.parts.length > 0
+        ? template.parts
+        : [{ shape: 'box', size: [0.5, 1.6, 0.3], offset: [0, 0.8, 0], color: '#4f6b3d' }];
+
+    const tintStrength = THREE.MathUtils.clamp(template?.tintStrength ?? 0.35, 0, 1);
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const colors = [];
+    const indices = [];
+    let vertexOffset = 0;
+    const tintColor = tintHex ? zombieLODTempTint.set(tintHex) : null;
+
+    parts.forEach(part => {
+        const size = Array.isArray(part.size) && part.size.length >= 3
+            ? part.size
+            : [0.5, 1.6, 0.3];
+        const offset = Array.isArray(part.offset) && part.offset.length >= 3
+            ? part.offset
+            : [0, size[1] / 2, 0];
+        const baseColor = zombieLODTempColor.set(part.color || '#4f6b3d');
+        const appliedColor = tintColor ? baseColor.clone().lerp(tintColor, tintStrength) : baseColor.clone();
+
+        let partGeometry;
+        if (part.shape === 'box' || !part.shape) {
+            partGeometry = new THREE.BoxGeometry(size[0], size[1], size[2]);
+        } else {
+            partGeometry = new THREE.BoxGeometry(size[0], size[1], size[2]);
+        }
+        partGeometry.translate(offset[0], offset[1], offset[2]);
+
+        const posAttr = partGeometry.getAttribute('position');
+        const normalAttr = partGeometry.getAttribute('normal');
+        const uvAttr = partGeometry.getAttribute('uv');
+        const indexAttr = partGeometry.getIndex();
+        const vertexCount = posAttr ? posAttr.count : 0;
+
+        for (let i = 0; i < vertexCount; i++) {
+            positions.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+            normals.push(normalAttr.getX(i), normalAttr.getY(i), normalAttr.getZ(i));
+            if (uvAttr) {
+                uvs.push(uvAttr.getX(i), uvAttr.getY(i));
+            } else {
+                uvs.push(0, 0);
+            }
+            colors.push(appliedColor.r, appliedColor.g, appliedColor.b);
+        }
+
+        if (indexAttr) {
+            for (let i = 0; i < indexAttr.count; i++) {
+                indices.push(indexAttr.getX(i) + vertexOffset);
+            }
+        }
+        vertexOffset += vertexCount;
+        partGeometry.dispose();
+    });
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    if (uvs.length > 0) {
+        geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    }
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(indices);
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+
+    const baseSize = new THREE.Vector3().fromArray(DEFAULT_ZOMBIE_SIZE);
+    if (geometry.boundingBox) {
+        geometry.boundingBox.getSize(baseSize);
+    }
+
+    return { geometry, size: baseSize };
+}
+
+function getZombieLODManager(zombie) {
+    if (!zombie) return null;
+    if (!zombieLODConfig) {
+        requestZombieLODConfig();
+        return null;
+    }
+    const templateId = getZombieLODTemplateId(zombie);
+    if (!templateId) return null;
+    const key = getZombieLODKey(zombie, templateId);
+    let manager = zombieLODManagers.get(key);
+    if (manager) {
+        if (zombieScene && manager.mesh && manager.mesh.parent !== zombieScene) {
+            zombieScene.add(manager.mesh);
+        }
+        return manager;
+    }
+
+    const template = zombieLODConfig.models?.[templateId];
+    if (!template) return null;
+
+    const tintHex = zombie?.userData?.rules?.color || null;
+    const built = buildZombieLODGeometry(template, tintHex);
+    const material = new THREE.MeshLambertMaterial({
+        vertexColors: true,
+        flatShading: true
+    });
+    const capacity = Math.max(1, template.maxInstances || DEFAULT_ZOMBIE_LOD_CAPACITY);
+    const mesh = new THREE.InstancedMesh(built.geometry, material, capacity);
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    mesh.count = 0;
+    mesh.visible = false;
+    mesh.name = `ZombieLOD:${key}`;
+
+    manager = {
+        key,
+        templateId,
+        template,
+        mesh,
+        capacity,
+        zombies: [],
+        zombieToIndex: new Map(),
+        baseSize: built.size.clone(),
+        dummy: new THREE.Object3D(),
+        scale: new THREE.Vector3(1, 1, 1)
+    };
+
+    zombieLODManagers.set(key, manager);
+    if (zombieScene) {
+        zombieScene.add(mesh);
+    }
+    return manager;
+}
+
+function hideZombieDetail(zombie) {
+    const ud = zombie.userData || (zombie.userData = {});
+    if (ud._detailHidden) return;
+    const nodes = ud._lodDetailNodes;
+    if (Array.isArray(nodes)) {
+        nodes.forEach(node => {
+            if (!node.userData) node.userData = {};
+            if (node.userData._lodOriginalVisible === undefined) {
+                node.userData._lodOriginalVisible = node.visible !== false;
+            }
+            node.visible = false;
+        });
+    }
+    ud._detailHidden = true;
+}
+
+function showZombieDetail(zombie) {
+    const ud = zombie.userData || (zombie.userData = {});
+    if (!ud._detailHidden) return;
+    const nodes = ud._lodDetailNodes;
+    if (Array.isArray(nodes)) {
+        nodes.forEach(node => {
+            const original = node.userData ? node.userData._lodOriginalVisible : undefined;
+            node.visible = original === undefined ? true : original;
+        });
+    }
+    ud._detailHidden = false;
+}
+
+function updateLODInstanceTransform(zombie, manager, commitSet, indexOverride) {
+    if (!manager || !manager.mesh) return;
+    const idx = (indexOverride !== undefined && indexOverride !== null)
+        ? indexOverride
+        : manager.zombieToIndex.get(zombie);
+    if (idx === undefined) return;
+
+    const dummy = manager.dummy;
+    const targetSize = getZombieGeometry(zombie);
+    const baseSize = manager.baseSize || new THREE.Vector3().fromArray(DEFAULT_ZOMBIE_SIZE);
+    manager.scale.set(
+        baseSize.x > 0 ? targetSize[0] / baseSize.x : 1,
+        baseSize.y > 0 ? targetSize[1] / baseSize.y : 1,
+        baseSize.z > 0 ? targetSize[2] / baseSize.z : 1
+    );
+
+    dummy.position.copy(zombie.position);
+    dummy.rotation.set(0, zombie.rotation.y, 0);
+    dummy.scale.copy(manager.scale);
+    dummy.updateMatrix();
+
+    manager.mesh.setMatrixAt(idx, dummy.matrix);
+    if (commitSet) {
+        commitSet.add(manager);
+    } else {
+        manager.mesh.instanceMatrix.needsUpdate = true;
+    }
+}
+
+function enterZombieLOD(zombie) {
+    const ud = zombie.userData || (zombie.userData = {});
+    if (ud._lodLevel === 'low') {
+        return ud._lodManager || null;
+    }
+    const manager = getZombieLODManager(zombie);
+    if (!manager) return null;
+    if (manager.zombies.length >= manager.capacity) {
+        return null;
+    }
+    const index = manager.zombies.length;
+    manager.zombies.push(zombie);
+    manager.zombieToIndex.set(zombie, index);
+    manager.mesh.count = manager.zombies.length;
+    manager.mesh.visible = manager.mesh.count > 0;
+
+    ud._lodLevel = 'low';
+    ud._lodManager = manager;
+    ud._lodIndex = index;
+    hideZombieDetail(zombie);
+    if (ud._movingAction && ud._actionPlaying) {
+        ud._movingAction.stop();
+        ud._actionPlaying = false;
+    }
+    return manager;
+}
+
+function leaveZombieLOD(zombie, commitSet) {
+    const ud = zombie.userData || (zombie.userData = {});
+    if (ud._lodLevel !== 'low') {
+        showZombieDetail(zombie);
+        return;
+    }
+    const manager = ud._lodManager;
+    if (!manager) {
+        ud._lodLevel = 'high';
+        showZombieDetail(zombie);
+        return;
+    }
+    const index = manager.zombieToIndex.get(zombie);
+    if (index === undefined) {
+        ud._lodLevel = 'high';
+        ud._lodManager = null;
+        ud._lodIndex = null;
+        showZombieDetail(zombie);
+        return;
+    }
+
+    const lastIndex = manager.zombies.length - 1;
+    const lastZombie = manager.zombies[lastIndex];
+    if (index !== lastIndex) {
+        manager.zombies[index] = lastZombie;
+        manager.zombieToIndex.set(lastZombie, index);
+        updateLODInstanceTransform(lastZombie, manager, commitSet, index);
+    }
+    manager.zombies.pop();
+    manager.zombieToIndex.delete(zombie);
+    manager.mesh.count = manager.zombies.length;
+    manager.mesh.visible = manager.mesh.count > 0;
+    if (!commitSet) {
+        manager.mesh.instanceMatrix.needsUpdate = true;
+    }
+
+    ud._lodLevel = 'high';
+    ud._lodManager = null;
+    ud._lodIndex = null;
+    showZombieDetail(zombie);
+}
+
+function updateZombieLODState(zombie, distance, commitSet) {
+    const ud = zombie.userData || (zombie.userData = {});
+    if (ud._dead) {
+        leaveZombieLOD(zombie, commitSet);
+        return;
+    }
+
+    const current = ud._lodLevel || 'high';
+    if (current === 'low' && distance <= ZOMBIE_LOD_DISABLE_DISTANCE) {
+        leaveZombieLOD(zombie, commitSet);
+    } else if (current !== 'low' && distance >= ZOMBIE_LOD_ENABLE_DISTANCE) {
+        const manager = enterZombieLOD(zombie);
+        if (manager) {
+            updateLODInstanceTransform(zombie, manager, commitSet);
+            return;
+        }
+    }
+
+    if (ud._lodLevel === 'low' && ud._lodManager) {
+        updateLODInstanceTransform(zombie, ud._lodManager, commitSet);
+    } else {
+        showZombieDetail(zombie);
+    }
+}
+
 function ensureModelScale(zombieMesh, type, rule) {
     const modelEntry = type ? zombieModelsCache[type] : null;
     if (!modelEntry || !modelEntry.scene) return;
@@ -458,21 +808,22 @@ function ensureModelScale(zombieMesh, type, rule) {
     }
 }
 
-function ensureZombieAnimations(zombieMesh, type) {
+function ensureZombieAnimations(zombieRoot, type) {
     const modelEntry = type ? zombieModelsCache[type] : null;
     if (!modelEntry || !Array.isArray(modelEntry.animations) || modelEntry.animations.length === 0) {
         return;
     }
 
-    const mixer = new THREE.AnimationMixer(zombieMesh);
+    const detailRoot = (zombieRoot?.userData?.detail) || zombieRoot;
+    const mixer = new THREE.AnimationMixer(detailRoot);
     const actions = {};
     modelEntry.animations.forEach(clip => {
         actions[clip.name] = mixer.clipAction(clip);
     });
 
-    zombieMesh.userData.mixer = mixer;
-    zombieMesh.userData.actions = actions;
-    zombieMesh.userData._actionPlaying = false;
+    zombieRoot.userData.mixer = mixer;
+    zombieRoot.userData.actions = actions;
+    zombieRoot.userData._actionPlaying = false;
 }
 
 function applyZombieStats(zombieMesh, definition = null) {
@@ -521,43 +872,81 @@ async function buildZombieMesh({ type, position, rotation = 0, rule = null, temp
     const resolvedRule = await resolveZombieRule(type, rule);
     const definition = await getZombieDefinition(type);
     const pos = toVector3(position) || new THREE.Vector3();
+    requestZombieLODConfig();
 
-    let zombieMesh = null;
+    const inheritedData = template ? (template.userData || {}) : {};
+
+    let detailObject = null;
     const modelEntry = type ? zombieModelsCache[type] : null;
     if (modelEntry && modelEntry.scene) {
-        zombieMesh = cloneSkinned(modelEntry.scene);
+        detailObject = cloneSkinned(modelEntry.scene);
     } else if (template) {
-        zombieMesh = template;
+        detailObject = cloneSkinned(template);
     } else {
-        zombieMesh = createFallbackZombieMesh(type || 'fallback', resolvedRule);
+        detailObject = createFallbackZombieMesh(type || 'fallback', resolvedRule);
     }
 
-    zombieMesh.position.copy(pos);
-    zombieMesh.rotation.y = rotation || 0;
-    zombieMesh.userData = {
-        ...(template ? template.userData || {} : {}),
-        type,
-        ai: true,
-        rules: resolvedRule || (zombieMesh.userData && zombieMesh.userData.rules) || buildRuleFromDefinition(definition) || {
-            geometry: DEFAULT_ZOMBIE_SIZE.slice(),
-            collidable: true,
-            ai: true
-        }
+    if (!detailObject) {
+        return { mesh: null, usedTemplate: false };
+    }
+
+    const zombieRoot = new THREE.Group();
+    zombieRoot.position.copy(pos);
+    zombieRoot.rotation.y = rotation || 0;
+
+    if (detailObject.parent) {
+        detailObject.parent.remove(detailObject);
+    }
+    detailObject.position.set(0, 0, 0);
+    detailObject.rotation.set(0, 0, 0);
+    detailObject.quaternion.identity();
+    detailObject.scale.set(1, 1, 1);
+    zombieRoot.add(detailObject);
+
+    const rules = resolvedRule || inheritedData.rules || buildRuleFromDefinition(definition) || {
+        geometry: DEFAULT_ZOMBIE_SIZE.slice(),
+        collidable: true,
+        ai: true
     };
 
-    ensureModelScale(zombieMesh, type, zombieMesh.userData.rules);
-    ensureZombieAnimations(zombieMesh, type);
-    applyZombieStats(zombieMesh, definition);
-    zombieMesh.userData._lastValidPos = zombieMesh.position.clone();
+    zombieRoot.userData = {
+        ...inheritedData,
+        type,
+        ai: true,
+        rules
+    };
+    zombieRoot.userData.detail = detailObject;
 
-    rememberZombieRule(type, zombieMesh.userData.rules);
+    const detailNodes = [];
+    detailObject.traverse(node => {
+        if (node.isMesh || node.isSkinnedMesh) {
+            detailNodes.push(node);
+            if (!node.userData) node.userData = {};
+            if (node.userData._lodOriginalVisible === undefined) {
+                node.userData._lodOriginalVisible = node.visible !== false;
+            }
+        }
+    });
+    zombieRoot.userData._lodDetailNodes = detailNodes;
+    zombieRoot.userData._lodLevel = 'high';
+    zombieRoot.userData._lodManager = null;
+    zombieRoot.userData._lodIndex = null;
+    zombieRoot.userData._detailHidden = false;
 
-    return { mesh: zombieMesh, usedTemplate: zombieMesh === template };
+    ensureModelScale(detailObject, type, rules);
+    ensureZombieAnimations(zombieRoot, type);
+    applyZombieStats(zombieRoot, definition);
+    zombieRoot.userData._lastValidPos = zombieRoot.position.clone();
+
+    rememberZombieRule(type, rules);
+
+    return { mesh: zombieRoot, usedTemplate: false };
 }
 
 // Loads zombies from map objects (Mesh-based!)
 export async function spawnZombiesFromMap(scene, mapObjects, models, materials) {
     cacheZombieAssets(models, materials);
+    ensureZombieLODScene(scene);
     zombies = [];
 
     // Try to load zombie type IDs, but don't rely solely on them. If the
@@ -588,7 +977,7 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
 
         if (!zombieMesh) continue;
 
-        if (!usedTemplate && obj.parent) {
+        if (!usedTemplate && obj.parent && obj.parent !== zombieMesh) {
             obj.parent.remove(obj);
         }
 
@@ -614,6 +1003,7 @@ export async function spawnRandomZombies(scene, count, walkablePositions = []) {
     if (!scene || !count || count <= 0) return [];
     if (!Array.isArray(walkablePositions) || walkablePositions.length === 0) return [];
 
+    ensureZombieLODScene(scene);
     await loadZombieDefinitions();
     const idsFromDefs = zombieDefinitionsMap ? Array.from(zombieDefinitionsMap.keys()) : [];
     const idsFromRules = Array.from(zombieRules.keys());
@@ -873,11 +1263,13 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         lastGunshot = null;
     }
 
+    const lodManagersToCommit = new Set();
     const corpsesToRemove = [];
 
     zombies.forEach(zombie => {
         const ud = zombie.userData || (zombie.userData = {});
         if (ud.hp <= 0) {
+            leaveZombieLOD(zombie, lodManagersToCommit);
             removeZombieFromGrid(zombie);
             if (updateDeadZombie(zombie, delta)) {
                 corpsesToRemove.push(zombie);
@@ -890,6 +1282,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         if (dist > activeDistance) {
             zombie.visible = false;
             removeZombieFromGrid(zombie);
+            leaveZombieLOD(zombie, lodManagersToCommit);
             return;
         }
 
@@ -898,7 +1291,7 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
             resolveZombieOverlap(zombie, collidableObjects);
         }
 
-        if (ud.mixer) {
+        if (ud.mixer && ud._lodLevel !== 'low') {
             ud.mixer.update(delta);
         }
 
@@ -1042,13 +1435,19 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
             ud._hitTimer = ud.attackCooldown || 1;
         }
 
-        setZombieAnimation(zombie, moving);
+        const distanceAfterMove = zombie.position.distanceTo(playerObj.position);
+        updateZombieLODState(zombie, distanceAfterMove, lodManagersToCommit);
+
+        if (ud._lodLevel !== 'low') {
+            setZombieAnimation(zombie, moving);
+        }
         ud._lastValidPos = zombie.position.clone();
     });
 
     if (corpsesToRemove.length) {
         const loadedObjects = getAllObjects();
         corpsesToRemove.forEach(deadZombie => {
+            leaveZombieLOD(deadZombie, lodManagersToCommit);
             removeZombieFromGrid(deadZombie);
             deadZombie.parent?.remove(deadZombie);
             const idx = zombies.indexOf(deadZombie);
@@ -1066,10 +1465,17 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         });
         rebuildZombieGrid();
     }
+
+    lodManagersToCommit.forEach(manager => {
+        if (manager.mesh) {
+            manager.mesh.instanceMatrix.needsUpdate = true;
+        }
+    });
 }
 
 // Damage zombie and apply knockback/animation reset
 export function damageZombie(zombie, dmg, hitDir, hitPos) {
+    leaveZombieLOD(zombie);
     // Reduce health
     zombie.userData.hp -= dmg;
 

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "defaultModel": "voxelZombie",
+  "models": {
+    "voxelZombie": {
+      "tintStrength": 0.35,
+      "maxInstances": 512,
+      "parts": [
+        { "shape": "box", "size": [0.18, 0.8, 0.2], "offset": [-0.12, 0.4, 0], "color": "#362b1f" },
+        { "shape": "box", "size": [0.18, 0.8, 0.2], "offset": [0.12, 0.4, 0], "color": "#362b1f" },
+        { "shape": "box", "size": [0.5, 0.9, 0.26], "offset": [0, 1.05, 0], "color": "#4c6940" },
+        { "shape": "box", "size": [0.44, 0.5, 0.24], "offset": [0, 1.45, 0], "color": "#5d7e4c" },
+        { "shape": "box", "size": [0.18, 0.7, 0.2], "offset": [-0.34, 1.05, 0], "color": "#2f261d" },
+        { "shape": "box", "size": [0.18, 0.7, 0.2], "offset": [0.34, 1.05, 0], "color": "#2f261d" },
+        { "shape": "box", "size": [0.32, 0.32, 0.24], "offset": [0, 1.74, 0], "color": "#8fb083" }
+      ]
+    }
+  }
+}
