@@ -1,6 +1,6 @@
 // zombie.js
 
-import { getLoadedObjects, getAllObjects } from './mapLoader.js';
+import { getLoadedObjects, getAllObjects, getSafeZones } from './mapLoader.js';
 
 let zombies = [];
 let zombieTypeIds = null;
@@ -124,6 +124,77 @@ function rebuildZombieGrid() {
         const cz = Math.floor(zombie.position.z / zombieGridCellSize);
         addZombieToGrid(zombie, cx, cz);
     });
+}
+
+function getSafeZoneList() {
+    const zones = getSafeZones();
+    return Array.isArray(zones) ? zones : [];
+}
+
+function getZombieBoundingBox(zombie, position, includeMargin = true) {
+    const geometry = getZombieGeometry(zombie);
+    const width = (geometry?.[0] ?? DEFAULT_ZOMBIE_SIZE[0]) || DEFAULT_ZOMBIE_SIZE[0];
+    const height = (geometry?.[1] ?? DEFAULT_ZOMBIE_SIZE[1]) || DEFAULT_ZOMBIE_SIZE[1];
+    const depth = (geometry?.[2] ?? DEFAULT_ZOMBIE_SIZE[2]) || DEFAULT_ZOMBIE_SIZE[2];
+    const margin = includeMargin ? ZOMBIE_COLLISION_MARGIN : 0;
+    const boxSize = new THREE.Vector3(
+        Math.max(width - margin, 0.01),
+        Math.max(height, 0.01),
+        Math.max(depth - margin, 0.01)
+    );
+    const centerY = (position?.y ?? 0) + (boxSize.y / 2);
+    const center = new THREE.Vector3(position?.x ?? 0, centerY, position?.z ?? 0);
+    return new THREE.Box3().setFromCenterAndSize(center, boxSize);
+}
+
+function zoneContainsPoint(zone, point) {
+    if (!zone || !point) return false;
+    const minY = Number.isFinite(zone.minY) ? zone.minY : -Infinity;
+    const maxY = Number.isFinite(zone.maxY) ? zone.maxY : Infinity;
+    const y = point.y ?? 0;
+    return (
+        point.x >= zone.minX &&
+        point.x <= zone.maxX &&
+        point.z >= zone.minZ &&
+        point.z <= zone.maxZ &&
+        y >= minY &&
+        y <= maxY
+    );
+}
+
+function zoneIntersectsBox(zone, box) {
+    if (!zone || !box) return false;
+    const minY = Number.isFinite(zone.minY) ? zone.minY : -Infinity;
+    const maxY = Number.isFinite(zone.maxY) ? zone.maxY : Infinity;
+    if (box.max.x <= zone.minX || box.min.x >= zone.maxX) return false;
+    if (box.max.z <= zone.minZ || box.min.z >= zone.maxZ) return false;
+    if (box.max.y <= minY || box.min.y >= maxY) return false;
+    return true;
+}
+
+function pointInsideAnySafeZone(point, zones = getSafeZoneList()) {
+    if (!zones.length || !point) {
+        return false;
+    }
+    for (let i = 0; i < zones.length; i++) {
+        if (zoneContainsPoint(zones[i], point)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function zombieIntersectsSafeZone(zombie, position = zombie?.position, zones = getSafeZoneList()) {
+    if (!zones.length || !zombie || !position) {
+        return false;
+    }
+    const box = getZombieBoundingBox(zombie, position, false);
+    for (let i = 0; i < zones.length; i++) {
+        if (zoneIntersectsBox(zones[i], box)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Blood effect handling
@@ -588,8 +659,18 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
 
         if (!zombieMesh) continue;
 
+        const insideSafeZone = zombieIntersectsSafeZone(zombieMesh);
+
         if (!usedTemplate && obj.parent) {
             obj.parent.remove(obj);
+        }
+
+        if (insideSafeZone) {
+            if (zombieMesh.parent) {
+                zombieMesh.parent.remove(zombieMesh);
+            }
+            mapObjects[i] = null;
+            continue;
         }
 
         if (!usedTemplate) {
@@ -647,6 +728,14 @@ export async function spawnRandomZombies(scene, count, walkablePositions = []) {
         });
 
         if (!zombieMesh) continue;
+
+        if (zombieIntersectsSafeZone(zombieMesh)) {
+            if (zombieMesh.parent) {
+                zombieMesh.parent.remove(zombieMesh);
+            }
+            occupied.add(key);
+            continue;
+        }
 
         const colliders = collidableObjects.concat(zombies, spawned);
         if (checkZombieCollision(zombieMesh, zombieMesh.position, colliders)) {
@@ -726,20 +815,28 @@ function getCachedBox(obj) {
 
 // Simple collision check for zombies using loaded map objects
 function checkZombieCollision(zombie, proposed, collidables) {
-    const size = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
-        ? zombie.userData.rules.geometry
-        : DEFAULT_ZOMBIE_SIZE;
-    const center = new THREE.Vector3(proposed.x, proposed.y + size[1] / 2, proposed.z);
-    const boxSize = new THREE.Vector3(
-        size[0] - ZOMBIE_COLLISION_MARGIN,
-        size[1],
-        size[2] - ZOMBIE_COLLISION_MARGIN
-    );
-    const box = new THREE.Box3().setFromCenterAndSize(center, boxSize);
+    const collisionBox = getZombieBoundingBox(zombie, proposed, true);
+    const safeZones = getSafeZoneList();
+    if (safeZones.length) {
+        const safeZoneBox = getZombieBoundingBox(zombie, proposed, false);
+        let intersectsZone = false;
+        for (let i = 0; i < safeZones.length; i++) {
+            if (zoneIntersectsBox(safeZones[i], safeZoneBox)) {
+                intersectsZone = true;
+                break;
+            }
+        }
+        if (intersectsZone) {
+            const insideBefore = pointInsideAnySafeZone(zombie?.position, safeZones);
+            if (!insideBefore) {
+                return true;
+            }
+        }
+    }
     for (const obj of collidables) {
         if (obj === zombie) continue;
         const objBox = getCachedBox(obj);
-        if (box.intersectsBox(objBox)) return true;
+        if (collisionBox.intersectsBox(objBox)) return true;
     }
     return false;
 }

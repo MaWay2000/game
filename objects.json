@@ -33,7 +33,12 @@
       1
     ],
     "collidable": true,
-    "model": "models/car.glb"
+    "model": "models/car.glb",
+    "safeZone": {
+      "maxDistance": 30,
+      "padding": 0.5,
+      "blockDoors": true
+    }
   },
   {
     "id": "hill",
