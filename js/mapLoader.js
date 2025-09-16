@@ -10,10 +10,6 @@ let gltfModels = {};
 let gltfAnimations = {};
 let gltfLoadedFlags = {};
 let walkablePositions = [];
-
-const COLLISION_PARTITION_CELL_SIZE = 5;
-let staticCollisionPartition = new Map();
-let staticCollidableObjects = [];
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 const WALKABLE_TYPE_KEYWORDS = ['floor', 'terrain', 'ground'];
 
@@ -73,81 +69,6 @@ function cacheBoundingBox(obj) {
     obj.userData._bboxScale = obj.scale.clone();
 }
 
-function clearCollisionPartition() {
-    staticCollidableObjects.forEach(obj => {
-        if (obj && obj.userData) {
-            delete obj.userData._inCollisionPartition;
-        }
-    });
-    staticCollisionPartition.clear();
-    staticCollidableObjects = [];
-}
-
-function collisionCellKey(ix, iz) {
-    return `${ix}|${iz}`;
-}
-
-function addObjectToPartition(obj) {
-    if (!obj) return;
-    if (!obj.userData) obj.userData = {};
-    if (!obj.userData._bbox) {
-        cacheBoundingBox(obj);
-    }
-    const box = obj.userData._bbox;
-    if (!box) return;
-    const min = box.min;
-    const max = box.max;
-    const startX = Math.floor(min.x / COLLISION_PARTITION_CELL_SIZE);
-    const endX = Math.floor(max.x / COLLISION_PARTITION_CELL_SIZE);
-    const startZ = Math.floor(min.z / COLLISION_PARTITION_CELL_SIZE);
-    const endZ = Math.floor(max.z / COLLISION_PARTITION_CELL_SIZE);
-    for (let ix = startX; ix <= endX; ix++) {
-        for (let iz = startZ; iz <= endZ; iz++) {
-            const key = collisionCellKey(ix, iz);
-            let cell = staticCollisionPartition.get(key);
-            if (!cell) {
-                cell = [];
-                staticCollisionPartition.set(key, cell);
-            }
-            cell.push(obj);
-        }
-    }
-    obj.userData._inCollisionPartition = true;
-    staticCollidableObjects.push(obj);
-}
-
-function buildCollisionPartition(objects) {
-    clearCollisionPartition();
-    objects.forEach(addObjectToPartition);
-}
-
-export function queryStaticColliders(box) {
-    if (!box) return [];
-    if (staticCollisionPartition.size === 0) {
-        return staticCollidableObjects.slice();
-    }
-    const min = box.min;
-    const max = box.max;
-    const startX = Math.floor(min.x / COLLISION_PARTITION_CELL_SIZE);
-    const endX = Math.floor(max.x / COLLISION_PARTITION_CELL_SIZE);
-    const startZ = Math.floor(min.z / COLLISION_PARTITION_CELL_SIZE);
-    const endZ = Math.floor(max.z / COLLISION_PARTITION_CELL_SIZE);
-    const result = new Set();
-    for (let ix = startX; ix <= endX; ix++) {
-        for (let iz = startZ; iz <= endZ; iz++) {
-            const key = collisionCellKey(ix, iz);
-            const cell = staticCollisionPartition.get(key);
-            if (!cell) continue;
-            cell.forEach(obj => result.add(obj));
-        }
-    }
-    return Array.from(result);
-}
-
-export function isStaticCollidable(obj) {
-    return Boolean(obj && obj.userData && obj.userData._inCollisionPartition);
-}
-
 export async function loadMap(scene) {
     // GitHub Pages and other static hosts cannot execute PHP files.
     // Instead of requesting "mapmaker.php" to list available JSON files,
@@ -161,7 +82,6 @@ export async function loadMap(scene) {
     gltfModels = {};
     gltfAnimations = {};
     gltfLoadedFlags = {};
-    clearCollisionPartition();
 
     let allDefinitions = [];
     let gltfPromises = [];
@@ -340,12 +260,6 @@ export async function loadMap(scene) {
             }
         }
     }
-
-    const staticObjects = loadedObjects.filter(obj => {
-        const rules = obj?.userData?.rules;
-        return rules && rules.collidable;
-    });
-    buildCollisionPartition(staticObjects);
 
     updateVisibleObjects(scene, 0, 0, 40);
     scene.fog = new THREE.Fog(0x000000, 2, 15);

@@ -1,6 +1,6 @@
 // zombie.js
 
-import { getLoadedObjects, getAllObjects, queryStaticColliders, isStaticCollidable } from './mapLoader.js';
+import { getLoadedObjects, getAllObjects } from './mapLoader.js';
 
 let zombies = [];
 let zombieTypeIds = null;
@@ -736,19 +736,10 @@ function checkZombieCollision(zombie, proposed, collidables) {
         size[2] - ZOMBIE_COLLISION_MARGIN
     );
     const box = new THREE.Box3().setFromCenterAndSize(center, boxSize);
-    const staticCandidates = queryStaticColliders(box);
-    for (const obj of staticCandidates) {
-        if (!obj || obj === zombie) continue;
+    for (const obj of collidables) {
+        if (obj === zombie) continue;
         const objBox = getCachedBox(obj);
         if (box.intersectsBox(objBox)) return true;
-    }
-    if (Array.isArray(collidables)) {
-        for (const obj of collidables) {
-            if (!obj || obj === zombie) continue;
-            if (isStaticCollidable(obj)) continue;
-            const objBox = getCachedBox(obj);
-            if (box.intersectsBox(objBox)) return true;
-        }
     }
     return false;
 }
