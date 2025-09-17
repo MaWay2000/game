@@ -75,6 +75,18 @@
     "model": "models/doors.glb"
   },
   {
+    "id": "aid",
+    "name": "Aid Kit",
+    "color": "#ffffff",
+    "size": [
+      0.6,
+      0.6,
+      0.2
+    ],
+    "collidable": false,
+    "model": "models/aid.glb"
+  },
+  {
     "id": "water",
     "name": "Water",
     "color": "#1848ed",
