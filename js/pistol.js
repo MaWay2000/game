@@ -186,6 +186,42 @@ export function addPistolToCamera(camera) {
     updateHUD(clipAmmo);
 }
 
+export function getPistolState() {
+    return {
+        clipAmmo,
+        maxClip
+    };
+}
+
+export function setPistolState(state) {
+    if (!state || typeof state !== 'object') {
+        return;
+    }
+
+    if (reloadInterval) {
+        clearInterval(reloadInterval);
+        reloadInterval = null;
+    }
+    if (reloadTimeout) {
+        clearTimeout(reloadTimeout);
+        reloadTimeout = null;
+    }
+    reloadFastAction?.stop();
+    reloadCompleteAction?.stop();
+
+    isReloading = false;
+    canShoot = true;
+
+    if (Number.isFinite(state.maxClip) && state.maxClip > 0) {
+        maxClip = Math.max(1, Math.floor(state.maxClip));
+    }
+    if (Number.isFinite(state.clipAmmo)) {
+        clipAmmo = Math.min(Math.max(Math.floor(state.clipAmmo), 0), maxClip);
+    }
+
+    updateHUD(clipAmmo);
+}
+
 export async function shootPistol(scene, camera) {
     if (!pistolEnabled) {
         return;

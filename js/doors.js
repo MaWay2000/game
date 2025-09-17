@@ -93,6 +93,15 @@ function finalizeDoorRemoval(door, data) {
         door.userData.rules.collidable = false;
     }
     door.userData._removed = true;
+    if (typeof window !== 'undefined' && door.userData?.saveKey) {
+        try {
+            window.dispatchEvent(new CustomEvent('gameObjectRemoved', {
+                detail: { saveKey: door.userData.saveKey }
+            }));
+        } catch (err) {
+            console.debug('Failed to dispatch door removal event:', err);
+        }
+    }
     door.visible = false;
     if (door.parent) {
         door.parent.remove(door);

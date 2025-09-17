@@ -1,15 +1,23 @@
 import { setupCamera, enablePointerLock } from './camera.js';
-import { loadMap, updateVisibleObjects, getLoadedObjects, getWalkablePositions, registerLoadingManager as registerMapLoadingManager } from './mapLoader.js';
+import {
+  loadMap,
+  updateVisibleObjects,
+  getLoadedObjects,
+  getWalkablePositions,
+  registerLoadingManager as registerMapLoadingManager,
+  removeObjectBySaveKey
+} from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD, setHUDVisible } from './hud.js';
 import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './minimap.js';
-import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled } from './pistol.js';
+import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { updateDoors } from './doors.js';
 import { setupZoom } from './zoom.js';
 import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
+import { readSaveData, writeSaveData, clearSaveData } from './saveSystem.js';
 
 // --- Scene and Camera setup ---
 const scene = new THREE.Scene();
@@ -33,6 +41,18 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 const canvas = renderer.domElement;
+
+const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
+const QUICK_SAVE_DELAY_MS = 2000;
+
+const savedGameData = readSaveData() || null;
+const removedObjectKeys = new Set(savedGameData?.world?.removedObjectKeys || []);
+
+let autosaveIntervalId = null;
+let pendingQuickSaveTimeout = null;
+let canSaveProgress = false;
+let savedWorldApplied = false;
+let playerStateRestored = false;
 
 const canPointerLock = typeof canvas.requestPointerLock === 'function';
 let isPointerLocked = !canPointerLock;
@@ -156,6 +176,125 @@ function setLoadingErrorMessage(value) {
   const friendly = getFriendlyLoadingMessage(value);
   const topic = friendly.replace(/^Loading\s+/i, '') || 'assets';
   setLoadingMessage(`Trouble loading ${topic.toLowerCase()}... Retrying or skipping...`);
+}
+
+function applySavedWorldState(worldState) {
+  if (savedWorldApplied) {
+    return;
+  }
+  const keys = Array.isArray(worldState?.removedObjectKeys) ? worldState.removedObjectKeys : [];
+  if (keys.length) {
+    keys.forEach((key) => {
+      removeObjectBySaveKey(scene, key);
+    });
+  }
+  savedWorldApplied = true;
+}
+
+function collectGameState() {
+  if (!camera || !cameraContainer) {
+    return null;
+  }
+  const pistolState = getPistolState();
+  return {
+    player: {
+      position: {
+        x: cameraContainer.position.x,
+        y: cameraContainer.position.y,
+        z: cameraContainer.position.z
+      },
+      rotation: {
+        yaw: cameraContainer.rotation.y,
+        pitch: camera.rotation.x
+      },
+      health: playerHealth,
+      pistol: pistolState
+    },
+    world: {
+      removedObjectKeys: Array.from(removedObjectKeys)
+    }
+  };
+}
+
+function saveGameState() {
+  if (!canSaveProgress || isPlayerDead) {
+    return false;
+  }
+  const data = collectGameState();
+  if (!data) {
+    return false;
+  }
+  return writeSaveData(data);
+}
+
+function startAutosaveLoop() {
+  if (!canSaveProgress) {
+    return;
+  }
+  if (autosaveIntervalId !== null) {
+    clearInterval(autosaveIntervalId);
+  }
+  autosaveIntervalId = setInterval(() => {
+    saveGameState();
+  }, AUTOSAVE_INTERVAL_MS);
+}
+
+function stopAutosaveLoop() {
+  if (autosaveIntervalId !== null) {
+    clearInterval(autosaveIntervalId);
+    autosaveIntervalId = null;
+  }
+  if (pendingQuickSaveTimeout !== null) {
+    clearTimeout(pendingQuickSaveTimeout);
+    pendingQuickSaveTimeout = null;
+  }
+}
+
+function requestQuickSave(delay = QUICK_SAVE_DELAY_MS) {
+  if (!canSaveProgress || isPlayerDead) {
+    return;
+  }
+  if (pendingQuickSaveTimeout !== null) {
+    return;
+  }
+  const safeDelay = Math.max(0, Number.isFinite(delay) ? delay : QUICK_SAVE_DELAY_MS);
+  pendingQuickSaveTimeout = setTimeout(() => {
+    pendingQuickSaveTimeout = null;
+    saveGameState();
+  }, safeDelay);
+}
+
+function restorePlayerStateFromSave() {
+  if (playerStateRestored || !savedGameData || !savedGameData.player) {
+    return;
+  }
+  const player = savedGameData.player;
+  const pos = player.position;
+  if (pos && typeof pos === 'object') {
+    const px = Number(pos.x ?? pos[0] ?? 0) || 0;
+    const py = Number(pos.y ?? pos[1] ?? 0) || 0;
+    const pz = Number(pos.z ?? pos[2] ?? 0) || 0;
+    cameraContainer.position.set(px, py, pz);
+  }
+  const rot = player.rotation;
+  if (rot && typeof rot === 'object') {
+    const yaw = Number(rot.yaw ?? rot.y ?? 0);
+    const pitch = Number(rot.pitch ?? rot.x ?? 0);
+    if (Number.isFinite(yaw)) {
+      cameraContainer.rotation.y = yaw;
+    }
+    if (Number.isFinite(pitch)) {
+      camera.rotation.x = THREE.MathUtils.clamp(pitch, -Math.PI / 2, Math.PI / 2);
+    }
+  }
+  if (player.pistol) {
+    setPistolState(player.pistol);
+  }
+  if (Number.isFinite(player.health)) {
+    playerHealth = THREE.MathUtils.clamp(player.health, 0, PLAYER_MAX_HEALTH);
+  }
+  updateHUD(undefined, playerHealth);
+  playerStateRestored = true;
 }
 
 function hideLoadingOverlay() {
@@ -312,6 +451,7 @@ function handlePlayerHit(dir) {
   playerHealth = Math.max(0, playerHealth - PLAYER_HIT_DAMAGE);
   if (playerHealth !== previousHealth) {
     updateHUD(undefined, playerHealth);
+    requestQuickSave();
   }
 
   if (playerHealth > 0) {
@@ -331,6 +471,11 @@ function handlePlayerDeath() {
     return;
   }
   isPlayerDead = true;
+
+  stopAutosaveLoop();
+  clearSaveData();
+  removedObjectKeys.clear();
+  canSaveProgress = false;
 
   knockbackVelocity.set(0, 0, 0);
   canvas.style.transform = '';
@@ -526,6 +671,9 @@ async function initializeGame() {
     }
 
     const mapObjects = await loadMap(scene, geometries, materials);
+    if (!savedWorldApplied && savedGameData?.world) {
+      applySavedWorldState(savedGameData.world);
+    }
     if (!zombiesSpawned) {
       setLoadingMessage('Spawning zombies...');
       await spawnZombiesFromMap(scene, mapObjects, models, materials);
@@ -543,6 +691,11 @@ async function initializeGame() {
     alert('Failed to load object or zombie definitions.');
   } finally {
     initializationFinished = true;
+    if (!initializationFailed) {
+      canSaveProgress = true;
+      startAutosaveLoop();
+      requestQuickSave(QUICK_SAVE_DELAY_MS);
+    }
     tryFinalizeLoading();
   }
 }
@@ -562,6 +715,7 @@ if (!loadingOverlayHidden) {
   setLoadingMessageFromLabel('settings');
 }
 initZombieSettingsUI();
+restorePlayerStateFromSave();
 
 document.addEventListener('mousedown', (e) => {
   if (isPlayerDead) return;
@@ -594,6 +748,16 @@ window.addEventListener('resize', () => {
   weaponCamera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   positionCrosshair();
+});
+
+window.addEventListener('gameObjectRemoved', (event) => {
+  const key = event?.detail?.saveKey;
+  if (typeof key !== 'string' || !key) {
+    return;
+  }
+  removedObjectKeys.add(key);
+  removeObjectBySaveKey(scene, key);
+  requestQuickSave();
 });
 
 // --- Chunk-based culling/performance ---
@@ -650,6 +814,10 @@ function animate() {
   renderer.render(scene, weaponCamera);
   drawCrosshair(delta);
 }
+
+window.addEventListener('beforeunload', () => {
+  saveGameState();
+});
 
 window.onload = () => {
   positionCrosshair();
