@@ -13,7 +13,7 @@ let gltfAnimations = {};
 let gltfLoadedFlags = {};
 let walkablePositions = [];
 let safeZones = [];
-let currentMapPath = 'saved_map.json';
+let currentMapPath = 'maps/home.json';
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 const WALKABLE_TYPE_KEYWORDS = ['floor', 'terrain', 'ground'];
 const DEFAULT_SAFE_ZONE_SETTINGS = {
@@ -144,10 +144,10 @@ function cacheBoundingBox(obj) {
     obj.userData._bboxScale = obj.scale.clone();
 }
 
-export async function loadMap(scene, mapPath = 'saved_map.json') {
+export async function loadMap(scene, mapPath = 'maps/home.json') {
     const targetMapPath = (typeof mapPath === 'string' && mapPath.trim())
         ? mapPath.trim()
-        : 'saved_map.json';
+        : 'maps/home.json';
 
     if (scene) {
         loadedObjects.forEach(obj => {
