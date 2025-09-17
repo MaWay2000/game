@@ -63,12 +63,37 @@ function isWalkableType(type) {
 }
 
 function applyPosition(mesh, position, rule) {
-    mesh.position.fromArray(position);
-    if (position[1] === 0.5 && rule && rule.geometry) {
+    if (Array.isArray(position)) {
+        mesh.position.fromArray(position);
+    } else if (position && typeof position === 'object') {
+        mesh.position.set(
+            position.x ?? 0,
+            position.y ?? 0,
+            position.z ?? 0
+        );
+    } else {
+        mesh.position.set(0, 0, 0);
+    }
+
+    if (!rule) return;
+
+    const yIsHalfTile = Math.abs(mesh.position.y - 0.5) < 1e-6;
+
+    if (yIsHalfTile && rule.geometry) {
         if (rule.ai && rule.model) {
             mesh.position.y = 0;
         } else {
             mesh.position.y = rule.geometry[1] / 2;
+        }
+    }
+
+    const shouldAlignModelCenter = rule.model && rule.geometry && Number.isFinite(mesh.position.y);
+    if (shouldAlignModelCenter) {
+        const desiredCenterY = mesh.position.y;
+        const bbox = new THREE.Box3().setFromObject(mesh);
+        if (Number.isFinite(bbox.min.y) && Number.isFinite(bbox.max.y)) {
+            const currentCenterY = (bbox.min.y + bbox.max.y) / 2;
+            mesh.position.y += desiredCenterY - currentCenterY;
         }
     }
 }
