@@ -38,6 +38,9 @@ const zombieGeometryCache = new Map();
 let zombieDefinitionsMap = null;
 let zombieDefinitionsPromise = null;
 
+const COIN_DROP_CHANCE = 0.2;
+const COIN_VALUE = 1;
+
 export function registerLoadingManager(manager) {
     loadingManager = manager || THREE.DefaultLoadingManager;
 }
@@ -229,6 +232,14 @@ if (THREE?.GLTFLoader) {
     const bloodLoader = new THREE.GLTFLoader();
     bloodLoader.load('models/blood_effect.glb', gltf => {
         bloodEffectModel = gltf.scene;
+    });
+}
+
+let coinModel = null;
+if (THREE?.GLTFLoader) {
+    const coinLoader = new THREE.GLTFLoader();
+    coinLoader.load('models/coins.glb', gltf => {
+        coinModel = gltf.scene;
     });
 }
 
@@ -991,6 +1002,42 @@ function layZombieCorpseFlat(zombie) {
     ud._corpseStartY = zombie.position.y;
 }
 
+function maybeDropCoin(zombie) {
+    if (!zombie || !zombie.parent) return null;
+    if (!coinModel || Math.random() > COIN_DROP_CHANCE) return null;
+
+    const coin = coinModel.clone(true);
+    coin.name = 'coin';
+    coin.position.copy(zombie.position);
+    const groundY = zombie.userData?._corpseStartY ?? zombie.position.y ?? 0;
+    coin.position.y = groundY;
+    coin.rotation.y = Math.random() * Math.PI * 2;
+    coin.updateMatrixWorld(true);
+
+    if (!coin.userData || typeof coin.userData !== 'object') {
+        coin.userData = {};
+    }
+    coin.userData.type = 'coin';
+    coin.userData.coinValue = COIN_VALUE;
+    const rules = coin.userData.rules && typeof coin.userData.rules === 'object'
+        ? coin.userData.rules
+        : {};
+    rules.pickup = true;
+    coin.userData.rules = rules;
+    coin.userData._removed = false;
+
+    zombie.parent.add(coin);
+
+    const allObjects = getAllObjects();
+    allObjects.push(coin);
+    const visibleObjects = getLoadedObjects();
+    if (!visibleObjects.includes(coin)) {
+        visibleObjects.push(coin);
+    }
+
+    return coin;
+}
+
 function updateDeadZombie(zombie, delta) {
     const ud = zombie.userData || (zombie.userData = {});
     const size = (ud && ud.rules && ud.rules.geometry)
@@ -1304,6 +1351,8 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
         // Rotate the zombie so the body lies flat on the ground
         layZombieCorpseFlat(zombie);
         zombie.userData._corpseStartY = zombie.position.y;
+
+        maybeDropCoin(zombie);
 
         // Lay the corpse flat at ground level before the sinking effect
         // gradually lowers it beneath the floor.

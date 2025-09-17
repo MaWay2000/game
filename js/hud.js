@@ -1,8 +1,9 @@
 let hudContainer, ammoContainer, healthContainer, healthBarFill, healthText;
-let statsContainer, killCountText;
+let statsContainer, killCountText, coinCountText;
 let maxHealth = 100;
 let currentHealth = 100;
 let currentKillCount = 0;
+let currentCoinCount = 0;
 let hudVisible = true;
 let statsVisible = false;
 
@@ -10,6 +11,7 @@ export function initHUD(maxHealthValue = 100) {
     maxHealth = Math.max(1, maxHealthValue);
     currentHealth = maxHealth;
     currentKillCount = 0;
+    currentCoinCount = 0;
     hudVisible = true;
     statsVisible = false;
 
@@ -117,6 +119,12 @@ export function initHUD(maxHealthValue = 100) {
     killCountText.style.textShadow = '0 0 12px rgba(0, 0, 0, 0.7)';
     statsContainer.appendChild(killCountText);
 
+    coinCountText = document.createElement('div');
+    coinCountText.style.fontSize = '16px';
+    coinCountText.style.fontWeight = 'bold';
+    coinCountText.style.textShadow = '0 0 12px rgba(0, 0, 0, 0.7)';
+    statsContainer.appendChild(coinCountText);
+
     const statsHint = document.createElement('div');
     statsHint.textContent = 'Press I to close';
     statsHint.style.fontSize = '11px';
@@ -128,6 +136,7 @@ export function initHUD(maxHealthValue = 100) {
 
     renderHealthBar();
     renderKillCount();
+    renderCoinCount();
     renderStatsVisibility();
 }
 
@@ -149,6 +158,11 @@ function renderHealthBar() {
 function renderKillCount() {
     if (!killCountText) return;
     killCountText.textContent = `ZOMBIES KILLED ${currentKillCount}`;
+}
+
+function renderCoinCount() {
+    if (!coinCountText) return;
+    coinCountText.textContent = `COINS ${currentCoinCount}`;
 }
 
 function renderStatsVisibility() {
@@ -195,6 +209,13 @@ export function updateKillCount(kills) {
         currentKillCount = Math.max(0, Math.floor(kills));
     }
     renderKillCount();
+}
+
+export function updateCoinCount(coins) {
+    if (typeof coins === 'number' && Number.isFinite(coins)) {
+        currentCoinCount = Math.max(0, Math.floor(coins));
+    }
+    renderCoinCount();
 }
 
 export function setStatsVisible(visible) {

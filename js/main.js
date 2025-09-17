@@ -9,7 +9,7 @@ import {
 } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
-import { initHUD, updateHUD, setHUDVisible, updateKillCount, toggleStatsVisibility } from './hud.js';
+import { initHUD, updateHUD, setHUDVisible, updateKillCount, toggleStatsVisibility, updateCoinCount } from './hud.js';
 import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled, setMinimapMapSource } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
@@ -689,6 +689,7 @@ const PLAYER_HIT_DAMAGE = 10;
 let playerHealth = PLAYER_MAX_HEALTH;
 let deathOverlay = null;
 let zombieKillCount = 0;
+let coinCount = 0;
 
 // Track models for zombies/objects
 const models = {};
@@ -931,6 +932,7 @@ const movement = setupMovement(cameraContainer, camera, scene);
 initHUD(PLAYER_MAX_HEALTH);
 updateHUD(10, playerHealth);
 updateKillCount(zombieKillCount);
+updateCoinCount(coinCount);
 initCrosshair();
 enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
@@ -973,6 +975,15 @@ window.addEventListener('zombieKilled', () => {
   updateKillCount(zombieKillCount);
   spawnKillFlash();
   triggerShake();
+});
+
+window.addEventListener('coinCollected', (event) => {
+  const amount = Number(event?.detail?.amount ?? 1);
+  if (!Number.isFinite(amount)) {
+    return;
+  }
+  coinCount = Math.max(0, coinCount + amount);
+  updateCoinCount(coinCount);
 });
 
 window.addEventListener('resize', () => {
