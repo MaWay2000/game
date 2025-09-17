@@ -1,4 +1,4 @@
-import { getLoadedObjects } from './mapLoader.js';
+import { getLoadedObjects, markObjectRemoved, getObjectSaveKey } from './mapLoader.js';
 
 export function checkPickups(cameraContainer, scene) {
     const playerBox = new THREE.Box3().setFromCenterAndSize(
@@ -14,9 +14,12 @@ export function checkPickups(cameraContainer, scene) {
         if (rules.pickup) {
             const box = new THREE.Box3().setFromObject(obj);
             if (playerBox.intersectsBox(box)) {
-                scene.remove(obj);
-                objects.splice(i, 1);
+                const saveKey = getObjectSaveKey(obj);
+                markObjectRemoved(obj);
                 alert(`Picked up: ${obj.userData.type}`);
+                if (saveKey && typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('gameObjectRemoved', { detail: { saveKey } }));
+                }
             }
         }
     }

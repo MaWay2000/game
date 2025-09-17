@@ -27,6 +27,38 @@ let loadingManager = THREE.DefaultLoadingManager;
 let textureLoader = new THREE.TextureLoader(loadingManager);
 let gltfLoader = new THREE.GLTFLoader(loadingManager);
 
+function roundForKey(value) {
+    const numeric = Number(value) || 0;
+    return Math.round(numeric * 1000) / 1000;
+}
+
+function createSaveKey(item, index) {
+    const type = typeof item?.type === 'string' ? item.type : 'unknown';
+    const rotation = Number.isFinite(item?.rotation) ? item.rotation : 0;
+    let px = 0, py = 0, pz = 0;
+    const position = item?.position;
+    if (Array.isArray(position)) {
+        px = Number(position[0]) || 0;
+        py = Number(position[1]) || 0;
+        pz = Number(position[2]) || 0;
+    } else if (position && typeof position === 'object') {
+        px = Number(position.x ?? position[0]) || 0;
+        py = Number(position.y ?? position[1]) || 0;
+        pz = Number(position.z ?? position[2]) || 0;
+    }
+    const idx = Number.isFinite(index) ? index : 0;
+    return `${type}|${idx}|${roundForKey(px)}|${roundForKey(py)}|${roundForKey(pz)}|${roundForKey(rotation)}`;
+}
+
+function buildUserData(item, rule, index) {
+    const data = { ...item, rules: rule };
+    if (Number.isInteger(index)) {
+        data.mapIndex = index;
+    }
+    data.saveKey = createSaveKey(item, index);
+    return data;
+}
+
 export function registerLoadingManager(manager) {
     loadingManager = manager || THREE.DefaultLoadingManager;
     textureLoader = new THREE.TextureLoader(loadingManager);
@@ -224,7 +256,8 @@ export async function loadMap(scene) {
     resetDoors();
     const walkableSet = new Set();
 
-    for (const item of mapData) {
+    for (let index = 0; index < mapData.length; index++) {
+        const item = mapData[index];
         const { position, type, rotation = 0 } = item;
         if (type === 'hill') continue;
         const rule = objectRules[type];
@@ -258,17 +291,20 @@ export async function loadMap(scene) {
                     );
                 }
             }
+            let mixer = null;
             if (gltfAnimations[type] && gltfAnimations[type].length > 0) {
-                const mixer = new THREE.AnimationMixer(mesh);
+                mixer = new THREE.AnimationMixer(mesh);
                 gltfAnimations[type].forEach(clip => {
                     const action = mixer.clipAction(clip);
                     action.play();
                 });
-                mesh.userData.mixer = mixer;
             }
             applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
-            mesh.userData = { ...item, rules: rule };
+            mesh.userData = buildUserData(item, rule, index);
+            if (mixer) {
+                mesh.userData.mixer = mixer;
+            }
             if (rule.ai) mesh.userData.ai = true;
             loadedObjects.push(mesh);
             if (type === 'door') {
@@ -282,7 +318,8 @@ export async function loadMap(scene) {
             mesh = new THREE.Mesh(geo, mat);
             applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
-            mesh.userData = { ...item, rules: rule, ai: true };
+            mesh.userData = buildUserData(item, rule, index);
+            mesh.userData.ai = true;
             loadedObjects.push(mesh);
             if (type === 'door') {
                 registerDoor(mesh);
@@ -292,7 +329,7 @@ export async function loadMap(scene) {
             mesh = new THREE.Mesh(geometries[type], materials[type]);
             applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
-            mesh.userData = { ...item, rules: rule };
+            mesh.userData = buildUserData(item, rule, index);
             loadedObjects.push(mesh);
             if (type === 'door') {
                 registerDoor(mesh);
@@ -316,7 +353,7 @@ export async function loadMap(scene) {
             mesh = new THREE.Mesh(geo, mat);
             applyPosition(mesh, position, rule);
             mesh.rotation.y = rotation;
-            mesh.userData = { ...item, rules: rule };
+            mesh.userData = buildUserData(item, rule, index);
             loadedObjects.push(mesh);
             if (type === 'door') {
                 registerDoor(mesh);
@@ -513,4 +550,59 @@ export function updateVisibleObjects(scene, playerX, playerZ, viewDist) {
             visibleObjects.push(obj);
         }
     });
+}
+
+function removeFromArray(array, value) {
+    if (!Array.isArray(array)) {
+        return;
+    }
+    const index = array.indexOf(value);
+    if (index !== -1) {
+        array.splice(index, 1);
+    }
+}
+
+export function getObjectSaveKey(obj) {
+    return obj?.userData?.saveKey || null;
+}
+
+export function markObjectRemoved(obj) {
+    if (!obj) {
+        return false;
+    }
+    if (!obj.userData || typeof obj.userData !== 'object') {
+        obj.userData = { _removed: true };
+    } else {
+        obj.userData._removed = true;
+    }
+    if (obj.userData?.door) {
+        obj.userData.door.destroyed = true;
+        obj.userData.door.sinking = false;
+    }
+    if (obj.parent && typeof obj.parent.remove === 'function') {
+        obj.parent.remove(obj);
+    }
+    obj.visible = false;
+    removeFromArray(visibleObjects, obj);
+    removeFromArray(loadedObjects, obj);
+    return true;
+}
+
+export function removeObjectBySaveKey(scene, saveKey) {
+    if (typeof saveKey !== 'string' || !saveKey) {
+        return false;
+    }
+    let removed = false;
+    for (let i = loadedObjects.length - 1; i >= 0; i--) {
+        const obj = loadedObjects[i];
+        if (!obj || obj.userData?.saveKey !== saveKey) {
+            continue;
+        }
+        if (scene && obj.parent === scene) {
+            scene.remove(obj);
+        }
+        markObjectRemoved(obj);
+        removed = true;
+    }
+    return removed;
 }
