@@ -13,6 +13,7 @@ let gltfAnimations = {};
 let gltfLoadedFlags = {};
 let walkablePositions = [];
 let safeZones = [];
+let currentMapPath = 'saved_map.json';
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 const WALKABLE_TYPE_KEYWORDS = ['floor', 'terrain', 'ground'];
 const DEFAULT_SAFE_ZONE_SETTINGS = {
@@ -143,7 +144,24 @@ function cacheBoundingBox(obj) {
     obj.userData._bboxScale = obj.scale.clone();
 }
 
-export async function loadMap(scene) {
+export async function loadMap(scene, mapPath = 'saved_map.json') {
+    const targetMapPath = (typeof mapPath === 'string' && mapPath.trim())
+        ? mapPath.trim()
+        : 'saved_map.json';
+
+    if (scene) {
+        loadedObjects.forEach(obj => {
+            if (obj && obj.parent === scene) {
+                scene.remove(obj);
+            }
+        });
+        visibleObjects.forEach(obj => {
+            if (obj && obj.parent === scene) {
+                scene.remove(obj);
+            }
+        });
+    }
+
     // GitHub Pages and other static hosts cannot execute PHP files.
     // Instead of requesting "mapmaker.php" to list available JSON files,
     // we directly reference the JSON sources used by the game.
@@ -221,13 +239,13 @@ export async function loadMap(scene) {
     await Promise.all(gltfPromises);
 
     // The map data is stored in a static JSON file when served from GitHub Pages.
-    const mapLabel = 'map:saved_map.json';
+    const mapLabel = `map:${targetMapPath}`;
     if (loadingManager && typeof loadingManager.itemStart === 'function') {
         loadingManager.itemStart(mapLabel);
     }
     let resMap;
     try {
-        resMap = await fetch('saved_map.json');
+        resMap = await fetch(targetMapPath);
     } catch (error) {
         console.error('Failed to fetch map data.', error);
         if (loadingManager && typeof loadingManager.itemEnd === 'function') {
@@ -239,18 +257,20 @@ export async function loadMap(scene) {
         loadingManager.itemEnd(mapLabel);
     }
     if (!resMap.ok) {
-        console.error('Failed to fetch map data.');
+        console.error(`Failed to fetch map data from ${targetMapPath}.`);
         return [];
     }
     let mapData;
     try {
         mapData = await resMap.json();
     } catch (e) {
-        console.error('Invalid JSON from saved_map.json', e);
+        console.error(`Invalid JSON from ${targetMapPath}`, e);
         return [];
     }
 
+    currentMapPath = targetMapPath;
     loadedObjects = [];
+    visibleObjects = [];
     walkablePositions = [];
     safeZones = [];
     resetDoors();

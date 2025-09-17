@@ -10,12 +10,12 @@ import {
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD, setHUDVisible, updateKillCount, toggleStatsVisibility } from './hud.js';
-import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './minimap.js';
+import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled, setMinimapMapSource } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { updateDoors } from './doors.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager } from './zombie.js';
+import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager, clearZombies } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
 import { readSaveData, writeSaveData, clearSaveData } from './saveSystem.js';
 
@@ -44,15 +44,116 @@ const canvas = renderer.domElement;
 
 const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
 const QUICK_SAVE_DELAY_MS = 2000;
+const DEFAULT_MAP_PATH = 'saved_map.json';
+const HOME_MAP_PATH = 'maps/home.json';
+const MAP_RANDOM_ZOMBIES_DISABLED = new Set([HOME_MAP_PATH]);
+const CAR_INTERACT_DISTANCE = 2.5;
+const CAR_INTERACT_DISTANCE_SQ = CAR_INTERACT_DISTANCE * CAR_INTERACT_DISTANCE;
+const MAP_TRANSITIONS = {
+  [DEFAULT_MAP_PATH]: {
+    targetMap: HOME_MAP_PATH,
+    spawn: {
+      position: { x: 0, y: 0, z: 3 },
+      rotation: Math.PI
+    }
+  },
+  [HOME_MAP_PATH]: {
+    targetMap: DEFAULT_MAP_PATH,
+    spawn: {
+      position: { x: 4, y: 0, z: 2 },
+      rotation: Math.PI
+    }
+  }
+};
+
+function sanitizeMapPath(path) {
+  if (typeof path !== 'string') {
+    return null;
+  }
+  const trimmed = path.trim();
+  if (!trimmed || trimmed.includes('..') || trimmed.includes('://') || trimmed.startsWith('/') || trimmed.includes('\\')) {
+    return null;
+  }
+  if (!/\.json$/i.test(trimmed)) {
+    return null;
+  }
+  return trimmed;
+}
+
+function getMapPathFromQuery() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('map');
+  } catch (err) {
+    console.warn('Unable to read map from URL:', err);
+    return null;
+  }
+}
+
+function sanitizeRemovedKeyArray(keys) {
+  if (!Array.isArray(keys)) {
+    return [];
+  }
+  const result = [];
+  const seen = new Set();
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (typeof key !== 'string' || !key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    result.push(key);
+  }
+  return result;
+}
+
+function updateURLForCurrentMap() {
+  if (typeof window === 'undefined' || !window.history || !window.location) {
+    return;
+  }
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('map', currentMapPath);
+    window.history.replaceState({}, '', url);
+  } catch (err) {
+    console.warn('Unable to update map URL:', err);
+  }
+}
 
 const savedGameData = readSaveData() || null;
-const removedObjectKeys = new Set(savedGameData?.world?.removedObjectKeys || []);
+const savedWorldState = savedGameData?.world || null;
+const savedMapFromSave = sanitizeMapPath(savedWorldState?.mapPath);
+const queryMapPath = sanitizeMapPath(getMapPathFromQuery());
+let currentMapPath = queryMapPath || savedMapFromSave || DEFAULT_MAP_PATH;
+
+const removalState = new Map();
+if (savedWorldState?.removedObjectKeysByMap && typeof savedWorldState.removedObjectKeysByMap === 'object') {
+  Object.entries(savedWorldState.removedObjectKeysByMap).forEach(([path, keys]) => {
+    const sanitizedPath = sanitizeMapPath(path);
+    if (!sanitizedPath) {
+      return;
+    }
+    removalState.set(sanitizedPath, new Set(sanitizeRemovedKeyArray(keys)));
+  });
+}
+
+if (!removalState.size && Array.isArray(savedWorldState?.removedObjectKeys)) {
+  const legacyPath = savedMapFromSave || DEFAULT_MAP_PATH;
+  removalState.set(legacyPath, new Set(sanitizeRemovedKeyArray(savedWorldState.removedObjectKeys)));
+}
+
+let removedObjectKeys = new Set(removalState.get(currentMapPath) || []);
+updateURLForCurrentMap();
 
 let autosaveIntervalId = null;
 let pendingQuickSaveTimeout = null;
 let canSaveProgress = false;
-let savedWorldApplied = false;
+let appliedWorldMapPath = null;
 let playerStateRestored = false;
+let isTransitioningMap = false;
 
 const canPointerLock = typeof canvas.requestPointerLock === 'function';
 let isPointerLocked = !canPointerLock;
@@ -178,17 +279,20 @@ function setLoadingErrorMessage(value) {
   setLoadingMessage(`Trouble loading ${topic.toLowerCase()}... Retrying or skipping...`);
 }
 
-function applySavedWorldState(worldState) {
-  if (savedWorldApplied) {
+function applySavedWorldState() {
+  if (appliedWorldMapPath === currentMapPath) {
     return;
   }
-  const keys = Array.isArray(worldState?.removedObjectKeys) ? worldState.removedObjectKeys : [];
-  if (keys.length) {
-    keys.forEach((key) => {
+  if (removedObjectKeys.size) {
+    removedObjectKeys.forEach((key) => {
       removeObjectBySaveKey(scene, key);
     });
   }
-  savedWorldApplied = true;
+  appliedWorldMapPath = currentMapPath;
+}
+
+function storeRemovalStateForCurrentMap() {
+  removalState.set(currentMapPath, new Set(removedObjectKeys));
 }
 
 function collectGameState() {
@@ -196,6 +300,12 @@ function collectGameState() {
     return null;
   }
   const pistolState = getPistolState();
+  storeRemovalStateForCurrentMap();
+  const removedByMap = {};
+  removalState.forEach((set, path) => {
+    removedByMap[path] = Array.from(set);
+  });
+  removedByMap[currentMapPath] = Array.from(removedObjectKeys);
   return {
     player: {
       position: {
@@ -211,7 +321,9 @@ function collectGameState() {
       pistol: pistolState
     },
     world: {
-      removedObjectKeys: Array.from(removedObjectKeys)
+      mapPath: currentMapPath,
+      removedObjectKeys: Array.from(removedObjectKeys),
+      removedObjectKeysByMap: removedByMap
     }
   };
 }
@@ -475,6 +587,7 @@ function handlePlayerDeath() {
   stopAutosaveLoop();
   clearSaveData();
   removedObjectKeys.clear();
+  removalState.clear();
   canSaveProgress = false;
 
   knockbackVelocity.set(0, 0, 0);
@@ -580,9 +693,6 @@ let zombieKillCount = 0;
 // Track models for zombies/objects
 const models = {};
 
-// --- Only call spawnZombiesFromMap ONCE after map loads ---
-let zombiesSpawned = false;
-
 async function fetchJSONWithTracking(url, { defaultValue = undefined, rethrow = false, label } = {}) {
   const itemLabel = label || url;
   if (loadingManager && typeof loadingManager.itemStart === 'function') {
@@ -616,6 +726,132 @@ async function fetchJSONWithTracking(url, { defaultValue = undefined, rethrow = 
       loadingManager.itemEnd(itemLabel);
     }
   }
+}
+
+async function loadCurrentMap({ skipRandomZombies = false } = {}) {
+  clearZombies(scene);
+  appliedWorldMapPath = null;
+  const mapObjects = await loadMap(scene, currentMapPath);
+  applySavedWorldState();
+  setMinimapMapSource(currentMapPath);
+  setLoadingMessage('Spawning zombies...');
+  await spawnZombiesFromMap(scene, mapObjects, models, materials);
+  const walkablePositions = getWalkablePositions();
+  if (!MAP_RANDOM_ZOMBIES_DISABLED.has(currentMapPath) && !skipRandomZombies) {
+    const spawnCount = Math.min(RANDOM_ZOMBIE_COUNT, walkablePositions.length);
+    if (spawnCount > 0) {
+      await spawnRandomZombies(scene, spawnCount, walkablePositions);
+    }
+  }
+  storeRemovalStateForCurrentMap();
+  return mapObjects;
+}
+
+async function transitionToMap(transition) {
+  if (isTransitioningMap || isPlayerDead) {
+    return;
+  }
+  if (!transition || !transition.targetMap) {
+    return;
+  }
+  const sanitizedTarget = sanitizeMapPath(transition.targetMap) || DEFAULT_MAP_PATH;
+  if (sanitizedTarget === currentMapPath) {
+    return;
+  }
+
+  isTransitioningMap = true;
+  const previousMapPath = currentMapPath;
+  const previousPosition = cameraContainer.position.clone();
+  const previousYaw = cameraContainer.rotation.y;
+  const previousPitch = camera.rotation.x;
+  const previousRemovedKeys = new Set(removedObjectKeys);
+
+  try {
+    movement.setEnabled(false);
+    setPistolEnabled(false);
+    storeRemovalStateForCurrentMap();
+    removalState.set(previousMapPath, new Set(removedObjectKeys));
+
+    currentMapPath = sanitizedTarget;
+    removedObjectKeys = new Set(removalState.get(currentMapPath) || []);
+    updateURLForCurrentMap();
+
+    await loadCurrentMap();
+
+    const spawn = transition.spawn || {};
+    const spawnPos = spawn.position || spawn.pos || null;
+    if (spawnPos && typeof spawnPos === 'object') {
+      const sx = Number(spawnPos.x ?? spawnPos[0]);
+      const sy = Number(spawnPos.y ?? spawnPos[1]);
+      const sz = Number(spawnPos.z ?? spawnPos[2]);
+      cameraContainer.position.set(
+        Number.isFinite(sx) ? sx : cameraContainer.position.x,
+        Number.isFinite(sy) ? sy : cameraContainer.position.y,
+        Number.isFinite(sz) ? sz : cameraContainer.position.z
+      );
+    } else {
+      cameraContainer.position.set(0, 0, 0);
+    }
+
+    if (Number.isFinite(spawn.rotation)) {
+      cameraContainer.rotation.y = spawn.rotation;
+    }
+    camera.rotation.x = 0;
+    knockbackVelocity.set(0, 0, 0);
+    lastChunkX = null;
+    lastChunkZ = null;
+    storeRemovalStateForCurrentMap();
+    requestQuickSave(QUICK_SAVE_DELAY_MS);
+  } catch (error) {
+    console.error('Failed to switch maps:', error);
+    currentMapPath = previousMapPath;
+    removedObjectKeys = new Set(previousRemovedKeys);
+    updateURLForCurrentMap();
+    try {
+      await loadCurrentMap();
+      cameraContainer.position.copy(previousPosition);
+      cameraContainer.rotation.y = previousYaw;
+      camera.rotation.x = previousPitch;
+      storeRemovalStateForCurrentMap();
+    } catch (reloadError) {
+      console.error('Failed to reload previous map after error:', reloadError);
+    }
+  } finally {
+    if (!isPlayerDead) {
+      setPistolEnabled(true);
+      movement.setEnabled(true);
+    }
+    isTransitioningMap = false;
+  }
+}
+
+async function tryInteractWithCar() {
+  if (isTransitioningMap || isPlayerDead || !isPointerLocked) {
+    return;
+  }
+  const transition = MAP_TRANSITIONS[currentMapPath];
+  if (!transition) {
+    return;
+  }
+  const objects = getLoadedObjects();
+  let hasNearbyCar = false;
+  for (let i = 0; i < objects.length; i++) {
+    const obj = objects[i];
+    if (!obj || obj.userData?.type !== '3d car') {
+      continue;
+    }
+    const dx = obj.position.x - cameraContainer.position.x;
+    const dz = obj.position.z - cameraContainer.position.z;
+    const distSq = dx * dx + dz * dz;
+    if (distSq <= CAR_INTERACT_DISTANCE_SQ) {
+      hasNearbyCar = true;
+      break;
+    }
+  }
+  if (!hasNearbyCar) {
+    return;
+  }
+  await transitionToMap(transition);
 }
 
 async function initializeGame() {
@@ -671,20 +907,7 @@ async function initializeGame() {
       }
     }
 
-    const mapObjects = await loadMap(scene, geometries, materials);
-    if (!savedWorldApplied && savedGameData?.world) {
-      applySavedWorldState(savedGameData.world);
-    }
-    if (!zombiesSpawned) {
-      setLoadingMessage('Spawning zombies...');
-      await spawnZombiesFromMap(scene, mapObjects, models, materials);
-      const walkablePositions = getWalkablePositions();
-      if (walkablePositions.length > 0) {
-        const spawnCount = Math.min(RANDOM_ZOMBIE_COUNT, walkablePositions.length);
-        await spawnRandomZombies(scene, spawnCount, walkablePositions);
-      }
-      zombiesSpawned = true;
-    }
+    await loadCurrentMap();
   } catch (err) {
     initializationFailed = true;
     console.error('Error loading object/zombie definitions:', err);
@@ -713,6 +936,7 @@ enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
 addPistolToCamera(weaponCamera);
 initMinimap();
+setMinimapMapSource(currentMapPath);
 if (!loadingOverlayHidden) {
   setLoadingMessageFromLabel('settings');
 }
@@ -729,6 +953,9 @@ document.addEventListener('mousedown', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyI' && !e.repeat) {
     toggleStatsVisibility();
+  }
+  if (e.code === 'KeyE' && !e.repeat) {
+    tryInteractWithCar();
   }
   if (isPlayerDead) return;
   if (e.code === 'KeyL') {
@@ -764,6 +991,7 @@ window.addEventListener('gameObjectRemoved', (event) => {
   }
   removedObjectKeys.add(key);
   removeObjectBySaveKey(scene, key);
+  storeRemovalStateForCurrentMap();
   requestQuickSave();
 });
 

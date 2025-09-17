@@ -2,6 +2,7 @@ let canvas, ctx;
 let fullCanvas, fullCtx;
 let fullVisible = false;
 let fullMapData = null;
+let mapSource = 'saved_map.json';
 let minimapEnabled = true;
 const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
@@ -103,7 +104,7 @@ export async function toggleFullMap(player, camera) {
     if (fullVisible) {
         if (!fullMapData) {
             try {
-                const res = await fetch('saved_map.json');
+                const res = await fetch(mapSource);
                 fullMapData = await res.json();
             } catch (e) {
                 console.error('Failed to load full map data', e);
@@ -112,6 +113,19 @@ export async function toggleFullMap(player, camera) {
         }
         drawFullMap(player, camera, fullMapData);
     }
+}
+
+export function setMinimapMapSource(path) {
+    if (typeof path !== 'string') {
+        return;
+    }
+    const trimmed = path.trim();
+    if (!trimmed || mapSource === trimmed) {
+        return;
+    }
+    mapSource = trimmed;
+    fullMapData = null;
+    exploredCells.clear();
 }
 
 export function setMinimapEnabled(enabled) {
