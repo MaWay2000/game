@@ -940,6 +940,37 @@ function resolveZombieOverlap(zombie, collidables) {
     }
 }
 
+function layZombieCorpseFlat(zombie) {
+    if (!zombie) return;
+
+    const ud = zombie.userData || (zombie.userData = {});
+
+    let floorBefore = null;
+    if (zombie.parent) {
+        zombie.updateMatrixWorld(true);
+        const preBox = new THREE.Box3().setFromObject(zombie);
+        if (preBox && preBox.min && Number.isFinite(preBox.min.y)) {
+            floorBefore = preBox.min.y;
+        }
+    }
+
+    zombie.rotation.x = -Math.PI / 2;
+
+    if (floorBefore !== null) {
+        zombie.updateMatrixWorld(true);
+        const postBox = new THREE.Box3().setFromObject(zombie);
+        if (postBox && postBox.min && Number.isFinite(postBox.min.y)) {
+            const offset = floorBefore - postBox.min.y;
+            if (Math.abs(offset) > 1e-4) {
+                zombie.position.y += offset;
+                zombie.updateMatrixWorld(true);
+            }
+        }
+    }
+
+    ud._corpseStartY = zombie.position.y;
+}
+
 function updateDeadZombie(zombie, delta) {
     const ud = zombie.userData || (zombie.userData = {});
     const size = (ud && ud.rules && ud.rules.geometry)
@@ -1220,7 +1251,6 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
         zombie.userData._dead = true;
         zombie.visible = true;
         zombie.userData._corpseTime = 0;
-        zombie.userData._corpseStartY = zombie.position.y;
         const corpseSize = (zombie.userData && zombie.userData.rules && zombie.userData.rules.geometry)
             ? zombie.userData.rules.geometry
             : DEFAULT_ZOMBIE_SIZE;
@@ -1252,7 +1282,8 @@ export function damageZombie(zombie, dmg, hitDir, hitPos) {
         }
 
         // Rotate the zombie so the body lies flat on the ground
-        zombie.rotation.x = -Math.PI / 2;
+        layZombieCorpseFlat(zombie);
+        zombie.userData._corpseStartY = zombie.position.y;
 
         // Lay the corpse flat at ground level before the sinking effect
         // gradually lowers it beneath the floor.
