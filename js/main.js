@@ -81,15 +81,39 @@ function sanitizeMapPath(path) {
   return trimmed;
 }
 
+function getInitialQueryString() {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+  if (typeof window.__INITIAL_QUERY_STRING__ === 'string') {
+    return window.__INITIAL_QUERY_STRING__;
+  }
+  return window.location.search || '';
+}
+
 function getMapPathFromQuery() {
   if (typeof window === 'undefined') {
     return null;
   }
   try {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(getInitialQueryString());
     return params.get('map');
   } catch (err) {
     console.warn('Unable to read map from URL:', err);
+    return null;
+  }
+}
+
+function getMapPathFromHistoryState() {
+  if (typeof window === 'undefined' || !window.history) {
+    return null;
+  }
+  try {
+    const state = window.history.state;
+    const mapPath = state?.mapPath ?? state?.map;
+    return typeof mapPath === 'string' ? mapPath : null;
+  } catch (err) {
+    console.warn('Unable to read map from history state:', err);
     return null;
   }
 }
@@ -117,8 +141,10 @@ function updateURLForCurrentMap() {
   }
   try {
     const url = new URL(window.location.href);
-    url.searchParams.set('map', currentMapPath);
-    window.history.replaceState({}, '', url);
+    url.search = '';
+    const state = { ...(window.history.state || {}) };
+    state.mapPath = currentMapPath;
+    window.history.replaceState(state, '', url);
   } catch (err) {
     console.warn('Unable to update map URL:', err);
   }
@@ -128,7 +154,8 @@ const savedGameData = readSaveData() || null;
 const savedWorldState = savedGameData?.world || null;
 const savedMapFromSave = sanitizeMapPath(savedWorldState?.mapPath);
 const queryMapPath = sanitizeMapPath(getMapPathFromQuery());
-let currentMapPath = queryMapPath || savedMapFromSave || DEFAULT_MAP_PATH;
+const historyMapPath = sanitizeMapPath(getMapPathFromHistoryState());
+let currentMapPath = queryMapPath || historyMapPath || savedMapFromSave || DEFAULT_MAP_PATH;
 
 const removalState = new Map();
 if (savedWorldState?.removedObjectKeysByMap && typeof savedWorldState.removedObjectKeysByMap === 'object') {

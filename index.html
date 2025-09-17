@@ -108,6 +108,22 @@
             <div id="loading-message" class="loading-message">Initializing...</div>
         </div>
     </div>
+    <script>
+        (function hideQueryString() {
+            const { search } = window.location;
+            window.__INITIAL_QUERY_STRING__ = search;
+            if (!search || !window.history || typeof window.history.replaceState !== 'function') {
+                return;
+            }
+            try {
+                const url = new URL(window.location.href);
+                url.search = '';
+                window.history.replaceState(window.history.state, '', url);
+            } catch (err) {
+                console.warn('Unable to hide query string:', err);
+            }
+        })();
+    </script>
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
