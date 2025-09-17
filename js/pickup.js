@@ -3,7 +3,9 @@ import { getLoadedObjects, markObjectRemoved, getObjectSaveKey } from './mapLoad
 export function checkPickups(cameraContainer, scene) {
     const playerBox = new THREE.Box3().setFromCenterAndSize(
         new THREE.Vector3(cameraContainer.position.x, 1.6, cameraContainer.position.z),
-        new THREE.Vector3(0.5, 1.6, 0.5)
+        // Extend the player's pickup range down to the ground so low objects
+        // like coins can intersect with the box.
+        new THREE.Vector3(0.5, 3.2, 0.5)
     );
 
     const objects = getLoadedObjects();
