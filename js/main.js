@@ -67,6 +67,11 @@ const MAP_TRANSITIONS = {
   }
 };
 
+const HOME_DEFAULT_SPAWN = MAP_TRANSITIONS[DUNGEON_MAP_PATH]?.spawn || {
+  position: { x: 0, y: 0, z: 3 },
+  rotation: Math.PI
+};
+
 function sanitizeMapPath(path) {
   if (typeof path !== 'string') {
     return null;
@@ -150,12 +155,47 @@ function updateURLForCurrentMap() {
   }
 }
 
+function applyDefaultSpawnForCurrentMap() {
+  if (!cameraContainer || !camera) {
+    return;
+  }
+  if (canRestorePlayerToCurrentMap) {
+    return;
+  }
+  if (currentMapPath !== HOME_MAP_PATH) {
+    return;
+  }
+
+  const spawn = HOME_DEFAULT_SPAWN || {};
+  const spawnPos = spawn.position || spawn.pos || null;
+  if (spawnPos && typeof spawnPos === 'object') {
+    const sx = Number(spawnPos.x ?? spawnPos[0]);
+    const sy = Number(spawnPos.y ?? spawnPos[1]);
+    const sz = Number(spawnPos.z ?? spawnPos[2]);
+    cameraContainer.position.set(
+      Number.isFinite(sx) ? sx : cameraContainer.position.x,
+      Number.isFinite(sy) ? sy : cameraContainer.position.y,
+      Number.isFinite(sz) ? sz : cameraContainer.position.z
+    );
+  } else {
+    cameraContainer.position.set(0, 0, 0);
+  }
+
+  if (Number.isFinite(spawn.rotation)) {
+    cameraContainer.rotation.y = spawn.rotation;
+  }
+  camera.rotation.x = 0;
+}
+
 const savedGameData = readSaveData() || null;
 const savedWorldState = savedGameData?.world || null;
 const savedMapFromSave = sanitizeMapPath(savedWorldState?.mapPath);
 const queryMapPath = sanitizeMapPath(getMapPathFromQuery());
 const historyMapPath = sanitizeMapPath(getMapPathFromHistoryState());
-let currentMapPath = queryMapPath || historyMapPath || savedMapFromSave || DEFAULT_MAP_PATH;
+let currentMapPath = queryMapPath || historyMapPath || DEFAULT_MAP_PATH;
+const canRestorePlayerToCurrentMap = Boolean(savedGameData?.player) && (!savedMapFromSave || savedMapFromSave === currentMapPath);
+
+applyDefaultSpawnForCurrentMap();
 
 const removalState = new Map();
 if (savedWorldState?.removedObjectKeysByMap && typeof savedWorldState.removedObjectKeysByMap === 'object') {
@@ -409,22 +449,24 @@ function restorePlayerStateFromSave() {
     return;
   }
   const player = savedGameData.player;
-  const pos = player.position;
-  if (pos && typeof pos === 'object') {
-    const px = Number(pos.x ?? pos[0] ?? 0) || 0;
-    const py = Number(pos.y ?? pos[1] ?? 0) || 0;
-    const pz = Number(pos.z ?? pos[2] ?? 0) || 0;
-    cameraContainer.position.set(px, py, pz);
-  }
-  const rot = player.rotation;
-  if (rot && typeof rot === 'object') {
-    const yaw = Number(rot.yaw ?? rot.y ?? 0);
-    const pitch = Number(rot.pitch ?? rot.x ?? 0);
-    if (Number.isFinite(yaw)) {
-      cameraContainer.rotation.y = yaw;
+  if (canRestorePlayerToCurrentMap) {
+    const pos = player.position;
+    if (pos && typeof pos === 'object') {
+      const px = Number(pos.x ?? pos[0] ?? 0) || 0;
+      const py = Number(pos.y ?? pos[1] ?? 0) || 0;
+      const pz = Number(pos.z ?? pos[2] ?? 0) || 0;
+      cameraContainer.position.set(px, py, pz);
     }
-    if (Number.isFinite(pitch)) {
-      camera.rotation.x = THREE.MathUtils.clamp(pitch, -Math.PI / 2, Math.PI / 2);
+    const rot = player.rotation;
+    if (rot && typeof rot === 'object') {
+      const yaw = Number(rot.yaw ?? rot.y ?? 0);
+      const pitch = Number(rot.pitch ?? rot.x ?? 0);
+      if (Number.isFinite(yaw)) {
+        cameraContainer.rotation.y = yaw;
+      }
+      if (Number.isFinite(pitch)) {
+        camera.rotation.x = THREE.MathUtils.clamp(pitch, -Math.PI / 2, Math.PI / 2);
+      }
     }
   }
   if (player.pistol) {
