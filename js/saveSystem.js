@@ -105,13 +105,50 @@ function sanitizeRemovedKeys(keys) {
     return result;
 }
 
+function sanitizeMapPath(path) {
+    if (typeof path !== 'string') {
+        return null;
+    }
+    const trimmed = path.trim();
+    if (!trimmed || trimmed.includes('..') || trimmed.includes('://') || trimmed.startsWith('/') || trimmed.includes('\\')) {
+        return null;
+    }
+    if (!/\.json$/i.test(trimmed)) {
+        return null;
+    }
+    return trimmed;
+}
+
+function sanitizeRemovedKeysByMap(value) {
+    if (!value || typeof value !== 'object') {
+        return {};
+    }
+    const result = {};
+    for (const [mapPath, keys] of Object.entries(value)) {
+        const sanitizedPath = sanitizeMapPath(mapPath);
+        if (!sanitizedPath) {
+            continue;
+        }
+        result[sanitizedPath] = sanitizeRemovedKeys(keys);
+    }
+    return result;
+}
+
 function sanitizeWorldState(world) {
     if (!world || typeof world !== 'object') {
-        return { removedObjectKeys: [] };
+        return { removedObjectKeys: [], removedObjectKeysByMap: {} };
     }
-    return {
-        removedObjectKeys: sanitizeRemovedKeys(world.removedObjectKeys)
+    const mapPath = sanitizeMapPath(world.mapPath);
+    const removedObjectKeys = sanitizeRemovedKeys(world.removedObjectKeys);
+    const removedObjectKeysByMap = sanitizeRemovedKeysByMap(world.removedObjectKeysByMap);
+    const sanitized = {
+        removedObjectKeys,
+        removedObjectKeysByMap
     };
+    if (mapPath) {
+        sanitized.mapPath = mapPath;
+    }
+    return sanitized;
 }
 
 export function readSaveData() {

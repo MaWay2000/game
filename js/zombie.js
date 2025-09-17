@@ -42,6 +42,26 @@ export function registerLoadingManager(manager) {
     loadingManager = manager || THREE.DefaultLoadingManager;
 }
 
+export function clearZombies(scene) {
+    zombies.forEach(zombie => {
+        if (!zombie) return;
+        if (scene) {
+            if (zombie.parent === scene) {
+                scene.remove(zombie);
+            }
+        } else if (zombie.parent) {
+            zombie.parent.remove(zombie);
+        }
+    });
+    zombies = [];
+    zombieGrid.clear();
+    bloodEffects.forEach(effect => {
+        effect.mesh?.parent?.remove(effect.mesh);
+    });
+    bloodEffects.length = 0;
+    lastGunshot = null;
+}
+
 // Persistent spatial grid used to keep zombies separated.
 const zombieGrid = new Map();
 let zombieGridCellSize = Math.max(DEFAULT_ZOMBIE_SIZE[0], DEFAULT_ZOMBIE_SIZE[2]);
