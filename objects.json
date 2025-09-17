@@ -71,7 +71,7 @@
       2,
       0.05
     ],
-    "collidable": false,
+    "collidable": true,
     "model": "models/doors.glb"
   },
   {
