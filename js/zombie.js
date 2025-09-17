@@ -226,8 +226,8 @@ export function initZombieSettingsUI() {
 
     const container = document.createElement('div');
     container.style.position = 'fixed';
-    container.style.top = '12px';
-    container.style.left = '12px';
+    container.style.bottom = '16px';
+    container.style.left = '16px';
     container.style.padding = '10px 14px';
     container.style.background = 'rgba(0, 0, 0, 0.6)';
     container.style.color = '#ffffff';
