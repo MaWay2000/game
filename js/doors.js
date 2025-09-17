@@ -7,7 +7,21 @@ const registeredDoors = [];
 function ensureDoorUserData(door) {
     if (!door) return null;
     const userData = door.userData || (door.userData = {});
-    if (!userData.rules) {
+
+    // Each door needs its own rules object so changing the collidable
+    // flag for one door doesn't mutate the shared rule definition that
+    // other door instances reference (e.g. via mapLoader.js). Without
+    // this guard the first destroyed door would set the shared rule's
+    // collidable flag to false, preventing bullets from hitting the
+    // remaining doors.
+    if (!userData._doorRulesCloned) {
+        if (userData.rules && typeof userData.rules === 'object') {
+            userData.rules = { ...userData.rules };
+        } else {
+            userData.rules = {};
+        }
+        userData._doorRulesCloned = true;
+    } else if (!userData.rules || typeof userData.rules !== 'object') {
         userData.rules = {};
     }
     let doorData = userData.door;
