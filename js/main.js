@@ -6,6 +6,7 @@ import { initHUD, updateHUD, setHUDVisible } from './hud.js';
 import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
+import { updateDoors } from './doors.js';
 import { setupZoom } from './zoom.js';
 import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
@@ -640,6 +641,7 @@ function animate() {
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
+  updateDoors(delta);
   updateMinimap(cameraContainer, camera, getLoadedObjects());
 
   renderer.clear();

@@ -1,3 +1,5 @@
+import { registerDoor, resetDoors } from './doors.js';
+
 // mapLoader.js
 
 let loadedObjects = [];
@@ -219,6 +221,7 @@ export async function loadMap(scene) {
     loadedObjects = [];
     walkablePositions = [];
     safeZones = [];
+    resetDoors();
     const walkableSet = new Set();
 
     for (const item of mapData) {
@@ -268,6 +271,9 @@ export async function loadMap(scene) {
             mesh.userData = { ...item, rules: rule };
             if (rule.ai) mesh.userData.ai = true;
             loadedObjects.push(mesh);
+            if (type === 'door') {
+                registerDoor(mesh);
+            }
             if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && (rule.ai || item.ai || item.isZombie)) {
             // If missing model, fallback to box for zombie
@@ -278,6 +284,9 @@ export async function loadMap(scene) {
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule, ai: true };
             loadedObjects.push(mesh);
+            if (type === 'door') {
+                registerDoor(mesh);
+            }
             if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && geometries[type] && materials[type]) {
             mesh = new THREE.Mesh(geometries[type], materials[type]);
@@ -285,6 +294,9 @@ export async function loadMap(scene) {
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             loadedObjects.push(mesh);
+            if (type === 'door') {
+                registerDoor(mesh);
+            }
             if (rule.collidable) cacheBoundingBox(mesh);
         } else if (rule && rule.geometry) {
             // Final fallback for unknown object with geometry (render as colored box)
@@ -306,6 +318,9 @@ export async function loadMap(scene) {
             mesh.rotation.y = rotation;
             mesh.userData = { ...item, rules: rule };
             loadedObjects.push(mesh);
+            if (type === 'door') {
+                registerDoor(mesh);
+            }
             if (rule.collidable) cacheBoundingBox(mesh);
         } else {
             console.warn(`Unknown object type: ${type}`, item);
@@ -464,10 +479,12 @@ function computeSafeZones() {
 }
 
 export function getLoadedObjects() {
+    visibleObjects = visibleObjects.filter(obj => obj && !(obj.userData && obj.userData._removed));
     return visibleObjects;
 }
 
 export function getAllObjects() {
+    loadedObjects = loadedObjects.filter(obj => obj && !(obj.userData && obj.userData._removed));
     return loadedObjects;
 }
 
@@ -483,6 +500,12 @@ export function updateVisibleObjects(scene, playerX, playerZ, viewDist) {
     visibleObjects.forEach(obj => scene.remove(obj));
     visibleObjects = [];
     loadedObjects.forEach(obj => {
+        if (!obj || (obj.userData && obj.userData._removed)) {
+            if (obj && obj.parent === scene) {
+                scene.remove(obj);
+            }
+            return;
+        }
         const dx = obj.position.x - playerX;
         const dz = obj.position.z - playerZ;
         if ((dx * dx + dz * dz) < viewDist * viewDist) {

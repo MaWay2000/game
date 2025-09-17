@@ -2,6 +2,7 @@ import { updateHUD } from './hud.js';
 import { getLoadedObjects } from './mapLoader.js';
 import { getZombies, damageZombie, registerGunshot, getZombieBoundingBox } from './zombie.js';
 import { notifyCrosshairShot, getCrosshairSpreadRadians } from './crosshair.js';
+import { damageDoor } from './doors.js';
 
 let pistol;
 let clipAmmo = 10;
@@ -517,6 +518,7 @@ export function updateBullets(deltaTime) {
 
         let hit = false;
         let hitZombie = null;
+        let hitObject = null;
         hitPoint.set(0, 0, 0);
 
         for (const obj of objects) {
@@ -528,12 +530,15 @@ export function updateBullets(deltaTime) {
 
             if (objBox.containsPoint(startPosition)) {
                 hit = true;
+                hitObject = obj;
                 break;
             }
 
             const intersection = ray.intersectBox(objBox, intersectionPoint);
             if (intersection && intersectionPoint.distanceTo(startPosition) <= travelDistance + EPSILON) {
                 hit = true;
+                hitObject = obj;
+                hitPoint.copy(intersectionPoint);
                 break;
             }
         }
@@ -565,6 +570,8 @@ export function updateBullets(deltaTime) {
         if (hit) {
             if (hitZombie) {
                 damageZombie(hitZombie, 9, bullet.userData.velocity, hitPoint.clone());
+            } else if (hitObject && (hitObject.userData?.type === 'door' || hitObject.userData?.door)) {
+                damageDoor(hitObject);
             }
             bullet.parent?.remove(bullet);
             flyingBullets.splice(i, 1);
