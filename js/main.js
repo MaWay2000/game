@@ -44,23 +44,24 @@ const canvas = renderer.domElement;
 
 const AUTOSAVE_INTERVAL_MS = 5 * 60 * 1000;
 const QUICK_SAVE_DELAY_MS = 2000;
-const DEFAULT_MAP_PATH = 'saved_map.json';
 const HOME_MAP_PATH = 'maps/home.json';
+const DUNGEON_MAP_PATH = 'saved_map.json';
+const DEFAULT_MAP_PATH = HOME_MAP_PATH;
 const MAP_RANDOM_ZOMBIES_DISABLED = new Set([HOME_MAP_PATH]);
 const CAR_INTERACT_DISTANCE = 2.5;
 const CAR_INTERACT_DISTANCE_SQ = CAR_INTERACT_DISTANCE * CAR_INTERACT_DISTANCE;
 const MAP_TRANSITIONS = {
-  [DEFAULT_MAP_PATH]: {
-    targetMap: HOME_MAP_PATH,
+  [HOME_MAP_PATH]: {
+    targetMap: DUNGEON_MAP_PATH,
     spawn: {
-      position: { x: 0, y: 0, z: 3 },
+      position: { x: 4, y: 0, z: 2 },
       rotation: Math.PI
     }
   },
-  [HOME_MAP_PATH]: {
-    targetMap: DEFAULT_MAP_PATH,
+  [DUNGEON_MAP_PATH]: {
+    targetMap: HOME_MAP_PATH,
     spawn: {
-      position: { x: 4, y: 0, z: 2 },
+      position: { x: 0, y: 0, z: 3 },
       rotation: Math.PI
     }
   }

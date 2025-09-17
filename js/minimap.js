@@ -2,7 +2,7 @@ let canvas, ctx;
 let fullCanvas, fullCtx;
 let fullVisible = false;
 let fullMapData = null;
-let mapSource = 'saved_map.json';
+let mapSource = 'maps/home.json';
 let minimapEnabled = true;
 const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
