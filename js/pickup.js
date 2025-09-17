@@ -13,13 +13,32 @@ export function checkPickups(cameraContainer, scene) {
         const rules = obj.userData.rules || {};
         if (rules.pickup) {
             const box = new THREE.Box3().setFromObject(obj);
-            if (playerBox.intersectsBox(box)) {
-                const saveKey = getObjectSaveKey(obj);
-                markObjectRemoved(obj);
-                alert(`Picked up: ${obj.userData.type}`);
-                if (saveKey && typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('gameObjectRemoved', { detail: { saveKey } }));
+            if (!playerBox.intersectsBox(box)) {
+                continue;
+            }
+
+            const saveKey = getObjectSaveKey(obj);
+            const removed = markObjectRemoved(obj);
+            if (!removed) {
+                continue;
+            }
+
+            const type = obj?.userData?.type || 'item';
+            if (type === 'coin') {
+                const amount = Number.isFinite(obj?.userData?.coinValue)
+                    ? obj.userData.coinValue
+                    : 1;
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('coinCollected', {
+                        detail: { amount }
+                    }));
                 }
+            } else {
+                alert(`Picked up: ${type}`);
+            }
+
+            if (saveKey && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('gameObjectRemoved', { detail: { saveKey } }));
             }
         }
     }
