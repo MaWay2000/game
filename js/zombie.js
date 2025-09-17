@@ -1014,17 +1014,20 @@ function maybeDropCoin(zombie) {
     coin.rotation.y = Math.random() * Math.PI * 2;
     coin.updateMatrixWorld(true);
 
-    if (!coin.userData || typeof coin.userData !== 'object') {
-        coin.userData = {};
-    }
-    coin.userData.type = 'coin';
-    coin.userData.coinValue = COIN_VALUE;
-    const rules = coin.userData.rules && typeof coin.userData.rules === 'object'
-        ? coin.userData.rules
+    const originalUserData = (coin.userData && typeof coin.userData === 'object')
+        ? coin.userData
         : {};
+    const userData = { ...originalUserData };
+    const rules = (originalUserData.rules && typeof originalUserData.rules === 'object')
+        ? { ...originalUserData.rules }
+        : {};
+
+    userData.type = 'coin';
+    userData.coinValue = COIN_VALUE;
     rules.pickup = true;
-    coin.userData.rules = rules;
-    coin.userData._removed = false;
+    userData.rules = rules;
+    userData._removed = false;
+    coin.userData = userData;
 
     zombie.parent.add(coin);
 
