@@ -1,0 +1,389 @@
+[
+    {
+        "position": [
+            0,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            1,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            1,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            1,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            0,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            0,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -1,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -1,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -1,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -2,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -2,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -2,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -3,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -3,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -3,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -4,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -4,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -4,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -4,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -3,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -2,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -1,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            0,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            1,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            -1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            0
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            1
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            1,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            0,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -1,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -2,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -3,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -4,
+            0.5,
+            3
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -4,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -3,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -2,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            -1,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            0,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            1,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            4
+        ],
+        "rotation": 0,
+        "type": "floor"
+    },
+    {
+        "position": [
+            2,
+            0.5,
+            2
+        ],
+        "rotation": 0,
+        "type": "3d car"
+    }
+]
