@@ -1,10 +1,17 @@
 let hudContainer, ammoContainer, healthContainer, healthBarFill, healthText;
+let statsContainer, killCountText;
 let maxHealth = 100;
 let currentHealth = 100;
+let currentKillCount = 0;
+let hudVisible = true;
+let statsVisible = false;
 
 export function initHUD(maxHealthValue = 100) {
     maxHealth = Math.max(1, maxHealthValue);
     currentHealth = maxHealth;
+    currentKillCount = 0;
+    hudVisible = true;
+    statsVisible = false;
 
     hudContainer = document.createElement('div');
     hudContainer.style.position = 'absolute';
@@ -77,7 +84,51 @@ export function initHUD(maxHealthValue = 100) {
     healthContainer.appendChild(healthBar);
     document.body.appendChild(healthContainer);
 
+    statsContainer = document.createElement('div');
+    statsContainer.style.position = 'absolute';
+    statsContainer.style.top = '16px';
+    statsContainer.style.left = '16px';
+    statsContainer.style.padding = '12px 16px';
+    statsContainer.style.borderRadius = '12px';
+    statsContainer.style.background = 'rgba(0, 0, 0, 0.55)';
+    statsContainer.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+    statsContainer.style.backdropFilter = 'blur(6px)';
+    statsContainer.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.35)';
+    statsContainer.style.color = '#ffffff';
+    statsContainer.style.fontFamily = 'Arial, sans-serif';
+    statsContainer.style.fontSize = '15px';
+    statsContainer.style.letterSpacing = '0.06em';
+    statsContainer.style.lineHeight = '1.4';
+    statsContainer.style.textTransform = 'uppercase';
+    statsContainer.style.pointerEvents = 'none';
+    statsContainer.style.zIndex = '102';
+    statsContainer.style.display = 'none';
+
+    const statsTitle = document.createElement('div');
+    statsTitle.textContent = 'Player Stats';
+    statsTitle.style.fontSize = '12px';
+    statsTitle.style.opacity = '0.75';
+    statsTitle.style.marginBottom = '6px';
+    statsContainer.appendChild(statsTitle);
+
+    killCountText = document.createElement('div');
+    killCountText.style.fontSize = '16px';
+    killCountText.style.fontWeight = 'bold';
+    killCountText.style.textShadow = '0 0 12px rgba(0, 0, 0, 0.7)';
+    statsContainer.appendChild(killCountText);
+
+    const statsHint = document.createElement('div');
+    statsHint.textContent = 'Press I to close';
+    statsHint.style.fontSize = '11px';
+    statsHint.style.opacity = '0.7';
+    statsHint.style.marginTop = '8px';
+    statsContainer.appendChild(statsHint);
+
+    document.body.appendChild(statsContainer);
+
     renderHealthBar();
+    renderKillCount();
+    renderStatsVisibility();
 }
 
 function renderHealthBar() {
@@ -93,6 +144,16 @@ function renderHealthBar() {
     healthBarFill.style.boxShadow = `0 0 16px hsla(${Math.max(0, hue)}, 80%, 50%, 0.45)`;
 
     healthText.textContent = `HEALTH ${Math.round(clamped)} / ${maxHealth}`;
+}
+
+function renderKillCount() {
+    if (!killCountText) return;
+    killCountText.textContent = `ZOMBIES KILLED ${currentKillCount}`;
+}
+
+function renderStatsVisibility() {
+    if (!statsContainer) return;
+    statsContainer.style.display = hudVisible && statsVisible ? 'block' : 'none';
 }
 
 export function updateHUD(ammo, health) {
@@ -118,11 +179,29 @@ export function updateHUD(ammo, health) {
 }
 
 export function setHUDVisible(visible) {
-    const display = visible ? 'block' : 'none';
+    hudVisible = !!visible;
+    const display = hudVisible ? 'block' : 'none';
     if (hudContainer) {
         hudContainer.style.display = display;
     }
     if (healthContainer) {
         healthContainer.style.display = display;
     }
+    renderStatsVisibility();
+}
+
+export function updateKillCount(kills) {
+    if (typeof kills === 'number' && Number.isFinite(kills)) {
+        currentKillCount = Math.max(0, Math.floor(kills));
+    }
+    renderKillCount();
+}
+
+export function setStatsVisible(visible) {
+    statsVisible = !!visible;
+    renderStatsVisibility();
+}
+
+export function toggleStatsVisibility() {
+    setStatsVisible(!statsVisible);
 }

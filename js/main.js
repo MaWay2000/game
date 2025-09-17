@@ -9,7 +9,7 @@ import {
 } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
-import { initHUD, updateHUD, setHUDVisible } from './hud.js';
+import { initHUD, updateHUD, setHUDVisible, updateKillCount, toggleStatsVisibility } from './hud.js';
 import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
@@ -575,6 +575,7 @@ const PLAYER_HIT_DAMAGE = 10;
 
 let playerHealth = PLAYER_MAX_HEALTH;
 let deathOverlay = null;
+let zombieKillCount = 0;
 
 // Track models for zombies/objects
 const models = {};
@@ -706,6 +707,7 @@ initializeGame();
 const movement = setupMovement(cameraContainer, camera, scene);
 initHUD(PLAYER_MAX_HEALTH);
 updateHUD(10, playerHealth);
+updateKillCount(zombieKillCount);
 initCrosshair();
 enablePointerLock(renderer, cameraContainer, camera);
 setupZoom(camera, weaponCamera);
@@ -725,6 +727,9 @@ document.addEventListener('mousedown', (e) => {
 
 // Toggle "Gods sun" spotlight with the L key
 document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyI' && !e.repeat) {
+    toggleStatsVisibility();
+  }
   if (isPlayerDead) return;
   if (e.code === 'KeyL') {
     godsSun.visible = !godsSun.visible;
@@ -737,6 +742,8 @@ document.addEventListener('keydown', (e) => {
 
 // React to zombie deaths with a flash and screen shake
 window.addEventListener('zombieKilled', () => {
+  zombieKillCount += 1;
+  updateKillCount(zombieKillCount);
   spawnKillFlash();
   triggerShake();
 });
