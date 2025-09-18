@@ -98,6 +98,28 @@
     "collidable": true
   },
   {
+    "id": "teleport",
+    "name": "Teleport Pad",
+    "color": "#6b8f3d",
+    "size": [
+      1.5,
+      1,
+      1.5
+    ],
+    "collidable": true,
+    "texture": "images/wallTexture.jpg",
+    "label": {
+      "text": "Teleport",
+      "fontSize": 88,
+      "padding": 28,
+      "offset": 0.35,
+      "height": 0.65,
+      "background": "rgba(0, 0, 0, 0.72)",
+      "stroke": "rgba(0, 0, 0, 0.9)",
+      "strokeWidth": 10
+    }
+  },
+  {
     "id": "test111",
     "name": "test111",
     "color": "#ee3539",
