@@ -28,6 +28,20 @@ let loadingManager = THREE.DefaultLoadingManager;
 let textureLoader = new THREE.TextureLoader(loadingManager);
 let gltfLoader = new THREE.GLTFLoader(loadingManager);
 
+const DEFAULT_LABEL_CONFIG = {
+    color: '#ffffff',
+    background: 'rgba(0, 0, 0, 0.65)',
+    fontFamily: 'Roboto, Arial, sans-serif',
+    fontSize: 96,
+    padding: 32,
+    stroke: 'rgba(0, 0, 0, 0.85)',
+    strokeWidth: 12,
+    offset: 0.4,
+    height: 0.6,
+    width: null,
+    maxWidth: null
+};
+
 function roundForKey(value) {
     const numeric = Number(value) || 0;
     return Math.round(numeric * 1000) / 1000;
@@ -144,6 +158,152 @@ function cacheBoundingBox(obj) {
     obj.userData._bboxScale = obj.scale.clone();
 }
 
+function normalizeLabelConfig(label, fallbackText) {
+    if (label === undefined || label === null || label === false) {
+        return null;
+    }
+
+    if (label === true) {
+        const text = typeof fallbackText === 'string' ? fallbackText.trim() : '';
+        return text ? { ...DEFAULT_LABEL_CONFIG, text } : null;
+    }
+
+    if (typeof label === 'string') {
+        const text = label.trim();
+        return text ? { ...DEFAULT_LABEL_CONFIG, text } : null;
+    }
+
+    if (typeof label === 'object') {
+        const textSource = label.text !== undefined ? label.text : fallbackText;
+        const text = typeof textSource === 'string' ? textSource.trim() : '';
+        if (!text) {
+            return null;
+        }
+
+        return {
+            text,
+            color: typeof label.color === 'string' ? label.color : DEFAULT_LABEL_CONFIG.color,
+            background: label.background === null ? null : (typeof label.background === 'string' ? label.background : DEFAULT_LABEL_CONFIG.background),
+            fontFamily: typeof label.fontFamily === 'string' ? label.fontFamily : DEFAULT_LABEL_CONFIG.fontFamily,
+            fontSize: Number.isFinite(label.fontSize) ? label.fontSize : DEFAULT_LABEL_CONFIG.fontSize,
+            padding: Number.isFinite(label.padding) ? Math.max(0, label.padding) : DEFAULT_LABEL_CONFIG.padding,
+            stroke: typeof label.stroke === 'string' ? label.stroke : DEFAULT_LABEL_CONFIG.stroke,
+            strokeWidth: Number.isFinite(label.strokeWidth) ? Math.max(0, label.strokeWidth) : DEFAULT_LABEL_CONFIG.strokeWidth,
+            offset: Number.isFinite(label.offset) ? label.offset : DEFAULT_LABEL_CONFIG.offset,
+            height: Number.isFinite(label.height) ? label.height : DEFAULT_LABEL_CONFIG.height,
+            width: Number.isFinite(label.width) ? label.width : DEFAULT_LABEL_CONFIG.width,
+            maxWidth: Number.isFinite(label.maxWidth) ? label.maxWidth : DEFAULT_LABEL_CONFIG.maxWidth
+        };
+    }
+
+    return null;
+}
+
+function createLabelSprite(text, config = {}) {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const canvas = document.createElement('canvas');
+    const canvasWidth = 512;
+    const canvasHeight = 256;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        return null;
+    }
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    const padding = Math.max(0, Number.isFinite(config.padding) ? config.padding : DEFAULT_LABEL_CONFIG.padding);
+    const fontFamily = config.fontFamily || DEFAULT_LABEL_CONFIG.fontFamily;
+    let fontSize = Number.isFinite(config.fontSize) ? config.fontSize : DEFAULT_LABEL_CONFIG.fontSize;
+    const minFontSize = 12;
+    const availableWidth = Math.max(32, (Number.isFinite(config.maxWidth) ? config.maxWidth : (canvasWidth - padding * 2)));
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    let measuredWidth = Infinity;
+    while (fontSize > minFontSize) {
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        measuredWidth = ctx.measureText(text).width;
+        if (measuredWidth <= availableWidth) {
+            break;
+        }
+        fontSize -= 2;
+    }
+    ctx.font = `${Math.max(fontSize, minFontSize)}px ${fontFamily}`;
+    measuredWidth = ctx.measureText(text).width;
+
+    const textHeight = fontSize;
+    const bgWidth = Math.min(canvasWidth, measuredWidth + padding * 2);
+    const bgHeight = Math.min(canvasHeight, textHeight + padding * 2);
+    const bgX = (canvasWidth - bgWidth) / 2;
+    const bgY = (canvasHeight - bgHeight) / 2;
+
+    if (config.background) {
+        ctx.fillStyle = config.background;
+        ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+    }
+
+    if (config.stroke && config.strokeWidth > 0) {
+        ctx.lineWidth = config.strokeWidth;
+        ctx.strokeStyle = config.stroke;
+        ctx.strokeText(text, canvasWidth / 2, canvasHeight / 2, availableWidth);
+    }
+
+    ctx.fillStyle = config.color || DEFAULT_LABEL_CONFIG.color;
+    ctx.fillText(text, canvasWidth / 2, canvasHeight / 2, availableWidth);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.needsUpdate = true;
+
+    const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false
+    });
+
+    const sprite = new THREE.Sprite(material);
+    const baseHeight = Number.isFinite(config.height) ? config.height : DEFAULT_LABEL_CONFIG.height;
+    const baseWidth = Number.isFinite(config.width) && config.width > 0
+        ? config.width
+        : baseHeight * (bgWidth / bgHeight);
+    sprite.scale.set(baseWidth, baseHeight, 1);
+    sprite.center.set(0.5, 0);
+    sprite.renderOrder = 1000;
+    sprite.userData = { ...sprite.userData, isLabel: true, labelText: text };
+
+    return sprite;
+}
+
+function attachLabelToMesh(mesh, labelConfig) {
+    if (!mesh || !labelConfig || !labelConfig.text) {
+        return;
+    }
+
+    const sprite = createLabelSprite(labelConfig.text, labelConfig);
+    if (!sprite) {
+        return;
+    }
+
+    mesh.updateWorldMatrix(true, false);
+    const bbox = new THREE.Box3().setFromObject(mesh);
+    const worldPos = new THREE.Vector3();
+    mesh.getWorldPosition(worldPos);
+
+    const offset = Number.isFinite(labelConfig.offset) ? labelConfig.offset : DEFAULT_LABEL_CONFIG.offset;
+    const topY = Number.isFinite(bbox.max.y) ? bbox.max.y : (worldPos.y + offset);
+    sprite.position.set(0, (topY - worldPos.y) + offset, 0);
+
+    mesh.add(sprite);
+}
+
 export async function loadMap(scene, mapPath = 'maps/home.json') {
     const targetMapPath = (typeof mapPath === 'string' && mapPath.trim())
         ? mapPath.trim()
@@ -200,14 +360,21 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
     }
 
     for (const obj of allDefinitions) {
+        const labelConfig = normalizeLabelConfig(
+            obj.label !== undefined ? obj.label : obj.labelText,
+            obj.name || obj.id
+        );
+
         objectRules[obj.id] = {
+            name: obj.name || obj.id,
             collidable: obj.collidable === true,
             model: obj.model || null,
             ai: obj.ai === true || obj.isZombie === true, // extra fallback
             geometry: obj.size ? obj.size.slice() : ((obj.ai === true || obj.isZombie === true) ? DEFAULT_ZOMBIE_SIZE.slice() : [1,1,1]),
             color: obj.color || '#999999',
             texture: obj.texture || null,
-            safeZone: obj.safeZone !== undefined ? JSON.parse(JSON.stringify(obj.safeZone)) : false
+            safeZone: obj.safeZone !== undefined ? JSON.parse(JSON.stringify(obj.safeZone)) : false,
+            label: labelConfig
         };
         if (!obj.model) {
             if (!geometries[obj.id] && obj.size) {
@@ -381,6 +548,20 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
             if (rule.collidable) cacheBoundingBox(mesh);
         } else {
             console.warn(`Unknown object type: ${type}`, item);
+        }
+
+        if (mesh && rule) {
+            let labelConfig = rule.label;
+            if (item && (item.label !== undefined || item.labelText !== undefined)) {
+                labelConfig = normalizeLabelConfig(
+                    item.label !== undefined ? item.label : item.labelText,
+                    rule.name || item.type || 'object'
+                ) || labelConfig;
+            }
+
+            if (labelConfig) {
+                attachLabelToMesh(mesh, labelConfig);
+            }
         }
 
         if (walkablePos && qualifiesWalkable) {
