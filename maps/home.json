@@ -511,5 +511,185 @@
     ],
     "rotation": 0,
     "type": "3d car"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "wall"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "wall"
   }
 ]
