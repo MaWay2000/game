@@ -240,6 +240,10 @@ if (THREE?.GLTFLoader) {
     const coinLoader = new THREE.GLTFLoader();
     coinLoader.load('models/coins.glb', gltf => {
         coinModel = gltf.scene;
+        if (coinModel) {
+            coinModel.scale.multiplyScalar(0.2);
+            coinModel.updateMatrixWorld(true);
+        }
     });
 }
 
