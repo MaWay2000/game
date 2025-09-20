@@ -31,26 +31,28 @@ export function updateMinimap(player, camera, objects) {
     const range = half / SCALE; // world units that fit in minimap radius
     // Mark nearby cells as explored based on line of sight
     markExplored(player, range, objects);
-    // Draw walls
+    // Draw walls that have been explored
     ctx.fillStyle = '#888';
     for (const obj of objects) {
-        if (obj.userData && obj.userData.type === 'wall') {
-            const dx = obj.position.x - player.position.x;
-            const dz = obj.position.z - player.position.z;
-            if (Math.abs(dx) > range || Math.abs(dz) > range) continue;
-            const x = half + dx * SCALE;
-            const y = half + dz * SCALE;
-            const geo = obj.userData.rules && obj.userData.rules.geometry;
-            const w = (geo ? geo[0] : 1) * SCALE;
-            const h = (geo ? geo[2] : 1) * SCALE;
-            ctx.fillRect(x - w / 2, y - h / 2, w, h);
-        }
+        if (!obj || !obj.position || !obj.userData || obj.userData.type !== 'wall') continue;
+        if (!isExplored(obj.position.x, obj.position.z)) continue;
+        const dx = obj.position.x - player.position.x;
+        const dz = obj.position.z - player.position.z;
+        if (Math.abs(dx) > range || Math.abs(dz) > range) continue;
+        const x = half + dx * SCALE;
+        const y = half + dz * SCALE;
+        const geo = obj.userData.rules && obj.userData.rules.geometry;
+        const w = (geo ? geo[0] : 1) * SCALE;
+        const h = (geo ? geo[2] : 1) * SCALE;
+        ctx.fillRect(x - w / 2, y - h / 2, w, h);
     }
 
-    // Draw other objects relative to player position
+    // Draw other explored objects relative to player position
     ctx.fillStyle = 'white';
     for (const obj of objects) {
-        if (obj.userData && obj.userData.type === 'wall') continue;
+        if (!obj || !obj.position || !obj.userData) continue;
+        if (obj.userData.type === 'wall') continue;
+        if (!isExplored(obj.position.x, obj.position.z)) continue;
         const dx = obj.position.x - player.position.x;
         const dz = obj.position.z - player.position.z;
         if (Math.abs(dx) > range || Math.abs(dz) > range) continue;
