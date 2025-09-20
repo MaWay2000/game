@@ -303,13 +303,18 @@ function markExplored(player, range, objects) {
         rayHelper.direction.copy(rayDirection);
 
         let maxDistance = range;
-        for (const box of occluders) {
+        let occluderTileX = null;
+        let occluderTileZ = null;
+        for (const entry of occluders) {
+            const box = entry && entry.box;
             if (!box || box.containsPoint(rayOrigin)) continue;
             const intersection = rayHelper.intersectBox(box, rayIntersection);
             if (!intersection) continue;
             const dist = Math.hypot(intersection.x - rayOrigin.x, intersection.z - rayOrigin.z);
             if (dist < maxDistance) {
                 maxDistance = dist;
+                occluderTileX = entry && Number.isFinite(entry.tileX) ? entry.tileX : null;
+                occluderTileZ = entry && Number.isFinite(entry.tileZ) ? entry.tileZ : null;
             }
         }
 
@@ -323,6 +328,9 @@ function markExplored(player, range, objects) {
             const blockX = px + rayDirection.x * maxDistance;
             const blockZ = pz + rayDirection.z * maxDistance;
             exploredCells.add(`${Math.floor(blockX)},${Math.floor(blockZ)}`);
+            if (occluderTileX !== null && occluderTileZ !== null) {
+                exploredCells.add(`${occluderTileX},${occluderTileZ}`);
+            }
         }
     }
 }
@@ -345,7 +353,19 @@ function extractOccluderBounds(objects) {
         const box = getCachedBoundingBox(obj);
         if (!box) continue;
 
-        bounds.push(box);
+        let tileX = null;
+        let tileZ = null;
+        const pos = obj.position;
+        if (pos) {
+            const x = Number.isFinite(pos.x) ? Math.round(pos.x) : null;
+            const z = Number.isFinite(pos.z) ? Math.round(pos.z) : null;
+            if (x !== null && z !== null) {
+                tileX = x;
+                tileZ = z;
+            }
+        }
+
+        bounds.push({ box, tileX, tileZ });
     }
     return bounds;
 }
