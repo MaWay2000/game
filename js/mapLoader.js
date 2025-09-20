@@ -137,6 +137,16 @@ function applyPosition(mesh, position, rule) {
         }
     }
 
+    if (rule.id === 'door' && rule.geometry && rule.geometry.length >= 2) {
+        const halfHeight = rule.geometry[1] / 2;
+        if (Number.isFinite(halfHeight) && Number.isFinite(mesh.position.y)) {
+            const offset = mesh.position.y - halfHeight;
+            if (offset < -1e-6 && Math.abs(offset + 0.5) < 1e-4) {
+                mesh.position.y = halfHeight;
+            }
+        }
+    }
+
     const shouldAlignModelCenter = rule.model && rule.geometry && Number.isFinite(mesh.position.y);
     if (shouldAlignModelCenter) {
         const desiredCenterY = mesh.position.y;
@@ -374,6 +384,7 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
         );
 
         objectRules[obj.id] = {
+            id: obj.id,
             name: obj.name || obj.id,
             collidable: obj.collidable === true,
             model: obj.model || null,
