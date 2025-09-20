@@ -53,16 +53,19 @@ export function updateMinimap(player, camera, objects) {
     }
 
     // Draw other explored objects relative to player position
-    ctx.fillStyle = 'white';
     for (const obj of objects) {
         if (!obj || !obj.position || !obj.userData) continue;
         if (obj.userData.type === 'wall') continue;
+        if (obj.userData._removed) continue;
         if (!isExplored(obj.position.x, obj.position.z)) continue;
         const dx = obj.position.x - player.position.x;
         const dz = obj.position.z - player.position.z;
         if (Math.abs(dx) > range || Math.abs(dz) > range) continue;
         const x = half + dx * SCALE;
         const y = half + dz * SCALE;
+        const type = obj.userData.type;
+        const isDoor = type === 'door' || obj.userData.door;
+        ctx.fillStyle = isDoor ? '#ff0' : 'white';
         ctx.fillRect(x - 2, y - 2, 4, 4);
     }
 
@@ -176,7 +179,12 @@ function drawFullMap(player, camera, mapData) {
     for (const item of mapData) {
         const [x, , z] = item.position;
         if (!isExplored(x, z)) continue;
-        const color = item.type === 'wall' ? '#888' : 'white';
+        let color = 'white';
+        if (item.type === 'wall') {
+            color = '#888';
+        } else if (item.type === 'door') {
+            color = '#ff0';
+        }
         fullCtx.fillStyle = color;
         const sx = (x + offsetX) * scale;
         const sy = (z + offsetZ) * scale;
