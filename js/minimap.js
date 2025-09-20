@@ -199,8 +199,8 @@ function markExplored(player, range, objects) {
     const pz = player.position.z;
     exploredCells.add(`${Math.floor(px)},${Math.floor(pz)}`);
 
-    const walls = extractWallBounds(objects);
-    if (!walls.length) {
+    const occluders = extractOccluderBounds(objects);
+    if (!occluders.length) {
         // No walls, reveal in a simple radius
         const r = Math.floor(range);
         for (let dx = -r; dx <= r; dx++) {
@@ -213,7 +213,7 @@ function markExplored(player, range, objects) {
 
     const steps = 64;
     const angleStep = (Math.PI * 2) / steps;
-    const stepSize = 0.5;
+    const stepSize = 0.25;
 
     for (let i = 0; i < steps; i++) {
         const angle = i * angleStep;
@@ -223,7 +223,7 @@ function markExplored(player, range, objects) {
             const x = px + dirX * dist;
             const z = pz + dirZ * dist;
             exploredCells.add(`${Math.floor(x)},${Math.floor(z)}`);
-            if (hitsWall(x, z, walls)) {
+            if (hitsOccluder(x, z, occluders)) {
                 break;
             }
         }
@@ -234,28 +234,53 @@ function isExplored(x, z) {
     return exploredCells.has(`${Math.floor(x)},${Math.floor(z)}`);
 }
 
-function extractWallBounds(objects) {
+function extractOccluderBounds(objects) {
     const bounds = [];
     for (const obj of objects) {
-        if (!obj || !obj.userData || obj.userData.type !== 'wall') continue;
-        const geo = obj.userData.rules && obj.userData.rules.geometry;
-        const w = (geo ? geo[0] : 1) || 1;
-        const h = (geo ? geo[2] : 1) || 1;
-        const halfW = w / 2;
-        const halfH = h / 2;
+        if (!obj || !obj.userData) continue;
+
+        const { userData } = obj;
+        const rules = userData.rules || {};
+        const collidable = rules.collidable === true || userData.collidable === true;
+        const occludes = userData.type === 'wall' || collidable;
+        if (!occludes) continue;
+
+        const box = getCachedBoundingBox(obj);
+        if (!box) continue;
+
         bounds.push({
-            minX: obj.position.x - halfW,
-            maxX: obj.position.x + halfW,
-            minZ: obj.position.z - halfH,
-            maxZ: obj.position.z + halfH,
+            minX: box.min.x,
+            maxX: box.max.x,
+            minZ: box.min.z,
+            maxZ: box.max.z,
         });
     }
     return bounds;
 }
 
-function hitsWall(x, z, walls) {
-    for (const wall of walls) {
-        if (x >= wall.minX && x <= wall.maxX && z >= wall.minZ && z <= wall.maxZ) {
+function getCachedBoundingBox(obj) {
+    const ud = obj.userData || (obj.userData = {});
+    const hasBox = ud._bbox instanceof THREE.Box3;
+    const posMatches = hasBox && ud._bboxPos instanceof THREE.Vector3 && ud._bboxPos.equals(obj.position);
+    const quatMatches = hasBox && ud._bboxQuat instanceof THREE.Quaternion && ud._bboxQuat.equals(obj.quaternion);
+    const scaleMatches = hasBox && ud._bboxScale instanceof THREE.Vector3 && ud._bboxScale.equals(obj.scale);
+
+    if (!hasBox || !posMatches || !quatMatches || !scaleMatches) {
+        obj.updateMatrixWorld(true);
+        const box = hasBox ? ud._bbox : new THREE.Box3();
+        box.setFromObject(obj);
+        ud._bbox = box;
+        ud._bboxPos = (ud._bboxPos || new THREE.Vector3()).copy(obj.position);
+        ud._bboxQuat = (ud._bboxQuat || new THREE.Quaternion()).copy(obj.quaternion);
+        ud._bboxScale = (ud._bboxScale || new THREE.Vector3()).copy(obj.scale);
+    }
+
+    return ud._bbox;
+}
+
+function hitsOccluder(x, z, occluders) {
+    for (const occluder of occluders) {
+        if (x >= occluder.minX && x <= occluder.maxX && z >= occluder.minZ && z <= occluder.maxZ) {
             return true;
         }
     }
