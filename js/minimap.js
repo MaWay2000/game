@@ -29,8 +29,8 @@ export function updateMinimap(player, camera, objects) {
 
     const half = SIZE / 2;
     const range = half / SCALE; // world units that fit in minimap radius
-    // Mark nearby cells as explored
-    markExplored(player, range);
+    // Mark nearby cells as explored based on line of sight
+    markExplored(player, range, objects);
     // Draw walls
     ctx.fillStyle = '#888';
     for (const obj of objects) {
@@ -188,17 +188,74 @@ function drawFullMap(player, camera, mapData) {
     fullCtx.stroke();
 }
 
-function markExplored(player, range) {
-    const px = Math.floor(player.position.x);
-    const pz = Math.floor(player.position.z);
-    const r = Math.floor(range);
-    for (let dx = -r; dx <= r; dx++) {
-        for (let dz = -r; dz <= r; dz++) {
-            exploredCells.add(`${px + dx},${pz + dz}`);
+function markExplored(player, range, objects) {
+    if (!objects || !Array.isArray(objects)) {
+        return;
+    }
+
+    const px = player.position.x;
+    const pz = player.position.z;
+    exploredCells.add(`${Math.floor(px)},${Math.floor(pz)}`);
+
+    const walls = extractWallBounds(objects);
+    if (!walls.length) {
+        // No walls, reveal in a simple radius
+        const r = Math.floor(range);
+        for (let dx = -r; dx <= r; dx++) {
+            for (let dz = -r; dz <= r; dz++) {
+                exploredCells.add(`${Math.floor(px) + dx},${Math.floor(pz) + dz}`);
+            }
+        }
+        return;
+    }
+
+    const steps = 64;
+    const angleStep = (Math.PI * 2) / steps;
+    const stepSize = 0.5;
+
+    for (let i = 0; i < steps; i++) {
+        const angle = i * angleStep;
+        const dirX = Math.cos(angle);
+        const dirZ = Math.sin(angle);
+        for (let dist = 0; dist <= range; dist += stepSize) {
+            const x = px + dirX * dist;
+            const z = pz + dirZ * dist;
+            exploredCells.add(`${Math.floor(x)},${Math.floor(z)}`);
+            if (hitsWall(x, z, walls)) {
+                break;
+            }
         }
     }
 }
 
 function isExplored(x, z) {
     return exploredCells.has(`${Math.floor(x)},${Math.floor(z)}`);
+}
+
+function extractWallBounds(objects) {
+    const bounds = [];
+    for (const obj of objects) {
+        if (!obj || !obj.userData || obj.userData.type !== 'wall') continue;
+        const geo = obj.userData.rules && obj.userData.rules.geometry;
+        const w = (geo ? geo[0] : 1) || 1;
+        const h = (geo ? geo[2] : 1) || 1;
+        const halfW = w / 2;
+        const halfH = h / 2;
+        bounds.push({
+            minX: obj.position.x - halfW,
+            maxX: obj.position.x + halfW,
+            minZ: obj.position.z - halfH,
+            maxZ: obj.position.z + halfH,
+        });
+    }
+    return bounds;
+}
+
+function hitsWall(x, z, walls) {
+    for (const wall of walls) {
+        if (x >= wall.minX && x <= wall.maxX && z >= wall.minZ && z <= wall.maxZ) {
+            return true;
+        }
+    }
+    return false;
 }
