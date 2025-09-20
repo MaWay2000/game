@@ -75,9 +75,11 @@ function connectRoomsWithMST(grid, rooms) {
 
     edges.forEach(edge => {
         if (union(edge.from, edge.to)) {
-            const roomA = rooms[edge.from], roomB = rooms[edge.to];
-            const ax = Math.floor(roomA.x + roomA.w / 2);
-            const ay = Math.floor(roomA.y + roomA.h / 2);
+            const roomA = rooms[edge.from], roomB = rooms[edge.to];            objects.push({ type: 'door', position: [doorX, 0.5, doorZ], rotation });
+        });
+    });
+
+
             const bx = Math.floor(roomB.x + roomB.w / 2);
             const by = Math.floor(roomB.y + roomB.h / 2);
 
