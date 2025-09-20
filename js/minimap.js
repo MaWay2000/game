@@ -8,6 +8,11 @@ const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
 // Track explored cells so the full map only reveals visited areas
 const exploredCells = new Set();
+const rayOrigin = new THREE.Vector3();
+const rayDirection = new THREE.Vector3();
+const rayHelper = new THREE.Ray();
+const rayIntersection = new THREE.Vector3();
+const playerHeightFallback = 1.6;
 
 export function initMinimap() {
     canvas = document.createElement('canvas');
@@ -117,6 +122,10 @@ export async function toggleFullMap(player, camera) {
     }
 }
 
+export function isFullMapVisible() {
+    return fullVisible;
+}
+
 export function setMinimapMapSource(path) {
     if (typeof path !== 'string') {
         return;
@@ -214,18 +223,38 @@ function markExplored(player, range, objects) {
     const steps = 64;
     const angleStep = (Math.PI * 2) / steps;
     const stepSize = 0.25;
+    const originY = Number.isFinite(player.position?.y)
+        ? player.position.y
+        : playerHeightFallback;
+    rayOrigin.set(px, originY, pz);
 
     for (let i = 0; i < steps; i++) {
         const angle = i * angleStep;
-        const dirX = Math.cos(angle);
-        const dirZ = Math.sin(angle);
-        for (let dist = 0; dist <= range; dist += stepSize) {
-            const x = px + dirX * dist;
-            const z = pz + dirZ * dist;
-            exploredCells.add(`${Math.floor(x)},${Math.floor(z)}`);
-            if (hitsOccluder(x, z, occluders)) {
-                break;
+        rayDirection.set(Math.cos(angle), 0, Math.sin(angle));
+        rayHelper.origin.copy(rayOrigin);
+        rayHelper.direction.copy(rayDirection);
+
+        let maxDistance = range;
+        for (const box of occluders) {
+            if (!box || box.containsPoint(rayOrigin)) continue;
+            const intersection = rayHelper.intersectBox(box, rayIntersection);
+            if (!intersection) continue;
+            const dist = Math.hypot(intersection.x - rayOrigin.x, intersection.z - rayOrigin.z);
+            if (dist < maxDistance) {
+                maxDistance = dist;
             }
+        }
+
+        const limit = Math.max(0, maxDistance - 0.05);
+        for (let dist = 0; dist <= limit; dist += stepSize) {
+            const x = px + rayDirection.x * dist;
+            const z = pz + rayDirection.z * dist;
+            exploredCells.add(`${Math.floor(x)},${Math.floor(z)}`);
+        }
+        if (maxDistance < range) {
+            const blockX = px + rayDirection.x * maxDistance;
+            const blockZ = pz + rayDirection.z * maxDistance;
+            exploredCells.add(`${Math.floor(blockX)},${Math.floor(blockZ)}`);
         }
     }
 }
@@ -248,12 +277,7 @@ function extractOccluderBounds(objects) {
         const box = getCachedBoundingBox(obj);
         if (!box) continue;
 
-        bounds.push({
-            minX: box.min.x,
-            maxX: box.max.x,
-            minZ: box.min.z,
-            maxZ: box.max.z,
-        });
+        bounds.push(box);
     }
     return bounds;
 }
@@ -278,11 +302,3 @@ function getCachedBoundingBox(obj) {
     return ud._bbox;
 }
 
-function hitsOccluder(x, z, occluders) {
-    for (const occluder of occluders) {
-        if (x >= occluder.minX && x <= occluder.maxX && z >= occluder.minZ && z <= occluder.maxZ) {
-            return true;
-        }
-    }
-    return false;
-}

@@ -40,6 +40,13 @@ let zombieDefinitionsPromise = null;
 
 const COIN_DROP_CHANCE = 0.2;
 const COIN_VALUE = 1;
+const LINE_OF_SIGHT_EPSILON = 0.1;
+
+const losRay = new THREE.Ray();
+const losOrigin = new THREE.Vector3();
+const losTarget = new THREE.Vector3();
+const losDirection = new THREE.Vector3();
+const losIntersection = new THREE.Vector3();
 
 export function registerLoadingManager(manager) {
     loadingManager = manager || THREE.DefaultLoadingManager;
@@ -210,6 +217,51 @@ function pointInsideAnySafeZone(point, zones = getSafeZoneList()) {
         }
     }
     return false;
+}
+
+function zombieHasLineOfSight(zombie, targetPosition, collidables) {
+    if (!zombie || !targetPosition || !Array.isArray(collidables)) {
+        return false;
+    }
+
+    const originBox = getZombieBoundingBox(zombie, zombie.position, false);
+    if (!originBox) {
+        return false;
+    }
+
+    originBox.getCenter(losOrigin);
+    losTarget.set(
+        Number.isFinite(targetPosition.x) ? targetPosition.x : losOrigin.x,
+        Number.isFinite(targetPosition.y) ? targetPosition.y : losOrigin.y,
+        Number.isFinite(targetPosition.z) ? targetPosition.z : losOrigin.z
+    );
+
+    const totalDistance = losOrigin.distanceTo(losTarget);
+    if (totalDistance <= LINE_OF_SIGHT_EPSILON) {
+        return true;
+    }
+
+    losDirection.subVectors(losTarget, losOrigin).normalize();
+    losRay.origin.copy(losOrigin);
+    losRay.direction.copy(losDirection);
+    const maxDistanceSq = totalDistance * totalDistance;
+
+    for (let i = 0; i < collidables.length; i++) {
+        const obj = collidables[i];
+        if (!obj || obj === zombie) continue;
+        const box = getCachedBox(obj);
+        if (!box) continue;
+        if (box.containsPoint(losOrigin)) continue;
+        if (box.containsPoint(losTarget)) continue;
+        const intersection = losRay.intersectBox(box, losIntersection);
+        if (!intersection) continue;
+        const distanceSq = losOrigin.distanceToSquared(losIntersection);
+        if (distanceSq < maxDistanceSq - LINE_OF_SIGHT_EPSILON) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function zombieIntersectsSafeZone(zombie, position = zombie?.position, zones = getSafeZoneList()) {
@@ -1154,8 +1206,9 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         // Hunt the player if within spotting distance or temporarily aggroed
         const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
         const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
+        const hasLineOfSight = zombieHasLineOfSight(zombie, playerObj.position, collidableObjects);
 
-        if (!playerInSafeZone && (distToPlayer <= spotRange || ud._aggroTime > 0)) {
+        if (!playerInSafeZone && hasLineOfSight && (distToPlayer <= spotRange || ud._aggroTime > 0)) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
             const displacement = dir.clone().multiplyScalar(ud.speed);
