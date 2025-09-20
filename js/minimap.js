@@ -13,6 +13,55 @@ const rayDirection = new THREE.Vector3();
 const rayHelper = new THREE.Ray();
 const rayIntersection = new THREE.Vector3();
 const playerHeightFallback = 1.6;
+const removedObjectKeys = new Set();
+
+function roundForKey(value) {
+    const numeric = Number(value) || 0;
+    return Math.round(numeric * 1000) / 1000;
+}
+
+function parsePosition(position) {
+    let px = 0;
+    let py = 0;
+    let pz = 0;
+    if (Array.isArray(position)) {
+        px = Number(position[0]) || 0;
+        py = Number(position[1]) || 0;
+        pz = Number(position[2]) || 0;
+    } else if (position && typeof position === 'object') {
+        px = Number(position.x ?? position[0]) || 0;
+        py = Number(position.y ?? position[1]) || 0;
+        pz = Number(position.z ?? position[2]) || 0;
+    }
+    return { x: px, y: py, z: pz };
+}
+
+function createSaveKeyForMapItem(item, index) {
+    const type = typeof item?.type === 'string' ? item.type : 'unknown';
+    const rotation = Number.isFinite(item?.rotation) ? item.rotation : 0;
+    const { x, y, z } = parsePosition(item?.position);
+    const idx = Number.isFinite(index) ? index : 0;
+    return `${type}|${idx}|${roundForKey(x)}|${roundForKey(y)}|${roundForKey(z)}|${roundForKey(rotation)}`;
+}
+
+export function recordRemovedObjectKey(saveKey) {
+    if (typeof saveKey !== 'string' || !saveKey) {
+        return;
+    }
+    removedObjectKeys.add(saveKey);
+}
+
+export function syncRemovedObjectKeys(keys) {
+    removedObjectKeys.clear();
+    if (!keys || typeof keys[Symbol.iterator] !== 'function') {
+        return;
+    }
+    for (const key of keys) {
+        if (typeof key === 'string' && key) {
+            removedObjectKeys.add(key);
+        }
+    }
+}
 
 export function initMinimap() {
     canvas = document.createElement('canvas');
@@ -57,6 +106,8 @@ export function updateMinimap(player, camera, objects) {
         if (!obj || !obj.position || !obj.userData) continue;
         if (obj.userData.type === 'wall') continue;
         if (obj.userData._removed) continue;
+        const saveKey = typeof obj.userData.saveKey === 'string' ? obj.userData.saveKey : null;
+        if (saveKey && removedObjectKeys.has(saveKey)) continue;
         if (!isExplored(obj.position.x, obj.position.z)) continue;
         const dx = obj.position.x - player.position.x;
         const dz = obj.position.z - player.position.z;
@@ -65,7 +116,7 @@ export function updateMinimap(player, camera, objects) {
         const y = half + dz * SCALE;
         const type = obj.userData.type;
         const isDoor = type === 'door' || obj.userData.door;
-        ctx.fillStyle = isDoor ? '#ff0' : 'white';
+        ctx.fillStyle = isDoor ? '#00f' : 'white';
         ctx.fillRect(x - 2, y - 2, 4, 4);
     }
 
@@ -162,7 +213,10 @@ function drawFullMap(player, camera, mapData) {
     if (!fullCtx) return;
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
     for (const item of mapData) {
-        const [x, , z] = item.position;
+        if (!item) continue;
+        const position = parsePosition(item.position);
+        const x = position.x;
+        const z = position.z;
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
         minZ = Math.min(minZ, z);
@@ -176,14 +230,20 @@ function drawFullMap(player, camera, mapData) {
 
     fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
 
-    for (const item of mapData) {
-        const [x, , z] = item.position;
+    for (let i = 0; i < mapData.length; i++) {
+        const item = mapData[i];
+        if (!item) continue;
+        const position = parsePosition(item.position);
+        const x = position.x;
+        const z = position.z;
         if (!isExplored(x, z)) continue;
+        const saveKey = createSaveKeyForMapItem(item, i);
+        if (removedObjectKeys.has(saveKey)) continue;
         let color = 'white';
         if (item.type === 'wall') {
             color = '#888';
         } else if (item.type === 'door') {
-            color = '#ff0';
+            color = '#00f';
         }
         fullCtx.fillStyle = color;
         const sx = (x + offsetX) * scale;

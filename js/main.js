@@ -12,7 +12,16 @@ import {
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD, setHUDVisible, updateKillCount, toggleStatsVisibility, updateCoinCount } from './hud.js';
-import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled, setMinimapMapSource, isFullMapVisible } from './minimap.js';
+import {
+  initMinimap,
+  updateMinimap,
+  toggleFullMap,
+  setMinimapEnabled,
+  setMinimapMapSource,
+  isFullMapVisible,
+  recordRemovedObjectKey,
+  syncRemovedObjectKeys
+} from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { updateDoors } from './doors.js';
@@ -216,6 +225,7 @@ if (!removalState.size && Array.isArray(savedWorldState?.removedObjectKeys)) {
 }
 
 let removedObjectKeys = new Set(removalState.get(currentMapPath) || []);
+syncRemovedObjectKeys(removedObjectKeys);
 updateURLForCurrentMap();
 
 let autosaveIntervalId = null;
@@ -659,6 +669,7 @@ function handlePlayerDeath() {
   stopAutosaveLoop();
   clearSaveData();
   removedObjectKeys.clear();
+  syncRemovedObjectKeys(removedObjectKeys);
   removalState.clear();
   canSaveProgress = false;
 
@@ -847,6 +858,7 @@ async function transitionToMap(transition) {
 
     currentMapPath = sanitizedTarget;
     removedObjectKeys = new Set(removalState.get(currentMapPath) || []);
+    syncRemovedObjectKeys(removedObjectKeys);
     updateURLForCurrentMap();
 
     await loadCurrentMap();
@@ -879,6 +891,7 @@ async function transitionToMap(transition) {
     console.error('Failed to switch maps:', error);
     currentMapPath = previousMapPath;
     removedObjectKeys = new Set(previousRemovedKeys);
+    syncRemovedObjectKeys(removedObjectKeys);
     updateURLForCurrentMap();
     try {
       await loadCurrentMap();
@@ -1079,6 +1092,7 @@ window.addEventListener('gameObjectRemoved', (event) => {
     return;
   }
   removedObjectKeys.add(key);
+  recordRemovedObjectKey(key);
   removeObjectBySaveKey(scene, key);
   storeRemovalStateForCurrentMap();
   requestQuickSave();
