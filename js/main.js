@@ -5,7 +5,8 @@ import {
   getLoadedObjects,
   getWalkablePositions,
   registerLoadingManager as registerMapLoadingManager,
-  removeObjectBySaveKey
+  removeObjectBySaveKey,
+  updateObjectAnimations
 } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
@@ -1118,6 +1119,7 @@ function animate() {
   // ---- Zombie animation & AI update ----
   updateZombies(delta, cameraContainer, handlePlayerHit, movement.getState());
   updateBloodEffects(delta);
+  updateObjectAnimations(delta);
 
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
