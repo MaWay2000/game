@@ -467,11 +467,31 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
         // ---- NEW: Always allow zombies and model objects! ----
         if (rule && rule.model && gltfModels[type]) {
             mesh = gltfModels[type].clone(true);
+            let overrideColor = null;
+            if (rule.color) {
+                try {
+                    overrideColor = new THREE.Color(rule.color);
+                } catch (err) {
+                    console.warn(`Failed to parse color "${rule.color}" for ${type}:`, err);
+                }
+            }
             mesh.traverse(node => {
                 if (node.isMesh) {
                     node.material = node.material.clone();
                     node.material.opacity = 1;
                     node.material.transparent = false;
+
+                    if (overrideColor && node.material && node.material.color && !node.material.map) {
+                        const color = node.material.color;
+                        const colorMagnitude = color.r * color.r + color.g * color.g + color.b * color.b;
+                        const hasVertexColors = Boolean(node.geometry && node.geometry.getAttribute && node.geometry.getAttribute('color'));
+                        if (!hasVertexColors && colorMagnitude < 1e-4) {
+                            color.copy(overrideColor);
+                            if (typeof node.material.needsUpdate !== 'undefined') {
+                                node.material.needsUpdate = true;
+                            }
+                        }
+                    }
                 }
             });
             if (rule.geometry) {
