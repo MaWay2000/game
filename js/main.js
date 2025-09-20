@@ -5,7 +5,8 @@ import {
   getLoadedObjects,
   getWalkablePositions,
   registerLoadingManager as registerMapLoadingManager,
-  removeObjectBySaveKey
+  removeObjectBySaveKey,
+  updateObjectMixers
 } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
@@ -1122,6 +1123,7 @@ function animate() {
   checkPickups(cameraContainer, scene);
   updateBullets(delta);
   updateDoors(delta);
+  updateObjectMixers(delta);
   updateMinimap(cameraContainer, camera, getLoadedObjects());
 
   renderer.clear();
