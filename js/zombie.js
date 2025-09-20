@@ -264,6 +264,49 @@ function zombieHasLineOfSight(zombie, targetPosition, collidables) {
     return true;
 }
 
+function isClosedDoor(obj) {
+    const ud = obj?.userData;
+    if (!ud || ud._removed) {
+        return false;
+    }
+
+    if (ud.type !== 'door' && !ud.door) {
+        return false;
+    }
+
+    if (ud.rules && ud.rules.collidable === false) {
+        return false;
+    }
+
+    const doorData = ud.door;
+    if (!doorData) {
+        return true;
+    }
+
+    if (doorData.destroyed || doorData.sinking) {
+        return false;
+    }
+
+    if (Number.isFinite(doorData.hp) && doorData.hp <= 0) {
+        return false;
+    }
+
+    return true;
+}
+
+function isTargetBlockedByClosedDoor(zombie, targetPosition, collidables) {
+    if (!zombie || !targetPosition || !Array.isArray(collidables)) {
+        return false;
+    }
+
+    const blockingDoors = collidables.filter(isClosedDoor);
+    if (blockingDoors.length === 0) {
+        return false;
+    }
+
+    return !zombieHasLineOfSight(zombie, targetPosition, blockingDoors);
+}
+
 function zombieIntersectsSafeZone(zombie, position = zombie?.position, zones = getSafeZoneList()) {
     if (!zones.length || !zombie || !position) {
         return false;
@@ -1196,7 +1239,11 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         // Sneaking halves the distance at which zombies can spot the player.
         const spotRangeMultiplier = isSneaking ? 0.5 : 1;
         const spotRange = baseSpotRange * spotRangeMultiplier;
-        if (!playerInSafeZone && lastGunshot && !gunshotInSafeZone &&
+        const gunshotBlockedByDoor = lastGunshot
+            ? isTargetBlockedByClosedDoor(zombie, lastGunshot.position, collidableObjects)
+            : false;
+
+        if (!playerInSafeZone && lastGunshot && !gunshotInSafeZone && !gunshotBlockedByDoor &&
             zombie.position.distanceTo(lastGunshot.position) <= spotRange) {
             // Become aggressive toward the player for 3-10 seconds
             ud._aggroTime = 3 + Math.random() * 7;
@@ -1206,9 +1253,9 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
         // Hunt the player if within spotting distance or temporarily aggroed
         const toPlayer = new THREE.Vector3().subVectors(playerObj.position, zombie.position);
         const distToPlayer = Math.hypot(toPlayer.x, toPlayer.z);
-        const hasLineOfSight = zombieHasLineOfSight(zombie, playerObj.position, collidableObjects);
+        const playerBlockedByDoor = isTargetBlockedByClosedDoor(zombie, playerObj.position, collidableObjects);
 
-        if (!playerInSafeZone && hasLineOfSight && (distToPlayer <= spotRange || ud._aggroTime > 0)) {
+        if (!playerInSafeZone && !playerBlockedByDoor && (distToPlayer <= spotRange || ud._aggroTime > 0)) {
             // Move directly toward the player
             const dir = toPlayer.setY(0).normalize();
             const displacement = dir.clone().multiplyScalar(ud.speed);
