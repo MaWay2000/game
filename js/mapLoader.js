@@ -787,6 +787,29 @@ export function getSafeZones() {
     return safeZones;
 }
 
+export function isPointInsideSafeZone(point) {
+    if (!point || !Array.isArray(safeZones) || safeZones.length === 0) {
+        return false;
+    }
+
+    const x = Number.isFinite(point.x) ? point.x : (Array.isArray(point) ? Number(point[0]) : 0);
+    const y = Number.isFinite(point.y) ? point.y : (Array.isArray(point) ? Number(point[1]) : 0);
+    const z = Number.isFinite(point.z) ? point.z : (Array.isArray(point) ? Number(point[2]) : 0);
+
+    for (let i = 0; i < safeZones.length; i++) {
+        const zone = safeZones[i];
+        if (!zone) continue;
+        if (x < zone.minX || x > zone.maxX) continue;
+        if (z < zone.minZ || z > zone.maxZ) continue;
+        const minY = Number.isFinite(zone.minY) ? zone.minY : -Infinity;
+        const maxY = Number.isFinite(zone.maxY) ? zone.maxY : Infinity;
+        if (y < minY || y > maxY) continue;
+        return true;
+    }
+
+    return false;
+}
+
 export function getWalkablePositions() {
     return walkablePositions.map(pos => pos.clone());
 }

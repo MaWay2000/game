@@ -6,12 +6,13 @@ import {
   getWalkablePositions,
   registerLoadingManager as registerMapLoadingManager,
   removeObjectBySaveKey,
-  updateObjectMixers
+  updateObjectMixers,
+  isPointInsideSafeZone
 } from './mapLoader.js';
 import { setupMovement } from './movement.js';
 import { checkPickups } from './pickup.js';
 import { initHUD, updateHUD, setHUDVisible, updateKillCount, toggleStatsVisibility, updateCoinCount } from './hud.js';
-import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled, setMinimapMapSource } from './minimap.js';
+import { initMinimap, updateMinimap, toggleFullMap, setMinimapEnabled, setMinimapMapSource, isFullMapVisible } from './minimap.js';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { updateDoors } from './doors.js';
@@ -1036,6 +1037,12 @@ document.addEventListener('keydown', (e) => {
     torch.visible = !godsSun.visible;
   }
   if (e.code === 'KeyM') {
+    if (isPointInsideSafeZone(cameraContainer?.position)) {
+      if (isFullMapVisible()) {
+        toggleFullMap(cameraContainer, camera);
+      }
+      return;
+    }
     toggleFullMap(cameraContainer, camera);
   }
 });
