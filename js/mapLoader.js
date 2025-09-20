@@ -14,6 +14,7 @@ let gltfLoadedFlags = {};
 let walkablePositions = [];
 let safeZones = [];
 let currentMapPath = 'maps/home.json';
+let objectMixers = new Set();
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
 const WALKABLE_TYPE_KEYWORDS = ['floor', 'terrain', 'ground'];
 const DEFAULT_SAFE_ZONE_SETTINGS = {
@@ -322,6 +323,13 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
         });
     }
 
+    objectMixers.forEach(entry => {
+        if (entry && entry.mixer && typeof entry.mixer.stopAllAction === 'function') {
+            entry.mixer.stopAllAction();
+        }
+    });
+    objectMixers = new Set();
+
     // GitHub Pages and other static hosts cannot execute PHP files.
     // Instead of requesting "mapmaker.php" to list available JSON files,
     // we directly reference the JSON sources used by the game.
@@ -490,7 +498,10 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
             mesh.rotation.y = rotation;
             mesh.userData = buildUserData(item, rule, index);
             if (mixer) {
+                const mixerEntry = { mixer, object: mesh };
                 mesh.userData.mixer = mixer;
+                mesh.userData.mixerEntry = mixerEntry;
+                objectMixers.add(mixerEntry);
             }
             if (rule.ai) mesh.userData.ai = true;
             loadedObjects.push(mesh);
@@ -721,6 +732,32 @@ export function getLoadedObjects() {
     return visibleObjects;
 }
 
+export function updateObjectMixers(delta) {
+    if (!objectMixers || objectMixers.size === 0) {
+        return;
+    }
+    const timeStep = Number.isFinite(delta) && delta > 0 ? delta : 0;
+    if (timeStep <= 0) {
+        return;
+    }
+    const staleEntries = [];
+    for (const entry of objectMixers) {
+        if (!entry || !entry.mixer) {
+            staleEntries.push(entry);
+            continue;
+        }
+        if (entry.object && entry.object.userData && entry.object.userData._removed) {
+            if (typeof entry.mixer.stopAllAction === 'function') {
+                entry.mixer.stopAllAction();
+            }
+            staleEntries.push(entry);
+            continue;
+        }
+        entry.mixer.update(timeStep);
+    }
+    staleEntries.forEach(entry => objectMixers.delete(entry));
+}
+
 export function getAllObjects() {
     loadedObjects = loadedObjects.filter(obj => obj && !(obj.userData && obj.userData._removed));
     return loadedObjects;
@@ -770,6 +807,15 @@ export function getObjectSaveKey(obj) {
 export function markObjectRemoved(obj) {
     if (!obj) {
         return false;
+    }
+    if (obj.userData && typeof obj.userData === 'object') {
+        const mixerEntry = obj.userData.mixerEntry;
+        if (mixerEntry && objectMixers.has(mixerEntry)) {
+            if (mixerEntry.mixer && typeof mixerEntry.mixer.stopAllAction === 'function') {
+                mixerEntry.mixer.stopAllAction();
+            }
+            objectMixers.delete(mixerEntry);
+        }
     }
     if (!obj.userData || typeof obj.userData !== 'object') {
         obj.userData = { _removed: true };
