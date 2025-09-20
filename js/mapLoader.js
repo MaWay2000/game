@@ -734,6 +734,20 @@ export function getWalkablePositions() {
     return walkablePositions.map(pos => pos.clone());
 }
 
+export function updateObjectAnimations(deltaSeconds) {
+    if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
+        return;
+    }
+
+    const targets = visibleObjects.length > 0 ? visibleObjects : loadedObjects;
+    for (let i = 0; i < targets.length; i++) {
+        const mixer = targets[i]?.userData?.mixer;
+        if (mixer && typeof mixer.update === 'function') {
+            mixer.update(deltaSeconds);
+        }
+    }
+}
+
 export function updateVisibleObjects(scene, playerX, playerZ, viewDist) {
     visibleObjects.forEach(obj => scene.remove(obj));
     visibleObjects = [];
