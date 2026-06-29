@@ -26,9 +26,9 @@ import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPis
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { updateDoors } from './doors.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager, clearZombies, setZombieSettingsVisible, toggleZombieSettingsVisible, getZombieSettingsContainer } from './zombie.js';
+import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager, clearZombies, setZombieSettingsVisible, toggleZombieSettingsVisible, getZombieSettingsContainer, collectZombieStates, restoreZombieStates } from './zombie.js';
 import { setupTorch, updateTorchTarget, updateTorchFlicker, getTorchBeamMode, setTorchBeamMode } from './torch.js';
-import { readSaveData, writeSaveData, clearSaveData } from './saveSystem.js';
+import { readSaveData, writeSaveData, clearSaveData } from './saveSystem.js?v=chrome-progress-save-fix-20260629';
 
 // --- Scene and Camera setup ---
 const scene = new THREE.Scene();
@@ -229,6 +229,29 @@ if (!removalState.size && Array.isArray(savedWorldState?.removedObjectKeys)) {
 let removedObjectKeys = new Set(removalState.get(currentMapPath) || []);
 syncRemovedObjectKeys(removedObjectKeys);
 updateURLForCurrentMap();
+
+const zombieStateByMap = new Map();
+if (savedWorldState?.zombiesByMap && typeof savedWorldState.zombiesByMap === 'object') {
+  Object.entries(savedWorldState.zombiesByMap).forEach(([path, states]) => {
+    const sanitizedPath = sanitizeMapPath(path);
+    if (!sanitizedPath || !Array.isArray(states)) {
+      return;
+    }
+    zombieStateByMap.set(sanitizedPath, states);
+  });
+}
+
+const killedZombieKeysByMap = new Map();
+if (savedWorldState?.killedZombieKeysByMap && typeof savedWorldState.killedZombieKeysByMap === 'object') {
+  Object.entries(savedWorldState.killedZombieKeysByMap).forEach(([path, keys]) => {
+    const sanitizedPath = sanitizeMapPath(path);
+    if (!sanitizedPath) {
+      return;
+    }
+    killedZombieKeysByMap.set(sanitizedPath, new Set(sanitizeRemovedKeyArray(keys)));
+  });
+}
+let killedZombieKeys = new Set(killedZombieKeysByMap.get(currentMapPath) || []);
 
 let autosaveIntervalId = null;
 let pendingQuickSaveTimeout = null;
@@ -495,18 +518,42 @@ function storeRemovalStateForCurrentMap() {
   removalState.set(currentMapPath, new Set(removedObjectKeys));
 }
 
+function storeZombieStateForCurrentMap() {
+  zombieStateByMap.set(currentMapPath, collectZombieStates());
+  killedZombieKeysByMap.set(currentMapPath, new Set(killedZombieKeys));
+}
+
+function getSavedZombieStatesForCurrentMap() {
+  const states = zombieStateByMap.get(currentMapPath);
+  return Array.isArray(states) ? states : null;
+}
+
 function collectGameState() {
   if (!camera || !cameraContainer) {
     return null;
   }
   const pistolState = getPistolState();
   storeRemovalStateForCurrentMap();
+  storeZombieStateForCurrentMap();
   const removedByMap = {};
   removalState.forEach((set, path) => {
     removedByMap[path] = Array.from(set);
   });
   removedByMap[currentMapPath] = Array.from(removedObjectKeys);
+  const zombiesByMap = {};
+  zombieStateByMap.forEach((states, path) => {
+    zombiesByMap[path] = states;
+  });
+  const killedByMap = {};
+  killedZombieKeysByMap.forEach((set, path) => {
+    killedByMap[path] = Array.from(set);
+  });
+  killedByMap[currentMapPath] = Array.from(killedZombieKeys);
   return {
+    stats: {
+      zombieKillCount,
+      coinCount
+    },
     player: {
       position: {
         x: cameraContainer.position.x,
@@ -523,13 +570,15 @@ function collectGameState() {
     world: {
       mapPath: currentMapPath,
       removedObjectKeys: Array.from(removedObjectKeys),
-      removedObjectKeysByMap: removedByMap
+      removedObjectKeysByMap: removedByMap,
+      zombiesByMap,
+      killedZombieKeysByMap: killedByMap
     }
   };
 }
 
-function saveGameState() {
-  if (!canSaveProgress || isPlayerDead) {
+function saveGameState({ force = false } = {}) {
+  if ((!force && !canSaveProgress) || isPlayerDead) {
     return false;
   }
   const data = collectGameState();
@@ -791,6 +840,9 @@ function handlePlayerDeath() {
   removedObjectKeys.clear();
   syncRemovedObjectKeys(removedObjectKeys);
   removalState.clear();
+  zombieStateByMap.clear();
+  killedZombieKeysByMap.clear();
+  killedZombieKeys.clear();
   canSaveProgress = false;
 
   knockbackVelocity.set(0, 0, 0);
@@ -891,8 +943,8 @@ const PLAYER_HIT_DAMAGE = 10;
 
 let playerHealth = PLAYER_MAX_HEALTH;
 let deathOverlay = null;
-let zombieKillCount = 0;
-let coinCount = 0;
+let zombieKillCount = Math.max(0, Math.floor(Number(savedGameData?.stats?.zombieKillCount ?? 0) || 0));
+let coinCount = Math.max(0, Math.floor(Number(savedGameData?.stats?.coinCount ?? 0) || 0));
 
 // Track models for zombies/objects
 const models = {};
@@ -939,15 +991,21 @@ async function loadCurrentMap({ skipRandomZombies = false } = {}) {
   applySavedWorldState();
   setMinimapMapSource(currentMapPath);
   setLoadingMessage('Spawning zombies...');
+  killedZombieKeys = new Set(killedZombieKeysByMap.get(currentMapPath) || []);
+  const savedZombieStates = getSavedZombieStatesForCurrentMap();
   await spawnZombiesFromMap(scene, mapObjects, models, materials);
+  if (savedZombieStates) {
+    await restoreZombieStates(scene, savedZombieStates, models, materials, Array.from(killedZombieKeys));
+  }
   const walkablePositions = getWalkablePositions();
-  if (!MAP_RANDOM_ZOMBIES_DISABLED.has(currentMapPath) && !skipRandomZombies) {
+  if (!savedZombieStates && !MAP_RANDOM_ZOMBIES_DISABLED.has(currentMapPath) && !skipRandomZombies) {
     const spawnCount = Math.min(RANDOM_ZOMBIE_COUNT, walkablePositions.length);
     if (spawnCount > 0) {
       await spawnRandomZombies(scene, spawnCount, walkablePositions);
     }
   }
   storeRemovalStateForCurrentMap();
+  storeZombieStateForCurrentMap();
   return mapObjects;
 }
 
@@ -974,10 +1032,13 @@ async function transitionToMap(transition) {
     movement.setEnabled(false);
     setPistolEnabled(false);
     storeRemovalStateForCurrentMap();
+    storeZombieStateForCurrentMap();
     removalState.set(previousMapPath, new Set(removedObjectKeys));
+    killedZombieKeysByMap.set(previousMapPath, new Set(killedZombieKeys));
 
     currentMapPath = sanitizedTarget;
     removedObjectKeys = new Set(removalState.get(currentMapPath) || []);
+    killedZombieKeys = new Set(killedZombieKeysByMap.get(currentMapPath) || []);
     syncRemovedObjectKeys(removedObjectKeys);
     updateURLForCurrentMap();
 
@@ -1199,11 +1260,17 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', handleMapKey);
 
 // React to zombie deaths with a flash and screen shake
-window.addEventListener('zombieKilled', () => {
+window.addEventListener('zombieKilled', (event) => {
   zombieKillCount += 1;
   updateKillCount(zombieKillCount);
+  const zombieKey = event?.detail?.zombie?.userData?.saveKey;
+  if (typeof zombieKey === 'string' && zombieKey) {
+    killedZombieKeys.add(zombieKey);
+  }
+  storeZombieStateForCurrentMap();
   spawnKillFlash();
   triggerShake();
+  saveGameState({ force: true });
 });
 
 window.addEventListener('coinCollected', (event) => {
@@ -1213,6 +1280,7 @@ window.addEventListener('coinCollected', (event) => {
   }
   coinCount = Math.max(0, coinCount + amount);
   updateCoinCount(coinCount);
+  saveGameState({ force: true });
 });
 
 window.addEventListener('resize', () => {

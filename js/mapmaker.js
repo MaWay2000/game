@@ -434,23 +434,38 @@ function clearMap() {
 }
 
 function generateLandscape() {
-    fetch('landshaft_generator.php', {
-        method: 'POST',
-        body: JSON.stringify({
-            map_size: 100,
-            hill_density: 0.5,
-            hill_height: 3,
-            lake_count: 4,
-            river_count: 1
-        }),
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(res => res.json())
-    .then(data => {
-        data.forEach(entry => addSelectedObjectFromData(entry));
-        alert('Landscape generated!');
-    })
-    .catch(err => alert('Landscape generation failed: ' + err));
+    const size = 32;
+    const half = Math.floor(size / 2);
+    const data = [];
+
+    for (let x = -half; x < half; x++) {
+        for (let z = -half; z < half; z++) {
+            const lake = Math.hypot(x + 12, z - 8) < 7 || Math.hypot(x - 16, z + 14) < 5;
+            const river = Math.abs(z - Math.sin(x * 0.18) * 8) < 1.2;
+            const hill = !lake && !river && (
+                Math.hypot(x - 10, z - 12) < 6 ||
+                Math.hypot(x + 18, z + 10) < 5 ||
+                Math.hypot(x, z + 22) < 4
+            );
+
+            let type = 'terrain';
+            if (lake || river) {
+                type = 'water';
+            } else if (hill) {
+                type = 'hill';
+            }
+
+            data.push({
+                position: [x, 0.5, z],
+                rotation: 0,
+                type
+            });
+        }
+    }
+
+    data.forEach(entry => addSelectedObjectFromData(entry));
+    fitCameraToMap();
+    alert('Landscape generated!');
 }
 
 function generateDungeon() {

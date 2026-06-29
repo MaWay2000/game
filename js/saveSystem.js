@@ -1,4 +1,5 @@
 const SAVE_STORAGE_KEY = 'onslaught:save-data';
+const STATS_STORAGE_KEY = 'onslaught:save-stats';
 const SAVE_VERSION = 1;
 
 function hasLocalStorage() {
@@ -85,6 +86,73 @@ function sanitizePlayerState(player) {
     return sanitized;
 }
 
+function sanitizeStatsState(stats) {
+    if (!stats || typeof stats !== 'object') {
+        return {};
+    }
+    const zombieKillCount = clampNumber(stats.zombieKillCount ?? stats.killCount, 0, 1000000);
+    const coinCount = clampNumber(stats.coinCount ?? stats.coins, 0, 1000000);
+    const sanitized = {};
+    if (zombieKillCount !== null) {
+        sanitized.zombieKillCount = Math.floor(zombieKillCount);
+    }
+    if (coinCount !== null) {
+        sanitized.coinCount = Math.floor(coinCount);
+    }
+    return sanitized;
+}
+
+function hasStats(stats) {
+    return !!stats && typeof stats === 'object' && Object.keys(stats).length > 0;
+}
+
+function readStatsBackup() {
+    if (!hasLocalStorage()) {
+        return null;
+    }
+    try {
+        const raw = window.localStorage.getItem(STATS_STORAGE_KEY);
+        if (!raw) {
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+            return null;
+        }
+        const stats = sanitizeStatsState(parsed.stats);
+        if (!hasStats(stats)) {
+            return null;
+        }
+        return {
+            timestamp: typeof parsed.timestamp === 'number' ? parsed.timestamp : Date.now(),
+            stats
+        };
+    } catch (err) {
+        console.debug('Unable to read saved stats backup:', err);
+        return null;
+    }
+}
+
+function writeStatsBackup(stats) {
+    if (!hasLocalStorage()) {
+        return false;
+    }
+    const sanitizedStats = sanitizeStatsState(stats);
+    if (!hasStats(sanitizedStats)) {
+        return false;
+    }
+    try {
+        window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            stats: sanitizedStats
+        }));
+        return true;
+    } catch (err) {
+        console.warn('Unable to write saved stats backup:', err);
+        return false;
+    }
+}
+
 function sanitizeRemovedKeys(keys) {
     if (!Array.isArray(keys)) {
         return [];
@@ -134,16 +202,68 @@ function sanitizeRemovedKeysByMap(value) {
     return result;
 }
 
+function sanitizeZombieState(state) {
+    if (!state || typeof state !== 'object') {
+        return null;
+    }
+    if (typeof state.key !== 'string' || !state.key) {
+        return null;
+    }
+    const position = sanitizeVector3(state.position);
+    if (!position) {
+        return null;
+    }
+    const hp = clampNumber(state.hp, 0, 10000);
+    const rotation = clampNumber(state.rotation ?? state.rotationY ?? 0, -Math.PI * 8, Math.PI * 8) ?? 0;
+    const sanitized = {
+        key: state.key,
+        type: typeof state.type === 'string' ? state.type : '',
+        position,
+        rotation,
+        hp: hp === null ? 10 : hp
+    };
+    return sanitized;
+}
+
+function sanitizeZombieStatesByMap(value) {
+    if (!value || typeof value !== 'object') {
+        return {};
+    }
+    const result = {};
+    for (const [mapPath, states] of Object.entries(value)) {
+        const sanitizedPath = sanitizeMapPath(mapPath);
+        if (!sanitizedPath || !Array.isArray(states)) {
+            continue;
+        }
+        const sanitizedStates = [];
+        const seen = new Set();
+        for (let i = 0; i < states.length; i++) {
+            const state = sanitizeZombieState(states[i]);
+            if (!state || seen.has(state.key)) {
+                continue;
+            }
+            seen.add(state.key);
+            sanitizedStates.push(state);
+        }
+        result[sanitizedPath] = sanitizedStates;
+    }
+    return result;
+}
+
 function sanitizeWorldState(world) {
     if (!world || typeof world !== 'object') {
-        return { removedObjectKeys: [], removedObjectKeysByMap: {} };
+        return { removedObjectKeys: [], removedObjectKeysByMap: {}, zombiesByMap: {}, killedZombieKeysByMap: {} };
     }
     const mapPath = sanitizeMapPath(world.mapPath);
     const removedObjectKeys = sanitizeRemovedKeys(world.removedObjectKeys);
     const removedObjectKeysByMap = sanitizeRemovedKeysByMap(world.removedObjectKeysByMap);
+    const zombiesByMap = sanitizeZombieStatesByMap(world.zombiesByMap);
+    const killedZombieKeysByMap = sanitizeRemovedKeysByMap(world.killedZombieKeysByMap);
     const sanitized = {
         removedObjectKeys,
-        removedObjectKeysByMap
+        removedObjectKeysByMap,
+        zombiesByMap,
+        killedZombieKeysByMap
     };
     if (mapPath) {
         sanitized.mapPath = mapPath;
@@ -158,24 +278,60 @@ export function readSaveData() {
     try {
         const raw = window.localStorage.getItem(SAVE_STORAGE_KEY);
         if (!raw) {
-            return null;
+            const backup = readStatsBackup();
+            if (!backup) {
+                return null;
+            }
+            return {
+                version: SAVE_VERSION,
+                timestamp: backup.timestamp,
+                player: {},
+                world: sanitizeWorldState(null),
+                stats: backup.stats
+            };
         }
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== 'object') {
-            return null;
+            const backup = readStatsBackup();
+            if (!backup) {
+                return null;
+            }
+            return {
+                version: SAVE_VERSION,
+                timestamp: backup.timestamp,
+                player: {},
+                world: sanitizeWorldState(null),
+                stats: backup.stats
+            };
         }
         const player = sanitizePlayerState(parsed.player);
         const world = sanitizeWorldState(parsed.world);
+        const backup = readStatsBackup();
         const timestamp = typeof parsed.timestamp === 'number' ? parsed.timestamp : Date.now();
+        const savedStats = sanitizeStatsState(parsed.stats);
+        const stats = (backup && (!hasStats(savedStats) || backup.timestamp >= timestamp))
+            ? { ...savedStats, ...backup.stats }
+            : { ...(backup ? backup.stats : {}), ...savedStats };
         return {
             version: SAVE_VERSION,
             timestamp,
             player,
-            world
+            world,
+            stats
         };
     } catch (err) {
         console.debug('Unable to read saved progress:', err);
-        return null;
+        const backup = readStatsBackup();
+        if (!backup) {
+            return null;
+        }
+        return {
+            version: SAVE_VERSION,
+            timestamp: backup.timestamp,
+            player: {},
+            world: sanitizeWorldState(null),
+            stats: backup.stats
+        };
     }
 }
 
@@ -186,18 +342,21 @@ export function writeSaveData(data) {
     if (!data || typeof data !== 'object') {
         return false;
     }
+    const stats = sanitizeStatsState(data.stats);
+    const statsSaved = writeStatsBackup(stats);
     try {
         const payload = {
             version: SAVE_VERSION,
             timestamp: Date.now(),
             player: sanitizePlayerState(data.player),
-            world: sanitizeWorldState(data.world)
+            world: sanitizeWorldState(data.world),
+            stats
         };
         window.localStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(payload));
         return true;
     } catch (err) {
-        console.debug('Unable to write saved progress:', err);
-        return false;
+        console.warn('Unable to write saved progress:', err);
+        return statsSaved || writeStatsBackup(stats);
     }
 }
 
@@ -207,6 +366,7 @@ export function clearSaveData() {
     }
     try {
         window.localStorage.removeItem(SAVE_STORAGE_KEY);
+        window.localStorage.removeItem(STATS_STORAGE_KEY);
         return true;
     } catch (err) {
         console.debug('Unable to clear saved progress:', err);

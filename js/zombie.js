@@ -3,6 +3,7 @@
 import { getLoadedObjects, getAllObjects, getSafeZones } from './mapLoader.js';
 
 let zombies = [];
+let zombieSaveCounter = 0;
 let zombieTypeIds = null;
 let loadingManager = THREE.DefaultLoadingManager;
 const DEFAULT_ZOMBIE_SIZE = [0.7, 1.8, 0.7];
@@ -760,6 +761,32 @@ function toVector3(pos) {
     return null;
 }
 
+function formatSaveCoord(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric.toFixed(3) : '0.000';
+}
+
+function createMapZombieSaveKey(type, position, rotation, index) {
+    const pos = toVector3(position) || new THREE.Vector3();
+    return `map|${type || 'zombie'}|${formatSaveCoord(pos.x)}|${formatSaveCoord(pos.y)}|${formatSaveCoord(pos.z)}|${formatSaveCoord(rotation || 0)}|${index}`;
+}
+
+function createGeneratedZombieSaveKey(type) {
+    zombieSaveCounter += 1;
+    return `generated|${Date.now().toString(36)}|${zombieSaveCounter}|${type || 'zombie'}`;
+}
+
+function ensureZombieSaveKey(zombie, fallbackKey = null) {
+    if (!zombie) {
+        return null;
+    }
+    zombie.userData = zombie.userData || {};
+    if (!zombie.userData.saveKey) {
+        zombie.userData.saveKey = fallbackKey || createGeneratedZombieSaveKey(zombie.userData.type);
+    }
+    return zombie.userData.saveKey;
+}
+
 async function buildZombieMesh({ type, position, rotation = 0, rule = null, template = null }) {
     const resolvedRule = await resolveZombieRule(type, rule);
     const definition = await getZombieDefinition(type);
@@ -852,6 +879,7 @@ export async function spawnZombiesFromMap(scene, mapObjects, models, materials) 
         mapObjects[i] = zombieMesh;
 
         zombieMesh.userData.hp = zombieMesh.userData.hp ?? 10;
+        ensureZombieSaveKey(zombieMesh, createMapZombieSaveKey(objType, obj.position, rotationY, i));
         zombieMesh.userData.spotDistance = zombieMesh.userData.spotDistance ?? zombieMesh.userData.aggro_range ?? 8;
         zombieMesh.userData.speed = zombieMesh.userData.speed ?? 0.03;
         zombieMesh.userData.attackCooldown = zombieMesh.userData.attackCooldown ?? 1;
@@ -915,6 +943,7 @@ export async function spawnRandomZombies(scene, count, walkablePositions = []) {
         }
 
         scene.add(zombieMesh);
+        ensureZombieSaveKey(zombieMesh);
         zombies.push(zombieMesh);
         spawned.push(zombieMesh);
         occupied.add(key);
@@ -929,6 +958,89 @@ export async function spawnRandomZombies(scene, count, walkablePositions = []) {
 
 // Returns all zombie meshes
 export function getZombies() {
+    return zombies;
+}
+
+export function collectZombieStates() {
+    return zombies
+        .filter(zombie => zombie && zombie.userData && !zombie.userData._dead && (zombie.userData.hp ?? 0) > 0)
+        .map(zombie => ({
+            key: ensureZombieSaveKey(zombie),
+            type: zombie.userData.type || '',
+            position: {
+                x: zombie.position.x,
+                y: zombie.position.y,
+                z: zombie.position.z
+            },
+            rotation: zombie.rotation ? zombie.rotation.y : 0,
+            hp: zombie.userData.hp ?? 10
+        }))
+        .filter(state => state.key);
+}
+
+export async function restoreZombieStates(scene, states, models, materials, killedKeys = []) {
+    if (!scene || !Array.isArray(states)) {
+        return [];
+    }
+
+    cacheZombieAssets(models, materials);
+    const killed = new Set(Array.isArray(killedKeys) ? killedKeys : []);
+
+    for (let i = zombies.length - 1; i >= 0; i--) {
+        const zombie = zombies[i];
+        const key = ensureZombieSaveKey(zombie);
+        if (!key || !killed.has(key)) {
+            continue;
+        }
+        removeZombieFromGrid(zombie);
+        if (zombie.parent) {
+            zombie.parent.remove(zombie);
+        }
+        zombies.splice(i, 1);
+        const loadedObjects = getLoadedObjects();
+        const loadedIdx = loadedObjects.indexOf(zombie);
+        if (loadedIdx !== -1) {
+            loadedObjects.splice(loadedIdx, 1);
+        }
+    }
+
+    const existingByKey = new Map();
+    zombies.forEach(zombie => {
+        const key = ensureZombieSaveKey(zombie);
+        if (key) {
+            existingByKey.set(key, zombie);
+        }
+    });
+
+    for (let i = 0; i < states.length; i++) {
+        const state = states[i];
+        if (!state || !state.key || killed.has(state.key) || (state.hp ?? 0) <= 0) {
+            continue;
+        }
+        let zombieMesh = existingByKey.get(state.key);
+        if (!zombieMesh) {
+            const built = await buildZombieMesh({
+                type: state.type || undefined,
+                position: state.position,
+                rotation: state.rotation || 0
+            });
+            zombieMesh = built.mesh;
+            if (!zombieMesh) {
+                continue;
+            }
+            scene.add(zombieMesh);
+            zombies.push(zombieMesh);
+        }
+        ensureZombieSaveKey(zombieMesh, state.key);
+        zombieMesh.position.copy(toVector3(state.position) || zombieMesh.position);
+        zombieMesh.rotation.y = state.rotation || 0;
+        zombieMesh.userData.hp = state.hp ?? zombieMesh.userData.hp ?? 10;
+        zombieMesh.userData._dead = false;
+        zombieMesh.visible = true;
+        zombieMesh.userData._lastValidPos = zombieMesh.position.clone();
+    }
+
+    rebuildZombieGrid();
     return zombies;
 }
 
@@ -1415,6 +1527,8 @@ export function updateZombies(delta, playerObj, onPlayerHit, playerState = {}) {
 
 // Damage zombie and apply knockback/animation reset
 export function damageZombie(zombie, dmg, hitDir, hitPos) {
+    ensureZombieSaveKey(zombie);
+
     // Reduce health
     zombie.userData.hp -= dmg;
 
