@@ -511,5 +511,104 @@
     ],
     "rotation": 0,
     "type": "3d car"
+  },
+  {
+    "position": [
+      -78,
+      0.5,
+      -36
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "3d car"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
   }
 ]

@@ -1,13 +1,13 @@
-import { generateDungeonGrid, dungeonToObjects } from './editor-generators.js';
-
 const canvas = document.getElementById('editorCanvas');
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
 // Scene and Camera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-camera.position.set(0, 1.6, 0);
+camera.position.set(0, 18, 18);
+camera.lookAt(0, 0, 0);
 
 const cameraContainer = new THREE.Object3D();
 cameraContainer.add(camera);
@@ -83,38 +83,28 @@ let selectedObject = null;
 const keys = {};
 let isMouseDown = false;
 
-const loader = new THREE.GLTFLoader();
-
 // Load ALL object types at startup
 function loadAllTypes() {
-    fetch('mapmaker.php?list_json_files=1')
+    fetch('objects.json')
         .then(res => res.json())
-        .then(types => {
-            objectTypeList = types;
-            let loadPromises = types.map(type => fetch(`${type}.json`).then(r => r.json()));
-            Promise.all(loadPromises).then(typeObjectsArrays => {
-                types.forEach((type, i) => {
-                    objectDataByType[type] = typeObjectsArrays[i];
-                    typeObjectsArrays[i].forEach(obj => {
-                        allObjectData[obj.id] = obj;
-                        // Pre-cache geometry/material/model
-                        if (obj.model && !allModelsLoaded[obj.id]) {
-                            loader.load(obj.model, gltf => {
-                                allModels[obj.id] = gltf.scene;
-                                allModelsLoaded[obj.id] = true;
-                            });
-                        } else {
-                            allGeometries[obj.id] = new THREE.BoxGeometry(...(obj.size || [1, 1, 1]));
-                            allMaterials[obj.id] = new THREE.MeshLambertMaterial({
-                                color: obj.color || '#999999',
-                                opacity: 0.5,
-                                transparent: true,
-                            });
-                        }
-                    });
+        .then(objects => {
+            objectTypeList = ['objects'];
+            objectDataByType.objects = objects;
+            objects.forEach(obj => {
+                allObjectData[obj.id] = obj;
+                // Pre-cache geometry/material/model
+                allGeometries[obj.id] = new THREE.BoxGeometry(...(obj.size || [1, 1, 1]));
+                allMaterials[obj.id] = new THREE.MeshLambertMaterial({
+                    color: obj.color || '#999999',
+                    opacity: 0.5,
+                    transparent: true,
                 });
-                populateTypeDropdown();
             });
+            populateTypeDropdown();
+        })
+        .catch(err => {
+            console.error('Failed to load objects.json:', err);
+            alert('Failed to load objects.json');
         });
 }
 
@@ -254,6 +244,7 @@ function addSelectedObjectFromData(entry) {
 }
 
 function addSelectedObject() {
+    if (!tempItem) return;
     addSelectedObjectFromData({
         position: tempItem.position.toArray(),
         rotation: currentRotation,
@@ -339,6 +330,12 @@ document.addEventListener('mousemove', (e) => {
 
 window.addEventListener('wheel', e => camera.position.y += e.deltaY * 0.01);
 
+window.addEventListener('resize', () => {
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+});
+
 function saveMap() {
     const mapData = objects.map(obj => ({
         position: obj.position.toArray(),
@@ -346,24 +343,88 @@ function saveMap() {
         type: obj.userData.type || 'unknown'
     }));
 
-    fetch('save_map.php', {
-        method: 'POST',
-        body: JSON.stringify(mapData),
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(res => res.json())
-    .then(result => alert(result.message || 'Saved!'))
-    .catch(err => alert('Error saving map: ' + err));
+    const json = JSON.stringify(mapData, null, 2);
+    saveMapJson(json).catch(err => alert('Error saving map: ' + err));
 }
 
-function loadMap() {
-    fetch('load_map.php')
-        .then(res => res.json())
+async function saveMapJson(json) {
+    const mapSelect = document.getElementById('mapSelect');
+    const selectedPath = mapSelect && mapSelect.value ? mapSelect.value : 'saved_map.json';
+    const suggestedName = selectedPath.split('/').pop() || 'saved_map.json';
+
+    if (window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+            suggestedName,
+            types: [{
+                description: 'JSON map file',
+                accept: { 'application/json': ['.json'] }
+            }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        alert(`Map saved: ${suggestedName}`);
+        return;
+    }
+
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = suggestedName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    alert(`Map exported: ${suggestedName}`);
+}
+
+function loadMap(path = 'saved_map.json') {
+    const requestPath = path + (path.includes('?') ? '&' : '?') + 'v=' + Date.now();
+    fetch(requestPath, { cache: 'no-store' })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`${res.status} ${res.statusText}`);
+            }
+            return res.json();
+        })
         .then(data => {
             clearMap();
             data.forEach(entry => addSelectedObjectFromData(entry));
-            alert('Map loaded!');
-        });
+            fitCameraToMap();
+            alert(`Map loaded: ${path}`);
+        })
+        .catch(err => alert('Error loading map: ' + err));
+}
+
+function loadSelectedMap() {
+    const mapSelect = document.getElementById('mapSelect');
+    const path = mapSelect && mapSelect.value ? mapSelect.value : 'saved_map.json';
+    loadMap(path);
+}
+
+function fitCameraToMap() {
+    if (!objects.length) {
+        cameraContainer.position.set(0, 0, 0);
+        camera.position.set(0, 18, 18);
+        camera.lookAt(0, 0, 0);
+        return;
+    }
+
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    objects.forEach(obj => {
+        minX = Math.min(minX, obj.position.x);
+        maxX = Math.max(maxX, obj.position.x);
+        minZ = Math.min(minZ, obj.position.z);
+        maxZ = Math.max(maxZ, obj.position.z);
+    });
+
+    const centerX = (minX + maxX) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+    const span = Math.max(maxX - minX, maxZ - minZ, 20);
+    cameraContainer.position.set(centerX, 0, centerZ);
+    camera.position.set(0, Math.min(Math.max(span * 0.5, 18), 180), Math.min(Math.max(span * 0.5, 18), 180));
+    camera.lookAt(0, 0, 0);
 }
 
 function clearMap() {
@@ -408,6 +469,7 @@ function generateDungeon() {
 // Make button/HTML-called functions available globally:
 window.saveMap = saveMap;
 window.loadMap = loadMap;
+window.loadSelectedMap = loadSelectedMap;
 window.addSelectedObject = addSelectedObject;
 window.removeObject = removeObject;
 window.updateSelectedObject = updateSelectedObject;

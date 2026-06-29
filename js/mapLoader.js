@@ -431,7 +431,8 @@ export async function loadMap(scene, mapPath = 'maps/home.json') {
     }
     let resMap;
     try {
-        resMap = await fetch(targetMapPath);
+        const mapRequestPath = targetMapPath + (targetMapPath.includes('?') ? '&' : '?') + 'v=' + Date.now();
+        resMap = await fetch(mapRequestPath, { cache: 'no-store' });
     } catch (error) {
         console.error('Failed to fetch map data.', error);
         if (loadingManager && typeof loadingManager.itemEnd === 'function') {

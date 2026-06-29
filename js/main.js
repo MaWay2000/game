@@ -21,13 +21,13 @@ import {
   isFullMapVisible,
   recordRemovedObjectKey,
   syncRemovedObjectKeys
-} from './minimap.js';
+} from './minimap.js?v=map-ui-fix-20260629';
 import { addPistolToCamera, shootPistol, updateBullets, setPistolEnabled, getPistolState, setPistolState } from './pistol.js';
 import { initCrosshair, drawCrosshair, positionCrosshair, setCrosshairVisible } from './crosshair.js';
 import { updateDoors } from './doors.js';
 import { setupZoom } from './zoom.js';
-import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager, clearZombies } from './zombie.js';
-import { setupTorch, updateTorchTarget, updateTorchFlicker } from './torch.js';
+import { spawnZombiesFromMap, spawnRandomZombies, updateZombies, updateBloodEffects, initZombieSettingsUI, registerLoadingManager as registerZombieLoadingManager, clearZombies, setZombieSettingsVisible, toggleZombieSettingsVisible, getZombieSettingsContainer } from './zombie.js';
+import { setupTorch, updateTorchTarget, updateTorchFlicker, getTorchBeamMode, setTorchBeamMode } from './torch.js';
 import { readSaveData, writeSaveData, clearSaveData } from './saveSystem.js';
 
 // --- Scene and Camera setup ---
@@ -61,6 +61,8 @@ const DEFAULT_MAP_PATH = HOME_MAP_PATH;
 const MAP_RANDOM_ZOMBIES_DISABLED = new Set([HOME_MAP_PATH]);
 const CAR_INTERACT_DISTANCE = 2.5;
 const CAR_INTERACT_DISTANCE_SQ = CAR_INTERACT_DISTANCE * CAR_INTERACT_DISTANCE;
+let settingsButton = null;
+let godsSunToggleInput = null;
 const MAP_TRANSITIONS = {
   [HOME_MAP_PATH]: {
     targetMap: DUNGEON_MAP_PATH,
@@ -248,6 +250,124 @@ if (canPointerLock) {
     isPointerLocked = false;
   });
   updatePointerLockState();
+}
+
+function isFullscreenActive() {
+  return Boolean(document.fullscreenElement);
+}
+
+function updateSettingsButtonVisibility() {
+  if (!settingsButton) {
+    return;
+  }
+  settingsButton.style.display = isFullscreenActive() ? 'none' : 'block';
+}
+
+function initSettingsButton() {
+  if (settingsButton || typeof document === 'undefined') {
+    return;
+  }
+
+  settingsButton = document.createElement('button');
+  settingsButton.type = 'button';
+  settingsButton.textContent = 'Settings';
+  settingsButton.style.position = 'fixed';
+  settingsButton.style.left = '16px';
+  settingsButton.style.top = '16px';
+  settingsButton.style.zIndex = '180';
+  settingsButton.style.padding = '8px 12px';
+  settingsButton.style.border = '1px solid rgba(120,220,255,0.85)';
+  settingsButton.style.borderRadius = '6px';
+  settingsButton.style.background = 'rgba(0,0,0,0.72)';
+  settingsButton.style.color = '#ffffff';
+  settingsButton.style.font = 'bold 13px Arial, sans-serif';
+  settingsButton.style.letterSpacing = '0.5px';
+  settingsButton.style.textTransform = 'uppercase';
+  settingsButton.style.cursor = 'pointer';
+  settingsButton.style.boxShadow = '0 0 12px rgba(91,214,255,0.25)';
+  settingsButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleZombieSettingsVisible();
+  });
+  document.body.appendChild(settingsButton);
+  document.addEventListener('fullscreenchange', updateSettingsButtonVisibility);
+  updateSettingsButtonVisibility();
+}
+
+function setGodsSunEnabled(enabled) {
+  godsSun.visible = Boolean(enabled);
+  torch.visible = !godsSun.visible;
+  if (godsSunToggleInput) {
+    godsSunToggleInput.checked = godsSun.visible;
+  }
+}
+
+function initLightingSettingsUI() {
+  const container = getZombieSettingsContainer();
+  if (!container || container.querySelector('[data-lighting-settings="true"]')) {
+    return;
+  }
+
+  const section = document.createElement('div');
+  section.dataset.lightingSettings = 'true';
+  section.style.marginTop = '12px';
+  section.style.paddingTop = '10px';
+  section.style.borderTop = '1px solid rgba(255,255,255,0.18)';
+
+  const title = document.createElement('div');
+  title.textContent = 'Lighting';
+  title.style.fontWeight = 'bold';
+  title.style.marginBottom = '8px';
+  section.appendChild(title);
+
+  const beamLabel = document.createElement('label');
+  beamLabel.textContent = 'Torch beam';
+  beamLabel.style.display = 'flex';
+  beamLabel.style.alignItems = 'center';
+  beamLabel.style.justifyContent = 'space-between';
+  beamLabel.style.gap = '10px';
+  beamLabel.style.marginBottom = '8px';
+
+  const beamSelect = document.createElement('select');
+  beamSelect.style.background = 'rgba(0,0,0,0.65)';
+  beamSelect.style.color = '#ffffff';
+  beamSelect.style.border = '1px solid rgba(120,220,255,0.7)';
+  beamSelect.style.borderRadius = '4px';
+  beamSelect.style.padding = '3px 6px';
+  [
+    ['normal', 'Normal'],
+    ['wide', 'Wide']
+  ].forEach(([value, label]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    beamSelect.appendChild(option);
+  });
+  beamSelect.value = getTorchBeamMode();
+  beamSelect.addEventListener('change', () => {
+    setTorchBeamMode(beamSelect.value);
+  });
+  beamLabel.appendChild(beamSelect);
+  section.appendChild(beamLabel);
+
+  const sunLabel = document.createElement('label');
+  sunLabel.style.display = 'flex';
+  sunLabel.style.alignItems = 'center';
+  sunLabel.style.justifyContent = 'space-between';
+  sunLabel.style.gap = '10px';
+  sunLabel.textContent = 'Gods sun';
+
+  godsSunToggleInput = document.createElement('input');
+  godsSunToggleInput.type = 'checkbox';
+  godsSunToggleInput.checked = godsSun.visible;
+  godsSunToggleInput.addEventListener('change', () => {
+    setGodsSunEnabled(godsSunToggleInput.checked);
+  });
+  sunLabel.appendChild(godsSunToggleInput);
+  section.appendChild(sunLabel);
+
+  container.appendChild(section);
 }
 
 const loadingOverlay = document.getElementById('loading-overlay');
@@ -1028,6 +1148,9 @@ if (!loadingOverlayHidden) {
   setLoadingMessageFromLabel('settings');
 }
 initZombieSettingsUI();
+initLightingSettingsUI();
+setZombieSettingsVisible(false);
+initSettingsButton();
 restorePlayerStateFromSave();
 
 document.addEventListener('mousedown', (e) => {
@@ -1036,8 +1159,30 @@ document.addEventListener('mousedown', (e) => {
   if (e.button === 0) shootPistol(scene, camera);
 });
 
+let lastMapToggleAt = 0;
+
+function isMapKeyEvent(e) {
+  return e.code === 'KeyM' || (typeof e.key === 'string' && e.key.toLowerCase() === 'm');
+}
+
+function handleMapKey(e) {
+  if (!isMapKeyEvent(e) || e.repeat || isPlayerDead) {
+    return;
+  }
+  const now = performance.now();
+  if (now - lastMapToggleAt < 250) {
+    return;
+  }
+  if (isPointInsideSafeZone(cameraContainer?.position) && !isFullMapVisible()) {
+    return;
+  }
+  lastMapToggleAt = now;
+  e.preventDefault();
+  toggleFullMap(cameraContainer, camera);
+}
+
 // Toggle "Gods sun" spotlight with the L key
-document.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyI' && !e.repeat) {
     toggleStatsVisibility();
   }
@@ -1046,19 +1191,12 @@ document.addEventListener('keydown', (e) => {
   }
   if (isPlayerDead) return;
   if (e.code === 'KeyL') {
-    godsSun.visible = !godsSun.visible;
-    torch.visible = !godsSun.visible;
+    setGodsSunEnabled(!godsSun.visible);
   }
-  if (e.code === 'KeyM') {
-    if (isPointInsideSafeZone(cameraContainer?.position)) {
-      if (isFullMapVisible()) {
-        toggleFullMap(cameraContainer, camera);
-      }
-      return;
-    }
-    toggleFullMap(cameraContainer, camera);
-  }
+  handleMapKey(e);
 });
+
+window.addEventListener('keyup', handleMapKey);
 
 // React to zombie deaths with a flash and screen shake
 window.addEventListener('zombieKilled', () => {
@@ -1120,7 +1258,7 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
 
-  movement.update();
+  movement.update(delta);
   applyKnockback(delta);
   applyShake(delta);
 
@@ -1158,7 +1296,13 @@ window.addEventListener('beforeunload', () => {
   saveGameState();
 });
 
-window.onload = () => {
+function startGameLoop() {
   positionCrosshair();
   animate();
-};
+}
+
+if (document.readyState === 'complete') {
+  startGameLoop();
+} else {
+  window.addEventListener('load', startGameLoop, { once: true });
+}

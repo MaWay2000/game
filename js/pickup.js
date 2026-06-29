@@ -1,5 +1,25 @@
 import { getLoadedObjects, markObjectRemoved, getObjectSaveKey } from './mapLoader.js';
 
+const fallbackPickupBox = new THREE.Box3();
+
+function getPickupBox(obj) {
+    const ud = obj && obj.userData;
+    const cached = ud && ud._bbox;
+    if (
+        cached instanceof THREE.Box3 &&
+        ud._bboxPos instanceof THREE.Vector3 &&
+        ud._bboxQuat instanceof THREE.Quaternion &&
+        ud._bboxScale instanceof THREE.Vector3 &&
+        ud._bboxPos.equals(obj.position) &&
+        ud._bboxQuat.equals(obj.quaternion) &&
+        ud._bboxScale.equals(obj.scale)
+    ) {
+        return cached;
+    }
+
+    return fallbackPickupBox.setFromObject(obj);
+}
+
 export function checkPickups(cameraContainer, scene) {
     const playerBox = new THREE.Box3().setFromCenterAndSize(
         new THREE.Vector3(cameraContainer.position.x, 1.6, cameraContainer.position.z),
@@ -14,7 +34,7 @@ export function checkPickups(cameraContainer, scene) {
         const obj = objects[i];
         const rules = obj.userData.rules || {};
         if (rules.pickup) {
-            const box = new THREE.Box3().setFromObject(obj);
+            const box = getPickupBox(obj);
             if (!playerBox.intersectsBox(box)) {
                 continue;
             }

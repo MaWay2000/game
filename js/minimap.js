@@ -1,11 +1,20 @@
 let canvas, ctx;
+let mapNameLabel;
 let fullCanvas, fullCtx;
 let fullVisible = false;
 let fullMapData = null;
+let minimapData = null;
+let minimapDataPath = null;
+let minimapDataPromise = null;
+let minimapObjects = [];
+let minimapObjectGrid = new Map();
 let mapSource = 'maps/home.json';
 let minimapEnabled = true;
+let latestPlayer = null;
+let latestCamera = null;
 const SIZE = 150; // minimap size in pixels
 const SCALE = 4; // pixels per world unit
+const MINIMAP_GRID_SIZE = 10;
 // Track explored cells so the full map only reveals visited areas
 const exploredCells = new Set();
 const rayOrigin = new THREE.Vector3();
@@ -14,6 +23,11 @@ const rayHelper = new THREE.Ray();
 const rayIntersection = new THREE.Vector3();
 const playerHeightFallback = 1.6;
 const removedObjectKeys = new Set();
+
+function fetchFreshMapJson(path) {
+    const requestPath = path + (path.includes('?') ? '&' : '?') + 'v=' + Date.now();
+    return fetch(requestPath, { cache: 'no-store' }).then(res => res.json());
+}
 
 function roundForKey(value) {
     const numeric = Number(value) || 0;
@@ -73,21 +87,71 @@ export function initMinimap() {
     canvas.style.border = '2px solid white';
     canvas.style.background = 'rgba(0,0,0,0.4)';
     canvas.style.zIndex = '100';
+    canvas.style.cursor = 'pointer';
+    canvas.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (latestPlayer && latestCamera) {
+            toggleFullMap(latestPlayer, latestCamera);
+        }
+    });
     document.body.appendChild(canvas);
     ctx = canvas.getContext('2d');
+    mapNameLabel = document.createElement('div');
+    mapNameLabel.id = 'minimap-map-name';
+    mapNameLabel.style.position = 'absolute';
+    mapNameLabel.style.top = `${SIZE + 18}px`;
+    mapNameLabel.style.right = '10px';
+    mapNameLabel.style.width = `${SIZE}px`;
+    mapNameLabel.style.padding = '5px 2px';
+    mapNameLabel.style.boxSizing = 'border-box';
+    mapNameLabel.style.border = '1px solid rgba(120,220,255,0.9)';
+    mapNameLabel.style.background = 'rgba(0,0,0,0.75)';
+    mapNameLabel.style.color = '#ffffff';
+    mapNameLabel.style.font = 'bold 13px Arial, sans-serif';
+    mapNameLabel.style.letterSpacing = '0.5px';
+    mapNameLabel.style.textAlign = 'center';
+    mapNameLabel.style.textTransform = 'uppercase';
+    mapNameLabel.style.textShadow = '0 0 6px rgba(91,214,255,0.85)';
+    mapNameLabel.style.zIndex = '100';
+    mapNameLabel.style.pointerEvents = 'none';
+    document.body.appendChild(mapNameLabel);
+    updateMapNameLabel();
+    loadMinimapData();
+    drawPlayerMarker(SIZE / 2, SIZE / 2);
 }
 
 export function updateMinimap(player, camera, objects) {
     if (!ctx || !minimapEnabled) return;
+    latestPlayer = player;
+    latestCamera = camera;
     ctx.clearRect(0, 0, SIZE, SIZE);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(0, 0, SIZE, SIZE);
 
     const half = SIZE / 2;
     const range = half / SCALE; // world units that fit in minimap radius
+    const liveObjects = Array.isArray(objects) ? objects : [];
+    if ((minimapData === null || minimapDataPath !== mapSource) && !minimapDataPromise) {
+        loadMinimapData();
+    }
+    const mapObjects = minimapObjects.length ? getMinimapDataObjects(player, range) : liveObjects;
     // Mark nearby cells as explored based on line of sight
-    markExplored(player, range, objects);
-    // Draw walls that have been explored
+    markExplored(player, range, mapObjects);
+
+    ctx.fillStyle = '#f2f2f2';
+    for (const obj of mapObjects) {
+        if (!obj || !obj.position || !obj.userData || obj.userData.type !== 'terrain') continue;
+        if (!isExplored(obj.position.x, obj.position.z)) continue;
+        const dx = obj.position.x - player.position.x;
+        const dz = obj.position.z - player.position.z;
+        if (Math.abs(dx) > range || Math.abs(dz) > range) continue;
+        const x = half + dx * SCALE;
+        const y = half + dz * SCALE;
+        ctx.fillRect(x - SCALE / 2, y - SCALE / 2, SCALE, SCALE);
+    }
+
     ctx.fillStyle = '#888';
-    for (const obj of objects) {
+    for (const obj of mapObjects) {
         if (!obj || !obj.position || !obj.userData || obj.userData.type !== 'wall') continue;
         if (!isExplored(obj.position.x, obj.position.z)) continue;
         const dx = obj.position.x - player.position.x;
@@ -101,10 +165,10 @@ export function updateMinimap(player, camera, objects) {
         ctx.fillRect(x - w / 2, y - h / 2, w, h);
     }
 
-    // Draw other explored objects relative to player position
-    for (const obj of objects) {
+    for (const obj of mapObjects) {
         if (!obj || !obj.position || !obj.userData) continue;
         if (obj.userData.type === 'wall') continue;
+        if (obj.userData.type === 'terrain') continue;
         if (obj.userData._removed) continue;
         const saveKey = typeof obj.userData.saveKey === 'string' ? obj.userData.saveKey : null;
         if (saveKey && removedObjectKeys.has(saveKey)) continue;
@@ -121,10 +185,7 @@ export function updateMinimap(player, camera, objects) {
     }
 
     // Draw player in center
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.arc(half, half, 4, 0, Math.PI * 2);
-    ctx.fill();
+    drawPlayerMarker(half, half);
 
     // Draw facing direction
     const dir = new THREE.Vector3();
@@ -138,6 +199,128 @@ export function updateMinimap(player, camera, objects) {
     if (fullVisible && fullMapData) {
         drawFullMap(player, camera, fullMapData);
     }
+}
+
+function drawPlayerMarker(x, y) {
+    if (!ctx) return;
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+async function loadMinimapData() {
+    if (minimapDataPromise) {
+        return minimapDataPromise;
+    }
+
+    const requestedPath = mapSource;
+    minimapDataPromise = fetchFreshMapJson(requestedPath)
+        .then(data => {
+            if (requestedPath !== mapSource) {
+                return minimapData;
+            }
+            minimapData = data;
+            minimapDataPath = requestedPath;
+            rebuildMinimapCache();
+            return minimapData;
+        })
+        .catch(e => {
+            if (requestedPath !== mapSource) {
+                return minimapData;
+            }
+            console.warn('Failed to load minimap data', e);
+            minimapData = [];
+            minimapDataPath = requestedPath;
+            minimapObjects = [];
+            minimapObjectGrid.clear();
+            return minimapData;
+        })
+        .finally(() => {
+            minimapDataPromise = null;
+        });
+
+    return minimapDataPromise;
+}
+
+function rebuildMinimapCache() {
+    if (!Array.isArray(minimapData)) {
+        minimapObjects = [];
+        minimapObjectGrid.clear();
+        return;
+    }
+
+    minimapObjects = minimapData.map((item, index) => {
+        const position = parsePosition(item && item.position);
+        const obj = {
+            position: new THREE.Vector3(position.x, position.y, position.z),
+            userData: {
+                type: item && item.type,
+                saveKey: createSaveKeyForMapItem(item, index),
+                rules: {
+                    geometry: item && item.type === 'wall' ? [1, 3, 1] : [1, 1, 1],
+                    collidable: item && item.type === 'wall'
+                }
+            }
+        };
+        return obj;
+    });
+    minimapObjectGrid = new Map();
+    for (const obj of minimapObjects) {
+        const gx = Math.floor(obj.position.x / MINIMAP_GRID_SIZE);
+        const gz = Math.floor(obj.position.z / MINIMAP_GRID_SIZE);
+        const key = `${gx},${gz}`;
+        let bucket = minimapObjectGrid.get(key);
+        if (!bucket) {
+            bucket = [];
+            minimapObjectGrid.set(key, bucket);
+        }
+        bucket.push(obj);
+    }
+}
+
+function getMinimapDataObjects(player, range) {
+    if (!minimapObjects.length) {
+        return [];
+    }
+    if (!player || !player.position || !minimapObjectGrid.size) {
+        return minimapObjects;
+    }
+
+    const gridRange = Math.ceil(range / MINIMAP_GRID_SIZE);
+    const centerX = Math.floor(player.position.x / MINIMAP_GRID_SIZE);
+    const centerZ = Math.floor(player.position.z / MINIMAP_GRID_SIZE);
+    const nearby = [];
+    for (let gx = centerX - gridRange; gx <= centerX + gridRange; gx++) {
+        for (let gz = centerZ - gridRange; gz <= centerZ + gridRange; gz++) {
+            const bucket = minimapObjectGrid.get(`${gx},${gz}`);
+            if (bucket) {
+                nearby.push(...bucket);
+            }
+        }
+    }
+    return nearby;
+}
+
+function updateMapNameLabel() {
+    if (!mapNameLabel) {
+        return;
+    }
+
+    mapNameLabel.textContent = getMapDisplayName(mapSource);
+}
+
+function getMapDisplayName(path) {
+    const fileName = String(path || '')
+        .split('/')
+        .pop()
+        .replace(/\.[^.]+$/, '');
+    const normalized = fileName.replace(/[-_]+/g, ' ').trim();
+    if (!normalized) {
+        return 'Unknown Map';
+    }
+
+    return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export async function toggleFullMap(player, camera) {
@@ -165,8 +348,7 @@ export async function toggleFullMap(player, camera) {
     if (fullVisible) {
         if (!fullMapData) {
             try {
-                const res = await fetch(mapSource);
-                fullMapData = await res.json();
+                fullMapData = await fetchFreshMapJson(mapSource);
             } catch (e) {
                 console.error('Failed to load full map data', e);
                 fullMapData = [];
@@ -190,7 +372,14 @@ export function setMinimapMapSource(path) {
     }
     mapSource = trimmed;
     fullMapData = null;
+    minimapData = null;
+    minimapDataPath = null;
+    minimapDataPromise = null;
+    minimapObjects = [];
+    minimapObjectGrid.clear();
     exploredCells.clear();
+    updateMapNameLabel();
+    loadMinimapData();
 }
 
 export function setMinimapEnabled(enabled) {
@@ -198,6 +387,9 @@ export function setMinimapEnabled(enabled) {
 
     if (canvas) {
         canvas.style.display = enabled ? 'block' : 'none';
+        if (mapNameLabel) {
+            mapNameLabel.style.display = enabled ? 'block' : 'none';
+        }
         if (!enabled && ctx) {
             ctx.clearRect(0, 0, SIZE, SIZE);
         }
@@ -372,6 +564,19 @@ function extractOccluderBounds(objects) {
 
 function getCachedBoundingBox(obj) {
     const ud = obj.userData || (obj.userData = {});
+    if (typeof obj.updateMatrixWorld !== 'function') {
+        const geo = ud.rules && Array.isArray(ud.rules.geometry) ? ud.rules.geometry : [1, 1, 1];
+        const halfX = (Number(geo[0]) || 1) / 2;
+        const halfY = (Number(geo[1]) || 1) / 2;
+        const halfZ = (Number(geo[2]) || 1) / 2;
+        const pos = obj.position || { x: 0, y: 0, z: 0 };
+        const box = ud._bbox instanceof THREE.Box3 ? ud._bbox : new THREE.Box3();
+        box.min.set(pos.x - halfX, pos.y - halfY, pos.z - halfZ);
+        box.max.set(pos.x + halfX, pos.y + halfY, pos.z + halfZ);
+        ud._bbox = box;
+        return box;
+    }
+
     const hasBox = ud._bbox instanceof THREE.Box3;
     const posMatches = hasBox && ud._bboxPos instanceof THREE.Vector3 && ud._bboxPos.equals(obj.position);
     const quatMatches = hasBox && ud._bboxQuat instanceof THREE.Quaternion && ud._bboxQuat.equals(obj.quaternion);

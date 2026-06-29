@@ -440,6 +440,26 @@ export function initZombieSettingsUI() {
     updateZombieSettingsDisplay(smoothedZombieActiveDistance);
 }
 
+export function setZombieSettingsVisible(visible) {
+    if (!zombieSettingsUI || !zombieSettingsUI.container) {
+        return;
+    }
+    zombieSettingsUI.container.style.display = visible ? 'block' : 'none';
+}
+
+export function toggleZombieSettingsVisible() {
+    if (!zombieSettingsUI || !zombieSettingsUI.container) {
+        return false;
+    }
+    const isHidden = zombieSettingsUI.container.style.display === 'none';
+    setZombieSettingsVisible(isHidden);
+    return isHidden;
+}
+
+export function getZombieSettingsContainer() {
+    return zombieSettingsUI ? zombieSettingsUI.container : null;
+}
+
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
