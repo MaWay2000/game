@@ -510,7 +510,10 @@
       0
     ],
     "rotation": 0,
-    "type": "3d car"
+    "type": "3d car",
+    "teleport": {
+      "targetMap": "saved_map.json"
+    }
   },
   {
     "position": [
@@ -574,15 +577,6 @@
     ],
     "rotation": 0,
     "type": "terrain"
-  },
-  {
-    "position": [
-      -4,
-      0.5,
-      6
-    ],
-    "rotation": 0,
-    "type": "3d car"
   },
   {
     "position": [
@@ -681,7 +675,10 @@
       10
     ],
     "rotation": 0,
-    "type": "teleport"
+    "type": "teleport",
+    "teleport": {
+      "targetMap": "saved_map.json"
+    }
   },
   {
     "position": [
@@ -691,5 +688,41 @@
     ],
     "rotation": 0,
     "type": "test111"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "3d car",
+    "teleport": {
+      "targetMap": "maps/test.json"
+    }
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "3d car",
+    "teleport": {
+      "targetMap": "maps/test2.json"
+    }
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "3d car",
+    "teleport": {
+      "targetMap": "maps/test3.json"
+    }
   }
 ]

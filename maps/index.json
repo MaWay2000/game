@@ -1,0 +1,18 @@
+[
+  {
+    "path": "maps/home.json",
+    "label": "Home"
+  },
+  {
+    "path": "maps/test.json",
+    "label": "Test"
+  },
+  {
+    "path": "maps/test2.json",
+    "label": "Test2"
+  },
+  {
+    "path": "maps/test3.json",
+    "label": "Test3"
+  }
+]

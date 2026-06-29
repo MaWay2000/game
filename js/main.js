@@ -61,6 +61,7 @@ const DEFAULT_MAP_PATH = HOME_MAP_PATH;
 const MAP_RANDOM_ZOMBIES_DISABLED = new Set([HOME_MAP_PATH]);
 const CAR_INTERACT_DISTANCE = 2.5;
 const CAR_INTERACT_DISTANCE_SQ = CAR_INTERACT_DISTANCE * CAR_INTERACT_DISTANCE;
+const TELEPORT_OBJECT_TYPES = new Set(['3d car', 'teleport']);
 let settingsButton = null;
 let godsSunToggleInput = null;
 const MAP_TRANSITIONS = {
@@ -1092,30 +1093,53 @@ async function transitionToMap(transition) {
   }
 }
 
+function getDefaultSpawnForTargetMap(targetMap) {
+  if (targetMap === DUNGEON_MAP_PATH) {
+    return MAP_TRANSITIONS[HOME_MAP_PATH]?.spawn || null;
+  }
+  if (targetMap === HOME_MAP_PATH) {
+    return MAP_TRANSITIONS[DUNGEON_MAP_PATH]?.spawn || null;
+  }
+  return null;
+}
+
+function isTeleportObject(obj) {
+  const type = obj?.userData?.type;
+  return TELEPORT_OBJECT_TYPES.has(type) || Boolean(obj?.userData?.teleport?.targetMap);
+}
+
+function getTeleportTransition(obj) {
+  const teleport = obj?.userData?.teleport;
+  const targetMap = sanitizeMapPath(teleport?.targetMap ?? obj?.userData?.targetMap);
+  if (targetMap) {
+    return {
+      targetMap,
+      spawn: teleport?.spawn || obj?.userData?.spawn || getDefaultSpawnForTargetMap(targetMap) || {}
+    };
+  }
+  return MAP_TRANSITIONS[currentMapPath] || null;
+}
+
 async function tryInteractWithCar() {
   if (isTransitioningMap || isPlayerDead || !isPointerLocked) {
     return;
   }
-  const transition = MAP_TRANSITIONS[currentMapPath];
-  if (!transition) {
-    return;
-  }
   const objects = getLoadedObjects();
-  let hasNearbyCar = false;
+  let transition = null;
   for (let i = 0; i < objects.length; i++) {
     const obj = objects[i];
-    if (!obj || obj.userData?.type !== '3d car') {
+    if (!isTeleportObject(obj)) {
       continue;
     }
     const dx = obj.position.x - cameraContainer.position.x;
     const dz = obj.position.z - cameraContainer.position.z;
     const distSq = dx * dx + dz * dz;
     if (distSq <= CAR_INTERACT_DISTANCE_SQ) {
-      hasNearbyCar = true;
+      transition = getTeleportTransition(obj);
       break;
     }
   }
-  if (!hasNearbyCar) {
+  if (!transition) {
     return;
   }
   await transitionToMap(transition);

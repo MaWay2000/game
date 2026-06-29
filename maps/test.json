@@ -1,0 +1,9230 @@
+[
+  {
+    "position": [
+      -16,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -16,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -15,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -14,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -13,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -12,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -11,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -10,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -9,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -8,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -7,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -6,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -4,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -3,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -2,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      -1,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      0,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      1,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      2,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      3,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      4,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      5,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      6,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      7,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      8,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      9,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      10,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      11,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      12,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      13,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      14,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -16
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -15
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -14
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -13
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -12
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -11
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -10
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -9
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -4
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -3
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      -1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      1
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      2
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      3
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      4
+    ],
+    "rotation": 0,
+    "type": "water"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      5
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      6
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      7
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      8
+    ],
+    "rotation": 0,
+    "type": "terrain"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      9
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      10
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      11
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      12
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      13
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      14
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      15,
+      0.5,
+      15
+    ],
+    "rotation": 0,
+    "type": "hill"
+  },
+  {
+    "position": [
+      -5,
+      0.5,
+      0
+    ],
+    "rotation": 0,
+    "type": "3d car",
+    "teleport": {
+      "targetMap": "maps/home.json"
+    }
+  }
+]
