@@ -14,5 +14,9 @@
   {
     "path": "maps/test3.json",
     "label": "Test3"
+  },
+  {
+    "path": "maps/generated1.json",
+    "label": "Generated1"
   }
 ]

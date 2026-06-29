@@ -63,6 +63,7 @@ const CAR_INTERACT_DISTANCE = 2.5;
 const CAR_INTERACT_DISTANCE_SQ = CAR_INTERACT_DISTANCE * CAR_INTERACT_DISTANCE;
 const TELEPORT_OBJECT_TYPES = new Set(['3d car', 'teleport']);
 let settingsButton = null;
+let restartGameButton = null;
 let godsSunToggleInput = null;
 const MAP_TRANSITIONS = {
   [HOME_MAP_PATH]: {
@@ -260,6 +261,7 @@ let canSaveProgress = false;
 let appliedWorldMapPath = null;
 let playerStateRestored = false;
 let isTransitioningMap = false;
+let skipSaveOnUnload = false;
 
 const canPointerLock = typeof canvas.requestPointerLock === 'function';
 let isPointerLocked = !canPointerLock;
@@ -281,40 +283,84 @@ function isFullscreenActive() {
 }
 
 function updateSettingsButtonVisibility() {
-  if (!settingsButton) {
-    return;
+  const display = isFullscreenActive() ? 'none' : 'block';
+  if (settingsButton) {
+    settingsButton.style.display = display;
   }
-  settingsButton.style.display = isFullscreenActive() ? 'none' : 'block';
+  if (restartGameButton) {
+    restartGameButton.style.display = display;
+  }
+}
+
+function restartFreshGame() {
+  skipSaveOnUnload = true;
+  stopAutosaveLoop();
+  canSaveProgress = false;
+  clearSaveData();
+  zombieKillCount = 0;
+  coinCount = 0;
+  removedObjectKeys.clear();
+  syncRemovedObjectKeys(removedObjectKeys);
+  removalState.clear();
+  zombieStateByMap.clear();
+  killedZombieKeysByMap.clear();
+  killedZombieKeys.clear();
+  try {
+    const url = new URL(window.location.href);
+    url.search = '';
+    window.history.replaceState({}, '', url);
+  } catch (err) {
+    console.warn('Unable to reset URL before restart:', err);
+  }
+  window.location.reload();
 }
 
 function initSettingsButton() {
-  if (settingsButton || typeof document === 'undefined') {
+  if ((settingsButton && restartGameButton) || typeof document === 'undefined') {
     return;
   }
 
+  const styleTopButton = (button, left) => {
+    button.type = 'button';
+    button.style.position = 'fixed';
+    button.style.left = left;
+    button.style.top = '16px';
+    button.style.zIndex = '180';
+    button.style.padding = '8px 12px';
+    button.style.border = '1px solid rgba(120,220,255,0.85)';
+    button.style.borderRadius = '6px';
+    button.style.background = 'rgba(0,0,0,0.72)';
+    button.style.color = '#ffffff';
+    button.style.font = 'bold 13px Arial, sans-serif';
+    button.style.letterSpacing = '0.5px';
+    button.style.textTransform = 'uppercase';
+    button.style.cursor = 'pointer';
+    button.style.boxShadow = '0 0 12px rgba(91,214,255,0.25)';
+  };
+
   settingsButton = document.createElement('button');
-  settingsButton.type = 'button';
   settingsButton.textContent = 'Settings';
-  settingsButton.style.position = 'fixed';
-  settingsButton.style.left = '16px';
-  settingsButton.style.top = '16px';
-  settingsButton.style.zIndex = '180';
-  settingsButton.style.padding = '8px 12px';
-  settingsButton.style.border = '1px solid rgba(120,220,255,0.85)';
-  settingsButton.style.borderRadius = '6px';
-  settingsButton.style.background = 'rgba(0,0,0,0.72)';
-  settingsButton.style.color = '#ffffff';
-  settingsButton.style.font = 'bold 13px Arial, sans-serif';
-  settingsButton.style.letterSpacing = '0.5px';
-  settingsButton.style.textTransform = 'uppercase';
-  settingsButton.style.cursor = 'pointer';
-  settingsButton.style.boxShadow = '0 0 12px rgba(91,214,255,0.25)';
+  styleTopButton(settingsButton, '16px');
   settingsButton.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
     toggleZombieSettingsVisible();
   });
   document.body.appendChild(settingsButton);
+
+  restartGameButton = document.createElement('button');
+  restartGameButton.textContent = 'Restart';
+  styleTopButton(restartGameButton, '128px');
+  restartGameButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!window.confirm('Restart game? Saved progress and stats will be reset.')) {
+      return;
+    }
+    restartFreshGame();
+  });
+  document.body.appendChild(restartGameButton);
+
   document.addEventListener('fullscreenchange', updateSettingsButtonVisibility);
   updateSettingsButtonVisibility();
 }
@@ -900,7 +946,7 @@ function handlePlayerDeath() {
     restartButton.style.background = '#ffffff';
     restartButton.style.color = '#000000';
     restartButton.addEventListener('click', () => {
-      window.location.reload();
+      restartFreshGame();
     });
 
     deathOverlay.appendChild(deathMessage);
@@ -1385,7 +1431,9 @@ function animate() {
 }
 
 window.addEventListener('beforeunload', () => {
-  saveGameState();
+  if (!skipSaveOnUnload) {
+    saveGameState();
+  }
 });
 
 function startGameLoop() {

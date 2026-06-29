@@ -94,7 +94,8 @@ const DEFAULT_MAP_OPTIONS = [
 const DEFAULT_DUNGEON_SETTINGS = {
     mapSize: 72,
     zombieCount: 20,
-    rooms: 80
+    rooms: 80,
+    teleportTargetMap: 'saved_map.json'
 };
 
 function isTeleportType(type) {
@@ -759,6 +760,41 @@ function createDungeonSettingField(form, labelText, value, min, max) {
     return input;
 }
 
+function createDungeonMapSelectField(form, labelText, selectedValue) {
+    const row = document.createElement('label');
+    row.style.display = 'grid';
+    row.style.gridTemplateColumns = '1fr 120px';
+    row.style.gap = '10px';
+    row.style.alignItems = 'center';
+    row.style.margin = '10px 0';
+    row.textContent = labelText;
+
+    const select = document.createElement('select');
+    select.style.width = '120px';
+    const options = getMapOptions();
+    const fallbackValue = selectedValue || getDefaultTeleportTarget();
+    let hasValue = false;
+    options.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option.value;
+        opt.textContent = option.label;
+        select.appendChild(opt);
+        if (option.value === fallbackValue) {
+            hasValue = true;
+        }
+    });
+    if (fallbackValue && !hasValue) {
+        const opt = document.createElement('option');
+        opt.value = fallbackValue;
+        opt.textContent = formatMapLabel(fallbackValue);
+        select.appendChild(opt);
+    }
+    select.value = fallbackValue;
+    row.appendChild(select);
+    form.appendChild(row);
+    return select;
+}
+
 function showDungeonSettingsPopup() {
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
@@ -789,6 +825,7 @@ function showDungeonSettingsPopup() {
     const sizeInput = createDungeonSettingField(form, 'Map Size', DEFAULT_DUNGEON_SETTINGS.mapSize, 24, 180);
     const zombieInput = createDungeonSettingField(form, 'Zombies Count', DEFAULT_DUNGEON_SETTINGS.zombieCount, 0, 500);
     const roomsInput = createDungeonSettingField(form, 'Rooms', DEFAULT_DUNGEON_SETTINGS.rooms, 1, 300);
+    const teleportTargetSelect = createDungeonMapSelectField(form, 'Teleport Room', getDefaultTeleportTarget());
 
     const actions = document.createElement('div');
     actions.style.display = 'flex';
@@ -824,7 +861,8 @@ function showDungeonSettingsPopup() {
         const settings = {
             mapSize: clampInteger(sizeInput.value, 24, 180, DEFAULT_DUNGEON_SETTINGS.mapSize),
             zombieCount: clampInteger(zombieInput.value, 0, 500, DEFAULT_DUNGEON_SETTINGS.zombieCount),
-            rooms: clampInteger(roomsInput.value, 1, 300, DEFAULT_DUNGEON_SETTINGS.rooms)
+            rooms: clampInteger(roomsInput.value, 1, 300, DEFAULT_DUNGEON_SETTINGS.rooms),
+            teleportTargetMap: teleportTargetSelect.value || DEFAULT_DUNGEON_SETTINGS.teleportTargetMap
         };
         closePopup();
         generateDungeon(settings);
@@ -929,7 +967,7 @@ function createDungeonLayout(width, height, roomCount, minRoomSize, maxRoomSize)
         }
     }
 
-    return grid;
+    return { grid, rooms };
 }
 
 function getDungeonZombieTypes() {
@@ -939,10 +977,18 @@ function getDungeonZombieTypes() {
         .filter(Boolean);
 }
 
-function addDungeonZombies(result, floorCells, zombieCount) {
+function isCellInsideRoom(cell, room) {
+    if (!cell || !room) return false;
+    return cell.gridX >= room.x &&
+        cell.gridX < room.x + room.w &&
+        cell.gridZ >= room.z &&
+        cell.gridZ < room.z + room.h;
+}
+
+function addDungeonZombies(result, floorCells, zombieCount, safeRoom = null) {
     const zombieTypes = getDungeonZombieTypes();
     if (!zombieTypes.length || zombieCount <= 0 || !floorCells.length) return;
-    const cells = floorCells.slice();
+    const cells = floorCells.filter(cell => !isCellInsideRoom(cell, safeRoom));
     for (let i = cells.length - 1; i > 0; i--) {
         const swapIndex = Math.floor(Math.random() * (i + 1));
         [cells[i], cells[swapIndex]] = [cells[swapIndex], cells[i]];
@@ -960,13 +1006,30 @@ function addDungeonZombies(result, floorCells, zombieCount) {
     }
 }
 
-function dungeonGridToObjects(grid, zombieCount = 0) {
+function addDungeonTeleportRoom(result, room, teleportTargetMap, offsetX, offsetZ) {
+    if (!room || !teleportTargetMap) return;
+    const x = Math.floor(room.x + room.w / 2) - offsetX;
+    const z = Math.floor(room.z + room.h / 2) - offsetZ;
+    result.push({
+        position: [x, 0.5, z],
+        rotation: 0,
+        type: '3d car',
+        teleport: {
+            targetMap: teleportTargetMap
+        }
+    });
+}
+
+function dungeonGridToObjects(grid, options = {}) {
     const result = [];
     const floorCells = [];
     const height = grid.length;
     const width = grid[0] ? grid[0].length : 0;
     const offsetX = Math.floor(width / 2);
     const offsetZ = Math.floor(height / 2);
+    const zombieCount = clampInteger(options.zombieCount, 0, 500, 0);
+    const safeRoom = options.safeRoom || null;
+    const teleportTargetMap = options.teleportTargetMap || null;
 
     function hasFloorNeighbor(x, z) {
         for (let dz = -1; dz <= 1; dz++) {
@@ -992,12 +1055,18 @@ function dungeonGridToObjects(grid, zombieCount = 0) {
                 type
             });
             if (type === 'terrain') {
-                floorCells.push({ x: x - offsetX, z: z - offsetZ });
+                floorCells.push({
+                    x: x - offsetX,
+                    z: z - offsetZ,
+                    gridX: x,
+                    gridZ: z
+                });
             }
         }
     }
 
-    addDungeonZombies(result, floorCells, zombieCount);
+    addDungeonTeleportRoom(result, safeRoom, teleportTargetMap, offsetX, offsetZ);
+    addDungeonZombies(result, floorCells, zombieCount, safeRoom);
     return result;
 }
 
@@ -1005,10 +1074,18 @@ function generateDungeon(settings = DEFAULT_DUNGEON_SETTINGS) {
     const mapSize = clampInteger(settings.mapSize, 24, 180, DEFAULT_DUNGEON_SETTINGS.mapSize);
     const zombieCount = clampInteger(settings.zombieCount, 0, 500, DEFAULT_DUNGEON_SETTINGS.zombieCount);
     const rooms = clampInteger(settings.rooms, 1, 300, DEFAULT_DUNGEON_SETTINGS.rooms);
+    const teleportTargetMap = isValidMapPath(settings.teleportTargetMap)
+        ? settings.teleportTargetMap
+        : getDefaultTeleportTarget();
     const minRoomSize = Math.max(4, Math.floor(mapSize / 18));
     const maxRoomSize = Math.max(minRoomSize + 2, Math.floor(mapSize / 6));
-    const grid = createDungeonLayout(mapSize, mapSize, rooms, minRoomSize, maxRoomSize);
-    const dungeonObjects = dungeonGridToObjects(grid, zombieCount);
+    const layout = createDungeonLayout(mapSize, mapSize, rooms, minRoomSize, maxRoomSize);
+    const safeRoom = layout.rooms[0] || null;
+    const dungeonObjects = dungeonGridToObjects(layout.grid, {
+        zombieCount,
+        safeRoom,
+        teleportTargetMap
+    });
 
     clearMap();
 
