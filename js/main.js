@@ -45,8 +45,76 @@ const weaponCamera = new THREE.PerspectiveCamera(
 weaponCamera.layers.set(1);
 camera.add(weaponCamera);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const PERFORMANCE_SETTINGS_KEY = 'gamePerformanceSettings';
+const PERFORMANCE_PRESETS = {
+  low: { renderScale: 0.75, fpsCap: 30, viewDistance: 16, minimapUpdateMs: 250 },
+  balanced: { renderScale: 0.85, fpsCap: 45, viewDistance: 20, minimapUpdateMs: 150 },
+  high: { renderScale: 1, fpsCap: 60, viewDistance: 25, minimapUpdateMs: 100 }
+};
+const PERFORMANCE_RENDER_SCALES = [0.6, 0.75, 0.85, 1];
+const PERFORMANCE_FPS_CAPS = [30, 45, 60];
+const PERFORMANCE_VIEW_DISTANCES = [12, 16, 20, 25];
+const PERFORMANCE_MINIMAP_TIMES = [250, 150, 100];
+
+function pickPerformanceValue(value, allowedValues, fallback) {
+  const number = Number(value);
+  return allowedValues.includes(number) ? number : fallback;
+}
+
+function sanitizePerformanceSettings(settings = {}) {
+  const defaults = PERFORMANCE_PRESETS.balanced;
+  return {
+    renderScale: pickPerformanceValue(settings.renderScale, PERFORMANCE_RENDER_SCALES, defaults.renderScale),
+    fpsCap: pickPerformanceValue(settings.fpsCap, PERFORMANCE_FPS_CAPS, defaults.fpsCap),
+    viewDistance: pickPerformanceValue(settings.viewDistance, PERFORMANCE_VIEW_DISTANCES, defaults.viewDistance),
+    minimapUpdateMs: pickPerformanceValue(settings.minimapUpdateMs, PERFORMANCE_MINIMAP_TIMES, defaults.minimapUpdateMs)
+  };
+}
+
+function readPerformanceSettings() {
+  if (typeof localStorage === 'undefined') {
+    return sanitizePerformanceSettings();
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(PERFORMANCE_SETTINGS_KEY) || 'null');
+    return sanitizePerformanceSettings(stored || {});
+  } catch (error) {
+    console.warn('Unable to read performance settings:', error);
+    return sanitizePerformanceSettings();
+  }
+}
+
+let performanceSettings = readPerformanceSettings();
+
+function savePerformanceSettings() {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+  try {
+    localStorage.setItem(PERFORMANCE_SETTINGS_KEY, JSON.stringify(performanceSettings));
+  } catch (error) {
+    console.warn('Unable to save performance settings:', error);
+  }
+}
+
+function getPerformancePixelRatio() {
+  return Math.min(window.devicePixelRatio || 1, performanceSettings.renderScale);
+}
+
+function getTargetFrameMs() {
+  return 1000 / Math.max(1, performanceSettings.fpsCap);
+}
+
+function getMinimapUpdateMs() {
+  return performanceSettings.minimapUpdateMs;
+}
+
+function getPlayerViewDistance() {
+  return performanceSettings.viewDistance;
+}
+
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(getPerformancePixelRatio());
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.autoClear = false;
@@ -436,6 +504,165 @@ function initLightingSettingsUI() {
   });
   sunLabel.appendChild(godsSunToggleInput);
   section.appendChild(sunLabel);
+
+  container.appendChild(section);
+}
+
+function performanceSettingsMatch(a, b) {
+  return a.renderScale === b.renderScale &&
+    a.fpsCap === b.fpsCap &&
+    a.viewDistance === b.viewDistance &&
+    a.minimapUpdateMs === b.minimapUpdateMs;
+}
+
+function getPerformancePresetName() {
+  const match = Object.entries(PERFORMANCE_PRESETS)
+    .find(([, preset]) => performanceSettingsMatch(performanceSettings, preset));
+  return match ? match[0] : 'custom';
+}
+
+function applyPerformanceSettings() {
+  renderer.setPixelRatio(getPerformancePixelRatio());
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  positionCrosshair();
+  lastFrameAt = 0;
+  lastMinimapUpdateAt = 0;
+  lastChunkX = null;
+  lastChunkZ = null;
+  updateVisibleObjects(scene, cameraContainer.position.x, cameraContainer.position.z, getPlayerViewDistance());
+}
+
+function initPerformanceSettingsUI() {
+  const container = getZombieSettingsContainer();
+  if (!container || container.querySelector('[data-performance-settings="true"]')) {
+    return;
+  }
+  container.style.maxHeight = 'calc(100vh - 96px)';
+  container.style.overflowY = 'auto';
+  container.style.boxSizing = 'border-box';
+
+  const section = document.createElement('div');
+  section.dataset.performanceSettings = 'true';
+  section.style.marginTop = '12px';
+  section.style.paddingTop = '10px';
+  section.style.borderTop = '1px solid rgba(255,255,255,0.18)';
+
+  const title = document.createElement('div');
+  title.textContent = 'Performance';
+  title.style.fontWeight = 'bold';
+  title.style.marginBottom = '8px';
+  section.appendChild(title);
+
+  const styleSelect = (select) => {
+    select.style.background = 'rgba(0,0,0,0.65)';
+    select.style.color = '#ffffff';
+    select.style.border = '1px solid rgba(120,220,255,0.7)';
+    select.style.borderRadius = '4px';
+    select.style.padding = '3px 6px';
+    select.style.minWidth = '92px';
+  };
+
+  const makeRow = (labelText, select) => {
+    const row = document.createElement('label');
+    row.textContent = labelText;
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.justifyContent = 'space-between';
+    row.style.gap = '10px';
+    row.style.marginBottom = '8px';
+    row.appendChild(select);
+    section.appendChild(row);
+  };
+
+  const makeSelect = (options) => {
+    const select = document.createElement('select');
+    styleSelect(select);
+    options.forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = String(value);
+      option.textContent = label;
+      select.appendChild(option);
+    });
+    return select;
+  };
+
+  const presetSelect = makeSelect([
+    ['low', 'Low'],
+    ['balanced', 'Balanced'],
+    ['high', 'High'],
+    ['custom', 'Custom']
+  ]);
+  const renderScaleSelect = makeSelect([
+    [0.6, '60%'],
+    [0.75, '75%'],
+    [0.85, '85%'],
+    [1, '100%']
+  ]);
+  const fpsSelect = makeSelect([
+    [30, '30'],
+    [45, '45'],
+    [60, '60']
+  ]);
+  const viewDistanceSelect = makeSelect([
+    [12, '12 m'],
+    [16, '16 m'],
+    [20, '20 m'],
+    [25, '25 m']
+  ]);
+  const minimapSelect = makeSelect([
+    [250, 'Slow'],
+    [150, 'Normal'],
+    [100, 'Fast']
+  ]);
+
+  const syncPerformanceControls = () => {
+    presetSelect.value = getPerformancePresetName();
+    renderScaleSelect.value = String(performanceSettings.renderScale);
+    fpsSelect.value = String(performanceSettings.fpsCap);
+    viewDistanceSelect.value = String(performanceSettings.viewDistance);
+    minimapSelect.value = String(performanceSettings.minimapUpdateMs);
+  };
+
+  const updatePerformanceSetting = (key, value) => {
+    performanceSettings = sanitizePerformanceSettings({
+      ...performanceSettings,
+      [key]: value
+    });
+    savePerformanceSettings();
+    syncPerformanceControls();
+    applyPerformanceSettings();
+  };
+
+  presetSelect.addEventListener('change', () => {
+    const preset = PERFORMANCE_PRESETS[presetSelect.value];
+    if (!preset) {
+      syncPerformanceControls();
+      return;
+    }
+    performanceSettings = sanitizePerformanceSettings(preset);
+    savePerformanceSettings();
+    syncPerformanceControls();
+    applyPerformanceSettings();
+  });
+  renderScaleSelect.addEventListener('change', () => {
+    updatePerformanceSetting('renderScale', Number(renderScaleSelect.value));
+  });
+  fpsSelect.addEventListener('change', () => {
+    updatePerformanceSetting('fpsCap', Number(fpsSelect.value));
+  });
+  viewDistanceSelect.addEventListener('change', () => {
+    updatePerformanceSetting('viewDistance', Number(viewDistanceSelect.value));
+  });
+  minimapSelect.addEventListener('change', () => {
+    updatePerformanceSetting('minimapUpdateMs', Number(minimapSelect.value));
+  });
+
+  makeRow('Preset', presetSelect);
+  makeRow('Render scale', renderScaleSelect);
+  makeRow('FPS cap', fpsSelect);
+  makeRow('View distance', viewDistanceSelect);
+  makeRow('Minimap', minimapSelect);
+  syncPerformanceControls();
 
   container.appendChild(section);
 }
@@ -982,8 +1209,6 @@ scene.fog = null;
 const geometries = {};
 const materials = {};
 const textureLoader = new THREE.TextureLoader(loadingManager);
-// Increased to ensure zombies remain within loaded map bounds
-const PLAYER_VIEW_DISTANCE = 25;
 const RANDOM_ZOMBIE_COUNT = 400;
 const PLAYER_MAX_HEALTH = 100;
 const PLAYER_HIT_DAMAGE = 10;
@@ -1051,6 +1276,7 @@ async function loadCurrentMap({ skipRandomZombies = false } = {}) {
       await spawnRandomZombies(scene, spawnCount, walkablePositions);
     }
   }
+  updateVisibleObjects(scene, cameraContainer.position.x, cameraContainer.position.z, getPlayerViewDistance());
   storeRemovalStateForCurrentMap();
   storeZombieStateForCurrentMap();
   return mapObjects;
@@ -1280,6 +1506,7 @@ if (!loadingOverlayHidden) {
 }
 initZombieSettingsUI();
 initLightingSettingsUI();
+initPerformanceSettingsUI();
 setZombieSettingsVisible(false);
 initSettingsButton();
 restorePlayerStateFromSave();
@@ -1358,6 +1585,7 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   weaponCamera.aspect = window.innerWidth / window.innerHeight;
   weaponCamera.updateProjectionMatrix();
+  renderer.setPixelRatio(getPerformancePixelRatio());
   renderer.setSize(window.innerWidth, window.innerHeight);
   positionCrosshair();
 });
@@ -1377,6 +1605,8 @@ window.addEventListener('gameObjectRemoved', (event) => {
 // --- Chunk-based culling/performance ---
 let lastChunkX = null, lastChunkZ = null;
 const UPDATE_CHUNK_SIZE = 5;
+let lastFrameAt = 0;
+let lastMinimapUpdateAt = 0;
 
 // --- Torch direction logic ---
 const spotlightTargetPos = new THREE.Vector3();
@@ -1392,8 +1622,12 @@ function updateSpotlightTarget(camera, spotlight) {
 }
 
 const clock = new THREE.Clock();
-function animate() {
+function animate(timestamp = performance.now()) {
   requestAnimationFrame(animate);
+  if (lastFrameAt && timestamp - lastFrameAt < getTargetFrameMs()) {
+    return;
+  }
+  lastFrameAt = timestamp;
   const delta = clock.getDelta();
 
   movement.update(delta);
@@ -1404,7 +1638,7 @@ function animate() {
   const playerX = Math.round(cameraContainer.position.x / UPDATE_CHUNK_SIZE) * UPDATE_CHUNK_SIZE;
   const playerZ = Math.round(cameraContainer.position.z / UPDATE_CHUNK_SIZE) * UPDATE_CHUNK_SIZE;
   if (playerX !== lastChunkX || playerZ !== lastChunkZ) {
-    updateVisibleObjects(scene, cameraContainer.position.x, cameraContainer.position.z, PLAYER_VIEW_DISTANCE);
+    updateVisibleObjects(scene, cameraContainer.position.x, cameraContainer.position.z, getPlayerViewDistance());
     lastChunkX = playerX;
     lastChunkZ = playerZ;
   }
@@ -1421,7 +1655,10 @@ function animate() {
   updateBullets(delta);
   updateDoors(delta);
   updateObjectMixers(delta);
-  updateMinimap(cameraContainer, camera, getLoadedObjects());
+  if (timestamp - lastMinimapUpdateAt >= getMinimapUpdateMs()) {
+    updateMinimap(cameraContainer, camera, getLoadedObjects());
+    lastMinimapUpdateAt = timestamp;
+  }
 
   renderer.clear();
   renderer.render(scene, camera);
